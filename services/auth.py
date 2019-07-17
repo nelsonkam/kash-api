@@ -7,10 +7,10 @@ import config
 import requests
 import json
 
-blueprint = Blueprint('auth', __name__)
+blueprint = Blueprint('auth', __name__, url_prefix="/auth")
 
 
-@routes.route('/auth/jwt', methods=["POST"])
+@routes.route('/jwt/request', methods=["POST"])
 def auth_jwt():
   data = request.get_json()
   token = data.get('id_token')
@@ -41,7 +41,7 @@ def auth_jwt():
     return jsonify({
       "access_token": create_access_token({
         "phone_number": firebase_user["phone_number"], 
-        "uid": firebase_user["uid"],
+        "firebase_id": firebase_user["uid"],
         "user_id": user.get("id") if user else None
       }),
       "user": user
@@ -50,7 +50,7 @@ def auth_jwt():
     print(err)
     return jsonify({"message": "User with phone number has not been verified"}), 404
 
-@routes.route("/auth/create_account", methods=["POST"])
+@routes.route("/account/create", methods=["POST"])
 @jwt_required
 def auth_create_account():
   identity = get_jwt_identity()
@@ -70,7 +70,13 @@ def auth_create_account():
     }
   """
 
-  resp = client.execute(query, variables={'firebase_id': firebase_id})
+  resp = client.execute(query, variables={
+    'avatar_url': data.get("avatar_url"),
+    'name': data.get("name"),
+    'phone_number': identity.get("phone_number"),
+    'username': data.get("username"),
+    'firebase_id': identity.get("firebase_id"),
+  })
 
   resp = json.load(resp)
 
@@ -86,8 +92,11 @@ def auth_create_account():
 
   user = resp.get("data").get('insert_users').get("returning")[0]
 
-  return jsonify({'data': user, "access_token": create_access_token({
-        "phone_number": identity.get("phone_number"), 
-        "uid": identity.get("uid"),
-        "user_id": user.get("id")
-      })})
+  return jsonify({
+    'data': user, 
+    "access_token": create_access_token({
+      "phone_number": identity.get("phone_number"), 
+      "firebase_id": identity.get("firebase_id"),
+      "user_id": user.get("id")
+    })
+  })
