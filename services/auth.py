@@ -10,7 +10,7 @@ import json
 blueprint = Blueprint('auth', __name__, url_prefix="/auth")
 
 
-@routes.route('/jwt/request', methods=["POST"])
+@blueprint.route('/jwt/request', methods=["POST"])
 def auth_jwt():
   data = request.get_json()
   token = data.get('id_token')
@@ -50,7 +50,7 @@ def auth_jwt():
     print(err)
     return jsonify({"message": "User with phone number has not been verified"}), 404
 
-@routes.route("/account/create", methods=["POST"])
+@blueprint.route("/account/create", methods=["POST"])
 @jwt_required
 def auth_create_account():
   identity = get_jwt_identity()
