@@ -5,7 +5,7 @@ from utils.upload import save_file, allowed_file
 blueprint = Blueprint('upload', __name__, url_prefix="/upload")
 
 @blueprint.route('', methods=['POST'])
-# @jwt_required
+@jwt_required
 def upload():
   image = request.files.get('image')
   if image and allowed_file(image.filename):
