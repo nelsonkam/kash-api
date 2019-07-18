@@ -5,9 +5,17 @@ from utils import firebase
 from utils.graphql import client
 import config
 import requests
-import json
 
 blueprint = Blueprint('auth', __name__, url_prefix="/auth")
+
+def graphql(query, variables):
+  headers = {
+    'x-hasura-admin-secret': config.GQL_ENGINE_SECRET
+  }
+  json = {'query': query, "variables": variables}
+
+  resp = requests.post(config.GQL_ENGINE_URL, json=json, headers=headers)
+  return resp.json()
 
 
 @blueprint.route('/jwt/request', methods=["POST"])
@@ -18,7 +26,7 @@ def auth_jwt():
 
   query = """
     query($firebase_id: String) {
-      users(where: {firebase_id: {_eq: $firebase_id}) {
+      user(where: {firebase_id: {_eq: $firebase_id}}) {
         avatar_url
         created_at
         id
@@ -30,9 +38,15 @@ def auth_jwt():
     }
   """
 
-  resp = client.execute(query, variables={'firebase_id': firebase_id})
+  headers = {
+    'x-hasura-admin-secret': config.GQL_ENGINE_URL
+  }
 
-  users = json.load(resp).get("data").get("users")
+  resp = graphql(query, {'firebase_id': firebase_id})
+  
+  print(resp)
+  users = resp.get("data").get("user")
+
   user = users[0] if len(users) > 0 else None
   
   try:
@@ -58,7 +72,7 @@ def auth_create_account():
 
   query = """
     mutation($avatar_url: String!, $name: String!, $phone_number: String!, $username: String!, $firebase_id: String!) {
-      insert_users(objects: {avatar_url: $avatar_url, name: $name, phone_number: $phone_number, username: $username, firebase_id: $firebase_id}) {
+      insert_user(objects: {avatar_url: $avatar_url, name: $name, phone_number: $phone_number, username: $username, firebase_id: $firebase_id}) {
         returning {
           id
           avatar_url
@@ -70,15 +84,14 @@ def auth_create_account():
     }
   """
 
-  resp = client.execute(query, variables={
+
+  resp = graphql(query, {
     'avatar_url': data.get("avatar_url"),
     'name': data.get("name"),
     'phone_number': identity.get("phone_number"),
     'username': data.get("username"),
     'firebase_id': identity.get("firebase_id"),
   })
-
-  resp = json.load(resp)
 
   if "errors" in resp:
     error = resp.get("errors")[0]
