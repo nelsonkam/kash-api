@@ -106,7 +106,7 @@ def auth_create_account():
   user = resp.get("data").get('insert_user').get("returning")[0]
 
   return jsonify({
-    'data': user, 
+    'user': user, 
     "access_token": create_access_token({
       "phone_number": identity.get("phone_number"), 
       "firebase_id": identity.get("firebase_id"),
