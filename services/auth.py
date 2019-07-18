@@ -91,6 +91,7 @@ def auth_create_account():
     'phone_number': identity.get("phone_number"),
     'username': data.get("username"),
     'firebase_id': identity.get("firebase_id"),
+    'push_id':
   })
 
   if "errors" in resp:
@@ -103,7 +104,7 @@ def auth_create_account():
     return jsonify({'code': code, 'message': error.get("message")}), 400
 
 
-  user = resp.get("data").get('insert_users').get("returning")[0]
+  user = resp.get("data").get('insert_user').get("returning")[0]
 
   return jsonify({
     'data': user, 
