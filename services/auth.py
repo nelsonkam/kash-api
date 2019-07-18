@@ -100,7 +100,7 @@ def auth_create_account():
       code = 'USERNAME_TAKEN' 
     elif 'firebase_id_unique' in error.get("message"):
       code  = 'USER_EXISTS'
-    return jsonify({'code': code}), 400
+    return jsonify({'code': code, 'message': error.get("message")}), 400
 
 
   user = resp.get("data").get('insert_users').get("returning")[0]
