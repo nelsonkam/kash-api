@@ -64,6 +64,19 @@ def auth_jwt():
     print(err)
     return jsonify({"message": "User with phone number has not been verified"}), 404
 
+@blueprint.route("/hasura/authenticate")
+@jwt_required
+def hasura_auth():
+  identity = get_jwt_identity()
+  user_id = identity.get("user_id")
+  if user_id:
+    return jsonify({
+      "X-Hasura-User-Id": str(user_id),
+      "X-Hasura-Role": "user"
+    })
+  else:
+    abort(401)
+
 @blueprint.route("/account/create", methods=["POST"])
 @jwt_required
 def auth_create_account():
