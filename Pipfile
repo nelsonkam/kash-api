@@ -14,6 +14,10 @@ requests = "*"
 gunicorn = "*"
 firebase-admin = "*"
 graphqlclient = "*"
+huey = "*"
+redis = "*"
+pendulum = "*"
+slackclient = "~=1.3"
 
 [requires]
 python_version = "3.6"

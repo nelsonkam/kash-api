@@ -1,6 +1,11 @@
-from graphqlclient import GraphQLClient
+import requests
 import config
 
-client = GraphQLClient(config.GQL_ENGINE_URL)
+def graphql(query, variables):
+  headers = {
+    'x-hasura-admin-secret': config.GQL_ENGINE_SECRET
+  }
+  json = {'query': query, "variables": variables}
 
-client.inject_token(config.GQL_ENGINE_SECRET)
+  resp = requests.post(config.GQL_ENGINE_URL, json=json, headers=headers)
+  return resp.json()

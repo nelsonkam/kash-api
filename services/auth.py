@@ -44,7 +44,6 @@ def auth_jwt():
 
   resp = graphql(query, {'firebase_id': firebase_id})
   
-  print(resp)
   users = resp.get("data").get("user")
 
   user = users[0] if len(users) > 0 else None
