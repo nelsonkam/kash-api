@@ -2,7 +2,6 @@ from flask import Blueprint, current_app as app, jsonify, request, abort
 from firebase_admin import auth
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from utils import firebase
-from utils.graphql import client
 import config
 import requests
 
