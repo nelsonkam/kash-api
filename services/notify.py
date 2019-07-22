@@ -14,14 +14,14 @@ def send_feedback():
   if user and feedback:
     message = [
       {
-        "fallback": f"Feedback from {user.get('username')}: {feedback}",
+        "fallback": f"Feedback from @{user.get('username')}: {feedback}",
         "actions": [
           {
             "type": "button",
             "text": "📞 Contact on WhatsApp",
             "url": "https://wa.me/"+user.get("phone_number")[1:]
           }
-        ]
+        ],
         "color": "#30BCED",
         "pretext": "You've got new feedback.",
         "text": "",
