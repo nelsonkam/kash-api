@@ -33,12 +33,13 @@ def send_feedback():
           },
           {
             "title": "WhatsApp",
-            "value": user.get("phone_number")
+            "value": user.get("phone_number"),
             "short": True
           },
           {
             "title": "Feed",
             "value": feedback,
+            "short": False
           }
         ],
       }
