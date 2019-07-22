@@ -3,10 +3,10 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from utils.slack import send_message
 import config
 
-blueprint = Blueprint('nofify', __name__, url_prefix="/nofify")
+blueprint = Blueprint('notify', __name__, url_prefix="/notify")
 
 @blueprint.route('/feedback', methods=['POST'])
-@jwt_required
+# @jwt_required
 def send_feedback():
   data = request.get_json()
   user = data.get("user")
@@ -32,7 +32,7 @@ def send_feedback():
             "short": True
           },
           {
-            "title": "WhatsApp",
+            "title": "Phone Number",
             "value": user.get("phone_number"),
             "short": True
           },
