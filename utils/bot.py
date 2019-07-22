@@ -24,6 +24,16 @@ def get_active_users(date):
 def format_date(date, date_format):
   return date.format(date_format)
 
+def get_color(progress):
+  if progress < 20:
+    return "#000000"
+  elif progress < 50:
+    return "#F44336"
+  elif progress < 80:
+    return "#FDD835"
+  else:
+    return "#00C853"
+
 def post_metrics():
   today = pendulum.today()
   active_users = get_active_users(today)
@@ -33,7 +43,7 @@ def post_metrics():
   slack_message = [
     {
       "fallback": f"Active users: {active_users}, Goal: {goal}, Progress: {progress}%",
-      "color": "#36a64f",
+      "color": get_color(progress),
       "pretext": "Good morning! Here are today's metrics.",
       "title": f"Week {format_date(today.start_of('week'), 'Do MMM')} - {format_date(today.end_of('week'), 'Do MMM')}",
       "text": "",
