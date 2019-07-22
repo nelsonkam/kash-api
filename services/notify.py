@@ -37,7 +37,7 @@ def send_feedback():
             "short": True
           },
           {
-            "title": "Feed",
+            "title": "Feedback",
             "value": feedback,
             "short": False
           }
