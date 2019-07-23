@@ -119,10 +119,9 @@ def auth_create_account():
 
   message = [
     {
-      "fallback": f"New account created!",
+      "fallback": f"New account created!💪🏾",
       "color": "#30BCED",
-      "pretext": "New account created!",
-      "text": "",
+      "pretext": "New account created!💪🏾",
       "fields": [
         {
           "title": "Name",
