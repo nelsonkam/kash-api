@@ -2,6 +2,7 @@ from flask import Blueprint, current_app as app, jsonify, request, abort
 from firebase_admin import auth
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from utils import firebase
+from utils.slack import send_message
 import config
 import requests
 
@@ -116,6 +117,33 @@ def auth_create_account():
 
   user = resp.get("data").get('insert_user').get("returning")[0]
 
+  message = [
+    {
+      "fallback": f"New account created!",
+      "color": "#30BCED",
+      "pretext": "New account created!",
+      "text": "",
+      "fields": [
+        {
+          "title": "Name",
+          "value": user.get("name"),
+          "short": True
+        },
+        {
+          "title": "Phone Number",
+          "value": user.get("phone_number"),
+          "short": True
+        },
+        {
+          "title": "Username",
+          "value": user.get("username"),
+          "short": True
+        }
+      ],
+    }
+  ]
+  channel = "#notifications" if config.APP_ENV == "production" else "#dev-test"
+  send_message(message, channel)
   return jsonify({
     'user': user, 
     "access_token": create_access_token({
