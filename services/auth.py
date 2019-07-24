@@ -129,15 +129,15 @@ def auth_create_account():
           "short": True
         },
         {
-          "title": "Phone Number",
-          "value": user.get("phone_number"),
-          "short": True
-        },
-        {
           "title": "Username",
           "value": user.get("username"),
           "short": True
         }
+        {
+          "title": "Phone Number",
+          "value": user.get("phone_number"),
+          "short": True
+        },
       ],
     }
   ]
