@@ -101,7 +101,6 @@ def auth_create_account():
         {
             "name": data.get("name"),
             "phone_number": identity.get("phone_number"),
-            "username": data.get("username"),
             "firebase_id": identity.get("firebase_id"),
         },
     )
