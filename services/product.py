@@ -10,8 +10,8 @@ blueprint = Blueprint("product", __name__, url_prefix="/product")
 def create():
     data = request.get_json()
     query = """
-    mutation($name: String!, $price: String!, $description: String!) {
-        insert_product(objects: {name: $name, price: $price, description: $description}) {
+    mutation($name: String!, $price: String!, $description: String!, $shop_id: uuid!) {
+        insert_product(objects: {name: $name, price: $price, description: $description, shop_id: $shop_id}) {
             returning {
                 id
                 name
