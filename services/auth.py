@@ -139,6 +139,13 @@ def auth_create_account():
         },
     )
 
+    if "errors" in resp:
+        error = resp.get("errors")[0]
+        code = "UNKNOWN_ERROR"
+        if "username_unique" in error.get("message"):
+            code = "USERNAME_TAKEN"
+        return jsonify({"code": code, "message": error.get("message")}), 400
+
     shop = resp.get("data").get("insert_shop").get("returning")[0]
 
     message = [
