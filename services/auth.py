@@ -108,16 +108,14 @@ def auth_create_account():
     if "errors" in resp:
         error = resp.get("errors")[0]
         code = "UNKNOWN_ERROR"
-        if "username_unique" in error.get("message"):
-            code = "USERNAME_TAKEN"
-        elif "firebase_id_unique" in error.get("message"):
+        if "unique" in error.get("message"):
             code = "USER_EXISTS"
         return jsonify({"code": code, "message": error.get("message")}), 400
 
     user = resp.get("data").get("insert_user").get("returning")[0]
 
     query = """
-    mutation ($shop_name: String!, $phone_number: String!, $username: String!, $user_id: String!) {
+    mutation ($shop_name: String!, $phone_number: String!, $username: String!, $user_id: uuid!) {
       insert_shop(objects: {name: $shop_name, username: $username, whatsapp_number: $phone_number, user_id: $user_id}) {
         returning {
           id
