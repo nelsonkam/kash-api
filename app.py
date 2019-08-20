@@ -11,12 +11,12 @@ from services import auth, upload, notify
 # logger.addHandler(default_handler)
 
 app = Flask(__name__)
-app.config.from_pyfile('config.py')
+app.config.from_pyfile("config.py")
 jwt = JWTManager(app)
 app.register_blueprint(auth.blueprint)
 app.register_blueprint(upload.blueprint)
 app.register_blueprint(notify.blueprint)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run()
