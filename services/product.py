@@ -28,6 +28,7 @@ def create():
             "name": data.get("name"),
             "price": data.get("price"),
             "description": data.get("description"),
+            "shop_id": data.get("shop_id")
         },
     )
 
