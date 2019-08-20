@@ -3,18 +3,11 @@ from firebase_admin import auth
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from utils import firebase
 from utils.slack import send_message
+from utils.graphql import graphql
 import config
 import requests
 
 blueprint = Blueprint("auth", __name__, url_prefix="/auth")
-
-
-def graphql(query, variables):
-    headers = {"x-hasura-admin-secret": config.GQL_ENGINE_SECRET}
-    json = {"query": query, "variables": variables}
-
-    resp = requests.post(config.GQL_ENGINE_URL, json=json, headers=headers)
-    return resp.json()
 
 
 @blueprint.route("/jwt/request", methods=["POST"])

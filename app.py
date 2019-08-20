@@ -3,7 +3,7 @@ from flask import Flask
 from flask.logging import default_handler
 from flask_jwt_extended import JWTManager
 import config
-from services import auth, upload, notify
+from services import auth, upload, notify, product
 
 # db logger
 # logger = logging.getLogger('orator.connection.queries')
@@ -16,6 +16,7 @@ jwt = JWTManager(app)
 app.register_blueprint(auth.blueprint)
 app.register_blueprint(upload.blueprint)
 app.register_blueprint(notify.blueprint)
+app.register_blueprint(product.blueprint)
 
 
 if __name__ == "__main__":
