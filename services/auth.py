@@ -30,8 +30,6 @@ def auth_jwt():
     }
   """
 
-    headers = {"x-hasura-admin-secret": config.GQL_ENGINE_URL}
-
     resp = graphql(query, {"firebase_id": firebase_id})
 
     users = resp.get("data").get("user")
@@ -67,7 +65,7 @@ def hasura_auth():
         user_id = identity.get("user_id")
         return jsonify({"X-Hasura-User-Id": str(user_id), "X-Hasura-Role": "user"})
     else:
-        return jsonify({"X-Hasura-User-Id": None, "X-Hasura-Role": "anonymous"})
+        return jsonify({"X-Hasura-User-Id": "0", "X-Hasura-Role": "anonymous"})
 
 
 @blueprint.route("/account/create", methods=["POST"])
