@@ -1,6 +1,6 @@
 from flask import Blueprint, current_app as app, jsonify, request, abort
 from firebase_admin import auth
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, jwt_optional
 from utils import firebase
 from utils.slack import send_message
 from utils.graphql import graphql
@@ -59,14 +59,15 @@ def auth_jwt():
 
 
 @blueprint.route("/hasura/authenticate")
-@jwt_required
+@jwt_optional
 def hasura_auth():
     identity = get_jwt_identity()
-    user_id = identity.get("user_id")
-    if user_id:
+    
+    if identity:
+        user_id = identity.get("user_id")
         return jsonify({"X-Hasura-User-Id": str(user_id), "X-Hasura-Role": "user"})
     else:
-        abort(401)
+        return jsonify({"X-Hasura-User-Id": None, "X-Hasura-Role": "anonymous"})
 
 
 @blueprint.route("/account/create", methods=["POST"])
@@ -79,11 +80,10 @@ def auth_create_account():
     mutation ($name: String!, $phone_number: String!, $firebase_id: String!) {
         insert_user(objects: {name: $name, phone_number: $phone_number, firebase_id: $firebase_id}) {
             returning {
-            id
-            avatar_url
-            name
-            username
-            phone_number
+                id
+                avatar_url
+                name
+                phone_number
             }
         }
     }
@@ -107,37 +107,7 @@ def auth_create_account():
 
     user = resp.get("data").get("insert_user").get("returning")[0]
 
-    query = """
-    mutation ($shop_name: String!, $phone_number: String!, $username: String!, $user_id: uuid!) {
-      insert_shop(objects: {name: $shop_name, username: $username, whatsapp_number: $phone_number, user_id: $user_id}) {
-        returning {
-          id
-          name
-          username
-          whatsapp_number
-        }
-      }
-    }
-  """
-
-    resp = graphql(
-        query,
-        {
-            "shop_name": data.get("shopName"),
-            "phone_number": data.get("shopPhone"),
-            "username": data.get("username"),
-            "user_id": user.get("id"),
-        },
-    )
-
-    if "errors" in resp:
-        error = resp.get("errors")[0]
-        code = "UNKNOWN_ERROR"
-        if "username_unique" in error.get("message"):
-            code = "USERNAME_TAKEN"
-        return jsonify({"code": code, "message": error.get("message")}), 400
-
-    shop = resp.get("data").get("insert_shop").get("returning")[0]
+    
 
     message = [
         {
@@ -160,7 +130,6 @@ def auth_create_account():
     return jsonify(
         {
             "user": user,
-            "shop": shop,
             "access_token": create_access_token(
                 {
                     "phone_number": identity.get("phone_number"),
@@ -170,3 +139,60 @@ def auth_create_account():
             ),
         }
     )
+
+@blueprint.route("/shop/create", methods=["POST"])
+@jwt_required
+def create_shop():
+    identity = get_jwt_identity()
+    data = request.get_json()
+
+    query = """
+        mutation ($shop_name: String!, $phone_number: String!, $username: String!, $user_id: uuid!) {
+        insert_shop(objects: {name: $shop_name, username: $username, whatsapp_number: $phone_number, user_id: $user_id}) {
+            returning {
+            id
+            name
+            username
+            whatsapp_number
+            }
+        }
+        }
+    """
+
+    resp = graphql(
+        query,
+        {
+            "shop_name": data.get("shopName"),
+            "phone_number": data.get("shopPhone"),
+            "username": data.get("username"),
+            "user_id": user.get("id"),
+        },
+    )
+
+    if "errors" in resp:
+        error = resp.get("errors")[0]
+        code = "UNKNOWN_ERROR"
+        if "username_unique" in error.get("message"):
+            code = "USERNAME_TAKEN"
+        return jsonify({"code": code, "message": error.get("message")}), 400
+
+    shop = resp.get("data").get("insert_shop").get("returning")[0]
+
+    message = [
+        {
+            "fallback": f"New shop created!💪🏾",
+            "color": "#30BCED",
+            "pretext": "New shop created!💪🏾",
+            "fields": [
+                {"title": "Name", "value": shop.get("name"), "short": True},
+                {"title": "Username", "value": shop.get("username"), "short": True},
+                {
+                    "title": "Phone Number",
+                    "value": shop.get("whatsapp_number"),
+                    "short": True,
+                },
+            ],
+        }
+    ]
+    channel = "#notifications" if config.APP_ENV == "production" else "#dev-test"
+    send_message(message, channel)
