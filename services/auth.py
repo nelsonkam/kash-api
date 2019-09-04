@@ -75,8 +75,8 @@ def auth_create_account():
     data = request.get_json()
 
     query = """
-    mutation ($name: String!, $phone_number: String!, $firebase_id: String!) {
-        insert_user(objects: {name: $name, phone_number: $phone_number, firebase_id: $firebase_id}) {
+    mutation ($name: String!, $phone_number: String!, $firebase_id: String!, $avatar_url: String!) {
+        insert_user(objects: {name: $name, phone_number: $phone_number, firebase_id: $firebase_id, avatar_url: $avatar_url}) {
             returning {
                 id
                 avatar_url
@@ -91,6 +91,7 @@ def auth_create_account():
         query,
         {
             "name": data.get("name"),
+            "avatar_url": data.get("avatar_url"),
             "phone_number": identity.get("phone_number"),
             "firebase_id": identity.get("firebase_id"),
         },
