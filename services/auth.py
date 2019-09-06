@@ -171,7 +171,7 @@ def create_shop():
             "shop_name": data.get("shop_name"),
             "phone_number": data.get("shop_phone"),
             "username": data.get("username"),
-            "user_id": user.get("id"),
+            "user_id": data.get("user_id"),
         },
     )
 
