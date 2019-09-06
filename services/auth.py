@@ -111,6 +111,13 @@ def auth_create_account():
     message = [
         {
             "fallback": f"New account created!💪🏾",
+            "actions": [
+                {
+                    "type": "button",
+                    "text": "📞 Contact on WhatsApp",
+                    "url": "https://wa.me/" + user.get("phone_number")[1:],
+                }
+            ],
             "color": "#30BCED",
             "pretext": "New account created!💪🏾",
             "fields": [
@@ -161,8 +168,8 @@ def create_shop():
     resp = graphql(
         query,
         {
-            "shop_name": data.get("shopName"),
-            "phone_number": data.get("shopPhone"),
+            "shop_name": data.get("shop_name"),
+            "phone_number": data.get("shop_phone"),
             "username": data.get("username"),
             "user_id": user.get("id"),
         },
@@ -181,6 +188,13 @@ def create_shop():
         {
             "fallback": f"New shop created!💪🏾",
             "color": "#30BCED",
+            "actions": [
+                {
+                    "type": "button",
+                    "text": "📞 Contact on WhatsApp",
+                    "url": "https://wa.me/" + shop.get("whatsapp_number")[1:],
+                }
+            ],
             "pretext": "New shop created!💪🏾",
             "fields": [
                 {"title": "Name", "value": shop.get("name"), "short": True},
