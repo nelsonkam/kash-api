@@ -20,12 +20,17 @@ def auth_jwt():
     query($firebase_id: String) {
       user(where: {firebase_id: {_eq: $firebase_id}}) {
         avatar_url
-        created_at
         id
         name
         phone_number
         username
-        updated_at
+        shops {
+            id
+            name
+            username
+            avatar_url
+            whatsapp_number
+        }
       }
     }
   """
@@ -78,10 +83,18 @@ def auth_create_account():
     mutation ($name: String!, $phone_number: String!, $firebase_id: String!, $avatar_url: String!) {
         insert_user(objects: {name: $name, phone_number: $phone_number, firebase_id: $firebase_id, avatar_url: $avatar_url}) {
             returning {
-                id
                 avatar_url
+                id
                 name
                 phone_number
+                username
+                shops {
+                    id
+                    name
+                    username
+                    avatar_url
+                    whatsapp_number
+                }
             }
         }
     }
@@ -154,14 +167,13 @@ def create_shop():
 
     query = """
         mutation ($shop_name: String!, $phone_number: String!, $username: String!, $user_id: uuid!) {
-        insert_shop(objects: {name: $shop_name, username: $username, whatsapp_number: $phone_number, user_id: $user_id}) {
-            returning {
-            id
-            name
-            username
-            whatsapp_number
+            insert_shop(objects: {name: $shop_name, username: $username, whatsapp_number: $phone_number, user_id: $user_id}) {
+                returning {
+                    id
+                    name
+                    username
+                }
             }
-        }
         }
     """
 
