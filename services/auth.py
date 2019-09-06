@@ -209,3 +209,8 @@ def create_shop():
     ]
     channel = "#notifications" if config.APP_ENV == "production" else "#dev-test"
     send_message(message, channel)
+    return jsonify(
+        {
+            "shop": shop,
+        }
+    )
