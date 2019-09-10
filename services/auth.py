@@ -166,8 +166,8 @@ def create_shop():
     data = request.get_json()
 
     query = """
-        mutation ($shop_name: String!, $phone_number: String!, $username: String!, $user_id: uuid!) {
-            insert_shop(objects: {name: $shop_name, username: $username, whatsapp_number: $phone_number, user_id: $user_id}) {
+        mutation ($shop_name: String!, $phone_number: String!, $username: String!, $description: String!, $avatar_url: String!, $user_id: uuid!) {
+            insert_shop(objects: {name: $shop_name, username: $username, whatsapp_number: $phone_number, user_id: $user_id, description: $description, avatar_url: $avatar_url}) {
                 returning {
                     id
                     name
@@ -184,6 +184,8 @@ def create_shop():
             "phone_number": data.get("shop_phone"),
             "username": data.get("username"),
             "user_id": data.get("user_id"),
+            "avatar_url": data.get("avatar_url"),
+            "description": data.get("description"),
         },
     )
 
