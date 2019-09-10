@@ -172,6 +172,9 @@ def create_shop():
                     id
                     name
                     username
+                    whatsapp_number
+                    avatar_url
+                    description
                 }
             }
         }
@@ -194,6 +197,8 @@ def create_shop():
         code = "UNKNOWN_ERROR"
         if "username_unique" in error.get("message"):
             code = "USERNAME_TAKEN"
+        elif "unique" in error.get("message"):
+            code = "SHOP_EXISTS"
         return jsonify({"code": code, "message": error.get("message")}), 400
 
     shop = resp.get("data").get("insert_shop").get("returning")[0]
