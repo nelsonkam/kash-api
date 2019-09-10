@@ -195,10 +195,11 @@ def create_shop():
     if "errors" in resp:
         error = resp.get("errors")[0]
         code = "UNKNOWN_ERROR"
-        if "username_unique" in error.get("message"):
-            code = "USERNAME_TAKEN"
-        elif "unique" in error.get("message"):
-            code = "SHOP_EXISTS"
+        if "unique" in error.get("message"):
+            if "user_id" in error.get("message"):
+                code = "SHOP_EXISTS"
+            elif "username" in error.get("message"):
+                code = "USERNAME_TAKEN"
         return jsonify({"code": code, "message": error.get("message")}), 400
 
     shop = resp.get("data").get("insert_shop").get("returning")[0]
