@@ -92,8 +92,9 @@ def auth_create_account():
                     id
                     name
                     username
-                    avatar_url
                     whatsapp_number
+                    avatar_url
+                    description
                 }
             }
         }
