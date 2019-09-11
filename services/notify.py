@@ -61,13 +61,39 @@ def order_product():
                         "url": product.get("product_images")[0].get("url"),
                     }
                 ],
-                "pretext": "New shop created!💪🏾",
+                "pretext": "New order!💪🏾",
                 "fields": [
-                    {"title": "Customer Name", "value": data.get("name"), "short": True},
-                    {"title": "Customer Phone", "value": data.get("phone"), "short": True},
-                    {"title": "Product Name", "value": product.get("name"), "short": True},
-                    {"title": "Product Price", "value": product.get("price"), "short": True},
-                    {"title": "Customer Address", "value": data.get("address"), "short": False},
+                    {
+                        "title": "Customer Name",
+                        "value": data.get("name"),
+                        "short": True,
+                    },
+                    {
+                        "title": "Customer Phone",
+                        "value": data.get("phone"),
+                        "short": True,
+                    },
+                    {
+                        "title": "Product Name",
+                        "value": product.get("name"),
+                        "short": True,
+                    },
+                    {
+                        "title": "Product Price",
+                        "value": product.get("price"),
+                        "short": True,
+                    },
+                    {
+                        "title": "Shop Phone",
+                        "value": "https://wa.me/"
+                        + product.get("shop").get("whatsapp_number"),
+                        "short": True,
+                    },
+                    {
+                        "title": "Customer Address",
+                        "value": data.get("address"),
+                        "short": False,
+                    },
                 ],
             }
         ]
