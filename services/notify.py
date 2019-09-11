@@ -7,7 +7,7 @@ blueprint = Blueprint("notify", __name__, url_prefix="/notify")
 
 
 @blueprint.route("/feedback", methods=["POST"])
-# @jwt_required
+@jwt_required
 def send_feedback():
     data = request.get_json()
     user = data.get("user")
@@ -43,3 +43,33 @@ def send_feedback():
         return send_message(message, channel)
     else:
         return jsonify({"error": "400 Bad Request"}), 400
+
+
+@blueprint.route("/order", methods=["POST"])
+def order_product():
+    data = request.get_json()
+    product = data.get("product")
+    if product:
+        message = [
+            {
+                "fallback": f"New order!💪🏾",
+                "color": "#30BCED",
+                "actions": [
+                    {
+                        "type": "button",
+                        "text": "🖼 Product image",
+                        "url": product.get("product_images")[0].get("url"),
+                    }
+                ],
+                "pretext": "New shop created!💪🏾",
+                "fields": [
+                    {"title": "Customer Name", "value": data.get("name"), "short": True},
+                    {"title": "Customer Phone", "value": data.get("phone"), "short": True},
+                    {"title": "Product Name", "value": product.get("name"), "short": True},
+                    {"title": "Product Price", "value": product.get("price"), "short": True},
+                    {"title": "Customer Address", "value": data.get("address"), "short": False},
+                ],
+            }
+        ]
+    channel = "#notifications" if config.APP_ENV == "production" else "#dev-test"
+    return send_message(message, channel)
