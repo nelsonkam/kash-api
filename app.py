@@ -2,6 +2,7 @@ import logging
 from flask import Flask
 from flask.logging import default_handler
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 import config
 from services import auth, upload, notify, product
 
@@ -11,6 +12,7 @@ from services import auth, upload, notify, product
 # logger.addHandler(default_handler)
 
 app = Flask(__name__)
+CORS(app)
 app.config.from_pyfile("config.py")
 jwt = JWTManager(app)
 app.register_blueprint(auth.blueprint)

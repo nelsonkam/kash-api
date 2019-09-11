@@ -1,6 +1,11 @@
 from flask import Blueprint, current_app as app, jsonify, request, abort
 from firebase_admin import auth
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, jwt_optional
+from flask_jwt_extended import (
+    create_access_token,
+    get_jwt_identity,
+    jwt_required,
+    jwt_optional,
+)
 from utils import firebase
 from utils.slack import send_message
 from utils.graphql import graphql
@@ -65,7 +70,7 @@ def auth_jwt():
 @jwt_optional
 def hasura_auth():
     identity = get_jwt_identity()
-    
+
     if identity:
         user_id = identity.get("user_id")
         return jsonify({"X-Hasura-User-Id": str(user_id), "X-Hasura-Role": "user"})
@@ -120,8 +125,6 @@ def auth_create_account():
 
     user = resp.get("data").get("insert_user").get("returning")[0]
 
-    
-
     message = [
         {
             "fallback": f"New account created!💪🏾",
@@ -159,6 +162,7 @@ def auth_create_account():
             ),
         }
     )
+
 
 @blueprint.route("/shop/create", methods=["POST"])
 @jwt_required
@@ -230,8 +234,45 @@ def create_shop():
     ]
     channel = "#notifications" if config.APP_ENV == "production" else "#dev-test"
     send_message(message, channel)
-    return jsonify(
-        {
-            "shop": shop,
+    return jsonify({"shop": shop})
+
+
+@blueprint.route("/shop/current")
+@jwt_required
+def get_shop():
+    identity = get_jwt_identity()
+
+    query = """
+    query ($id: uuid!) {
+        shop(where: {user_id: {_eq: $id}}) {
+            id
+            description
+            name
+            products {
+            id
+            name
+            price
+            sold
+            product_images {
+                id
+                url
+            }
+            
+            }
+            avatar_url
+            username
+            whatsapp_number
         }
-    )
+    }
+    """
+
+    resp = graphql(query, {"id": identity.get("user_id")})
+
+    if "errors" in resp:
+        error = resp.get("errors")[0]
+        code = "UNKNOWN_ERROR"
+        return jsonify({"code": code, "message": error.get("message")}), 400
+
+    shop = resp.get("data").get("shop")[0]
+
+    return jsonify({"shop": shop})
