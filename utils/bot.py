@@ -13,6 +13,16 @@ query($start: timestamptz, $end: timestamptz) {
 }
 """
 
+active_sellers_query = """
+query ($start: timestamptz, $end: timestamptz) {
+  shop_aggregate(where: {products: {created_at: {_gte: $start, _lt: $end}}, user_id: {_is_null: false}}) {
+    aggregate {
+      count
+    }
+  }
+}
+"""
+
 
 def get_active_users(date):
     start = date.start_of("week").isoformat()
@@ -20,6 +30,14 @@ def get_active_users(date):
 
     data = graphql(active_users_query, {"start": start, "end": end})
     return data.get("data").get("user_aggregate").get("aggregate").get("count")
+
+
+def get_active_sellers(date):
+    start = date.start_of("week").isoformat()
+    end = date.end_of("week").isoformat()
+
+    data = graphql(active_sellers_query, {"start": start, "end": end})
+    return data.get("data").get("shop_aggregate").get("aggregate").get("count")
 
 
 def format_date(date, date_format):
@@ -39,13 +57,13 @@ def get_color(progress):
 
 def post_metrics():
     today = pendulum.today()
-    active_users = get_active_users(today)
-    last_week_users = get_active_users(today.subtract(weeks=1))
+    active_users = get_active_sellers(today)
+    last_week_users = get_active_sellers(today.subtract(weeks=1))
     goal = last_week_users + 10
     progress = round(((active_users) / goal) * 100)
     slack_message = [
         {
-            "fallback": f"Active users: {active_users}, Goal: {goal}, Progress: {progress}%",
+            "fallback": f"Active sellers: {active_users}, Goal: {goal}, Progress: {progress}%",
             "color": get_color(progress),
             "pretext": "Good morning! Here are today's metrics.",
             "title": f"Week {format_date(today.start_of('week'), 'Do MMM')} - {format_date(today.end_of('week'), 'Do MMM')}",
@@ -56,7 +74,7 @@ def post_metrics():
                 {"title": "Goal", "value": goal, "short": True},
                 {"title": "Progress", "value": f"{progress}%", "short": True},
             ],
-            "footer": "An active user is a user who has saved an item.",
+            "footer": "An active seller is a user who has created a shop and posted a product.",
         }
     ]
     return slack.send_message(
