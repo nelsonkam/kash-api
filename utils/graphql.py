@@ -2,7 +2,7 @@ import requests
 import config
 
 
-def graphql(query, variables):
+def graphql(query, variables=None):
     headers = {"x-hasura-admin-secret": config.GQL_ENGINE_SECRET}
     json = {"query": query, "variables": variables}
 
