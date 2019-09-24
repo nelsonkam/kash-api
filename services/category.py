@@ -29,4 +29,4 @@ def products(slug):
         code = "GRAPHQL_ERROR"
         return jsonify({"code": code, "message": error.get("message")}), 400
 
-    return jsonify(resp.get("data"))
+    return jsonify(resp.get("data").get("category")[0])
