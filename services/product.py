@@ -60,3 +60,48 @@ def create():
         return jsonify({"code": code, "message": error.get("message")}), 400
 
     return jsonify({"product": product})
+
+
+@blueprint.route("/similar/<product_id>")
+def similar(product_id):
+    query = """
+    query ($id: uuid!){
+        product(where: {id: {_eq: $id}}) {
+            category {
+                products {
+                    description
+                    created_at
+                    id
+                    name
+                    price
+                    product_images {
+                        id
+                        url
+                        created_at
+                    }
+                }
+            }
+        }
+    }
+    """
+    resp = graphql(query, {"id": product_id})
+
+    if "errors" in resp:
+        code = "GRAPHQL_ERROR"
+        return jsonify({"code": code, "message": error.get("message")}), 400
+
+    product = resp.get("data").get("product")[0]
+
+    if not product:
+        code = "PRODUCT_NOT_FOUND_ERROR"
+        return jsonify({"code": code, "message": "Product not found"}), 404
+    elif not product.get("category"):
+        code = "NO_CATEGORY_ERROR"
+        return (
+            jsonify({"code": code, "message": "Product doesn't have a category"}),
+            404,
+        )
+
+    products = product.get("category").get("products")
+
+    return jsonify({"products": products})
