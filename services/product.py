@@ -1,6 +1,7 @@
 from flask import Blueprint, current_app as app, jsonify, request, abort
 from flask_jwt_extended import get_jwt_identity, jwt_required, jwt_optional
 from utils.graphql import graphql
+import random
 
 blueprint = Blueprint("product", __name__, url_prefix="/product")
 
@@ -103,5 +104,6 @@ def similar(product_id):
         )
 
     products = product.get("category").get("products")
+    random.shuffle(products)
 
-    return jsonify({"products": products})
+    return jsonify({"products": products[:2]})
