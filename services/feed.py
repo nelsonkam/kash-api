@@ -6,6 +6,11 @@ blueprint = Blueprint("feed", __name__, url_prefix="/feed")
 
 FEED_QUERY = """
 {
+  banner {
+    id
+    image_url
+    link
+  }
   category(order_by: {products_aggregate: {count: desc}}) {
     id
     name
