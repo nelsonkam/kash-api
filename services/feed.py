@@ -15,7 +15,7 @@ FEED_QUERY = """
     id
     name
     slug
-    products(limit: 1) {
+    products(limit: 1, offset: 10) {
       product_images {
         url
       }
