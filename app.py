@@ -4,7 +4,7 @@ from flask.logging import default_handler
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 import config
-from services import auth, upload, notify, product, feed, category
+from services import auth, upload, notify, product, feed, category, shop
 
 # db logger
 # logger = logging.getLogger('orator.connection.queries')
@@ -21,6 +21,7 @@ app.register_blueprint(notify.blueprint)
 app.register_blueprint(product.blueprint)
 app.register_blueprint(feed.blueprint)
 app.register_blueprint(category.blueprint)
+app.register_blueprint(shop.blueprint)
 
 
 if __name__ == "__main__":
