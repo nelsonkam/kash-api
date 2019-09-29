@@ -21,7 +21,7 @@ FEED_QUERY = """
       }
     }
   }
-  product(order_by: {id: asc}) {
+  product(order_by: {created_at: desc}) {
     id
     name
     price
