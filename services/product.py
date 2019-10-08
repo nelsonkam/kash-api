@@ -153,18 +153,14 @@ def get_product(product_id):
         return jsonify({"code": code, "message": error.get("message")}), 400
 
     product = resp.get("data").get("product")[0]
-
+    similar_products = []
     if not product:
         code = "PRODUCT_NOT_FOUND_ERROR"
         return jsonify({"code": code, "message": "Product not found"}), 404
-    elif not product.get("category"):
-        code = "NO_CATEGORY_ERROR"
-        return (
-            jsonify({"code": code, "message": "Product doesn't have a category"}),
-            404,
-        )
+    elif product.get("category"):
+        similar_products = product.get("category").get("products")
+        random.shuffle(similar_products)
+   
+    
 
-    products = product.get("category").get("products")
-    random.shuffle(products)
-
-    return jsonify({"similar": products[:2], "product": product})
+    return jsonify({"similar": similar_products[:2], "product": product})
