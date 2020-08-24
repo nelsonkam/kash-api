@@ -3,6 +3,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required, jwt_optional
 from utils.graphql import graphql
 from utils.slack import send_message
 import config
+
 blueprint = Blueprint("shop", __name__, url_prefix="/shop")
 
 
@@ -74,3 +75,51 @@ def create_shop():
     channel = "#notifications" if config.APP_ENV == "production" else "#dev-test"
     send_message(message, channel)
     return jsonify({"shop": shop})
+
+
+@blueprint.route("/<username>")
+def get_shop(username):
+
+    query = """
+    query Shop($username: String!) {
+        shop(where: {username: {_eq: $username}}) {
+          id
+          description
+          name
+          products(order_by: {created_at: desc}) {
+            id
+            name
+            price
+            sold
+            product_images {
+              id
+              url
+            }
+            
+          }
+          avatar_url
+          username
+          whatsapp_number
+        }
+        categories: category(order_by: {products_aggregate: {count: desc}}) {
+            id
+            name
+            slug
+            products(order_by: {id: asc}, limit: 1, offset: 10) {
+              product_images {
+                url
+              }
+            }
+          }
+      }
+    """
+
+    resp = graphql(query, {"username": username},)
+
+    if "errors" in resp:
+        error = resp.get("errors")[0]
+        code = "GRAPHQL_ERROR"
+        print(resp)
+        return jsonify({"code": code, "message": error.get("message")}), 400
+
+    return jsonify(resp.get("data"))

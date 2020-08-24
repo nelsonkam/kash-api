@@ -24,5 +24,7 @@ GQL_ENGINE_URL = os.getenv("GQL_ENGINE_URL")
 GQL_ENGINE_SECRET = os.getenv("GQL_ENGINE_SECRET")
 SLACK_TOKEN = os.getenv("SLACK_TOKEN")
 REDIS_URL = os.getenv("REDIS_URL")
+DB_URL = os.getenv("DB_URL")
+SQLALCHEMY_DATABASE_URI = DB_URL
 
 APP_ENV = os.getenv("APP_ENV")

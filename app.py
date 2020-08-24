@@ -1,28 +1,35 @@
 import logging
 from flask import Flask
-from flask.logging import default_handler
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
-import config
-from services import auth, upload, notify, product, feed, category, shop
-
-# db logger
-# logger = logging.getLogger('orator.connection.queries')
-# logger.setLevel(logging.DEBUG)
-# logger.addHandler(default_handler)
-
-app = Flask(__name__)
-app.config.from_pyfile("config.py")
-CORS(app)
-jwt = JWTManager(app)
-app.register_blueprint(auth.blueprint)
-app.register_blueprint(upload.blueprint)
-app.register_blueprint(notify.blueprint)
-app.register_blueprint(product.blueprint)
-app.register_blueprint(feed.blueprint)
-app.register_blueprint(category.blueprint)
-app.register_blueprint(shop.blueprint)
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 
-if __name__ == "__main__":
-    app.run()
+cors = CORS()
+jwt = JWTManager()
+db = SQLAlchemy()
+migrate = Migrate()
+
+def register_blueprints(app):
+    from services import auth, upload, notify, product, feed, category, shop
+
+    app.register_blueprint(auth.blueprint)
+    app.register_blueprint(upload.blueprint)
+    app.register_blueprint(notify.blueprint)
+    app.register_blueprint(product.blueprint)
+    app.register_blueprint(feed.blueprint)
+    app.register_blueprint(category.blueprint)
+    app.register_blueprint(shop.blueprint)
+
+
+def create_app(config_file="config.py"):
+    app = Flask(__name__)
+    app.config.from_pyfile(config_file)
+    cors.init_app(app)
+    jwt.init_app(app)
+    db.init_app(app)
+    migrate.init_app(app, db)
+
+    import models # noqa
+    return app

@@ -47,6 +47,6 @@ def feed():
 
     if "errors" in resp:
         code = "GRAPHQL_ERROR"
-        return jsonify({"code": code, "message": error.get("message")}), 400
+        return jsonify({"code": code, "message": resp.get("message")}), 400
 
     return jsonify(resp.get("data"))

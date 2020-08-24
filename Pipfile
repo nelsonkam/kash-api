@@ -19,6 +19,11 @@ redis = "*"
 pendulum = "*"
 slackclient = "~=1.3"
 flask-cors = "*"
+urllib3 = "*"
+ariadne = "*"
+flask-sqlalchemy = "*"
+psycopg2-binary = "*"
+flask-migrate = "*"
 
 [requires]
 python_version = "3.6"

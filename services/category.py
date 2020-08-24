@@ -21,12 +21,24 @@ def products(slug):
                 }
             }
         }
+        categories: category(order_by: {products_aggregate: {count: desc}}) {
+            id
+            name
+            slug
+            products(order_by: {id: asc}, limit: 1, offset: 10) {
+              product_images {
+                url
+              }
+            }
+          }
     }
     """
     resp = graphql(query, {"slug": slug})
 
     if "errors" in resp:
+        error = resp.get("errors")[0]
         code = "GRAPHQL_ERROR"
+        print(resp)
         return jsonify({"code": code, "message": error.get("message")}), 400
 
-    return jsonify(resp.get("data").get("category")[0])
+    return jsonify(resp.get("data"))

@@ -144,11 +144,22 @@ def get_product(product_id):
                 }
             }
         }
+        categories: category(order_by: {products_aggregate: {count: desc}}) {
+            id
+            name
+            slug
+            products(order_by: {id: asc}, limit: 1, offset: 10) {
+              product_images {
+                url
+              }
+            }
+          }
     }
     """
     resp = graphql(query, {"id": product_id})
 
     if "errors" in resp:
+        error = resp.get("errors")[0]
         code = "GRAPHQL_ERROR"
         return jsonify({"code": code, "message": error.get("message")}), 400
 
@@ -163,4 +174,4 @@ def get_product(product_id):
    
     
 
-    return jsonify({"similar": similar_products[:2], "product": product})
+    return jsonify({"similar": similar_products[:4], "product": product, "categories": resp.get("data").get("categories")})
