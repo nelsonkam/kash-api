@@ -10,7 +10,6 @@ ALLOWED_EXTENSIONS = set(["png", "jpg", "jpeg", "gif"])
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-
 UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER")
 DO_SPACES_KEY = os.getenv("DO_SPACES_KEY")
 DO_SPACES_SECRET = os.getenv("DO_SPACES_SECRET")
