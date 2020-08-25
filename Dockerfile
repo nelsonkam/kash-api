@@ -16,7 +16,7 @@ COPY poetry.lock pyproject.toml /usr/src/app/
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction
 
-RUN chmod +x docker-entrypoint.sh
 COPY ./ /usr/src/app
+RUN chmod +x docker-entrypoint.sh
 
 ENV FLASK_APP app.py
