@@ -3,7 +3,7 @@
   services:
     web:
       build: .
-      command: ./docker-entrypoint.sh
+      command: sh ./docker-entrypoint.sh
       volumes:
         - .:/usr/src/app
       ports:
