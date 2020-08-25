@@ -1,3 +1,0 @@
-prod.kweek.africa {
-    reverse_proxy web:5000
-}
