@@ -30,7 +30,7 @@
         - caddy_config:/config
         - ./Caddyfile:/etc/caddy/Caddyfile
 
-volumes:
-  caddy_data:
-  caddy_config:
-  redis_data:
+  volumes:
+    caddy_data:
+    caddy_config:
+    redis_data:
