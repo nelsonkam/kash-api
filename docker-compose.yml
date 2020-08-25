@@ -18,4 +18,19 @@
       ports:
         - "6379:6379"
       volumes:
-        - ~/data/redis:/data
+        - redis_data:/data
+
+    caddy:
+      image: caddy:2.0.0-alpine
+      ports:
+        - 80:80
+        - 443:443
+      volumes:
+        - caddy_data:/data
+        - caddy_config:/config
+        - ./Caddyfile:/etc/caddy/Caddyfile
+
+volumes:
+  caddy_data:
+  caddy_config:
+  redis_data:
