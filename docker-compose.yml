@@ -1,0 +1,12 @@
+  version: '3'
+    
+  services:
+    web:
+      build: .
+      command: ./docker-entrypoint.sh
+      volumes:
+        - .:/usr/src/app
+      ports:
+        - "5000:5000"
+      env_file:
+        - ./.env.prod

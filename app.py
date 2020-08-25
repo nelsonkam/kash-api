@@ -1,4 +1,6 @@
 import logging
+
+from ariadne import make_executable_schema, load_schema_from_path
 from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
@@ -8,11 +10,12 @@ from flask_migrate import Migrate
 
 cors = CORS()
 jwt = JWTManager()
-db = SQLAlchemy()
-migrate = Migrate()
+db = SQLAlchemy(session_options={'autocommit': True})
+migrate = Migrate(compare_type=True)
+
 
 def register_blueprints(app):
-    from services import auth, upload, notify, product, feed, category, shop
+    from services import auth, upload, notify, product, feed, category, shop, graphql
 
     app.register_blueprint(auth.blueprint)
     app.register_blueprint(upload.blueprint)
@@ -21,6 +24,7 @@ def register_blueprints(app):
     app.register_blueprint(feed.blueprint)
     app.register_blueprint(category.blueprint)
     app.register_blueprint(shop.blueprint)
+    app.register_blueprint(graphql.blueprint)
 
 
 def create_app(config_file="config.py"):
@@ -30,6 +34,5 @@ def create_app(config_file="config.py"):
     jwt.init_app(app)
     db.init_app(app)
     migrate.init_app(app, db)
-
-    import models # noqa
+    register_blueprints(app)
     return app

@@ -71,6 +71,7 @@ uritemplate = "3.0.1"
 urllib3 = "1.25.10"
 websocket-client = "0.54.0"
 werkzeug = "1.0.1"
+sqlalchemy_mixins = "^1.2.1"
 
 [tool.poetry.dev-dependencies]
 

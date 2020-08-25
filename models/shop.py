@@ -2,7 +2,7 @@ from app import db
 from models import mixins
 
 
-class Shop(db.Model, mixins.BaseMixin):
+class Shop(mixins.BaseModel):
     username = db.Column(db.String(255), unique=True, nullable=False)
     name = db.Column(db.String(255), nullable=False)
     phone_number = db.Column(db.String(255), nullable=False)

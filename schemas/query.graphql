@@ -1,0 +1,74 @@
+type Query {
+    shops(username: String, limit: Int, offset: Int): [Shop]!
+    products(id: ID, limit: Int, offset: Int, order_by: String): [Product]!
+    similar_products(product_id: ID): [Product]
+    categories(slug: String): [Category]!
+    banners(id: ID): [Banner]!
+}
+
+type Shop {
+    id: ID!,
+    created_at: String!
+    updated_at: String!
+    username: String!
+    name: String!
+    phone_number: String!
+    whatsapp_number: String!
+    avatar_url: String
+    description: String
+    owner: User
+    user_id: ID!
+    products(id: ID, limit: Int, offset: Int): [Product]!
+}
+
+type User {
+    id: ID!,
+    created_at: String!
+    updated_at: String!
+    username: String!
+    name: String
+    phone_number: String!
+    avatar_url: String
+    shops: [Shop]
+}
+
+type Product {
+    id: ID!,
+    created_at: String!
+    updated_at: String!
+    name: String
+    price: Int!
+    currency_iso: String!
+    description: String
+    shop_id: ID!
+    shop: Shop!
+    category_id: ID!
+    category: Category
+    images: [ProductImage]
+}
+
+type Category {
+    id: ID!,
+    created_at: String!
+    updated_at: String!
+    name: String!
+    slug: String!
+    products: [Product]
+}
+
+type ProductImage {
+    id: ID!,
+    created_at: String!
+    updated_at: String!
+    url: String!
+    product_id: String!
+    product: Product!
+}
+
+type Banner {
+    id: ID!,
+    created_at: String!
+    updated_at: String!
+    link: String!
+    image_url: String!
+}
