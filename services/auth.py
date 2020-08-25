@@ -1,16 +1,14 @@
-from flask import Blueprint, current_app as app, jsonify, request, abort
-from firebase_admin import auth
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import (
     create_access_token,
     get_jwt_identity,
     jwt_required,
     jwt_optional,
 )
-from utils import firebase
-from utils.slack import send_message
-from utils.graphql import graphql
+
 import config
-import requests
+from utils.graphql import graphql
+from utils.slack import send_message
 
 blueprint = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -47,14 +45,13 @@ def auth_jwt():
     user = users[0] if len(users) > 0 else None
 
     try:
-        firebase_user = auth.verify_id_token(token)
 
         return jsonify(
             {
                 "access_token": create_access_token(
                     {
-                        "phone_number": firebase_user["phone_number"],
-                        "firebase_id": firebase_user["uid"],
+                        "phone_number": None,
+                        "firebase_id": None,
                         "user_id": user.get("id") if user else None,
                     }
                 ),
