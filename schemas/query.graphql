@@ -4,6 +4,7 @@ type Query {
     similar_products(product_id: ID): [Product]
     categories(slug: String): [Category]!
     banners(id: ID): [Banner]!
+    cart(id: ID!): Cart
 }
 
 type Shop {
@@ -71,4 +72,20 @@ type Banner {
     updated_at: String!
     link: String!
     image_url: String!
+}
+
+type Cart {
+    id: ID!
+    created_at: String!
+    updated_at: String!
+    items: [Item]!
+}
+
+type Item {
+    id: ID!
+    created_at: String!
+    updated_at: String!
+    quantity: Int!
+    product: Product!
+    total: Int!
 }

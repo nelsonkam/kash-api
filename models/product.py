@@ -10,4 +10,5 @@ class Product(mixins.BaseModel):
     shop_id = mixins.foreign_key("shop")
     category_id = mixins.foreign_key("category", nullable=True)
     images = db.relationship("ProductImage", backref="product")
+    cart_items = db.relationship("Item", backref="product")
 

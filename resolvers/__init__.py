@@ -1,7 +1,7 @@
 from ariadne import QueryType
 from sqlalchemy.orm import joinedload
 
-from models import Shop, Product, Category, Banner
+from models import Shop, Product, Category, Banner, Cart
 
 query = QueryType()
 
@@ -43,4 +43,8 @@ def resolve_similar_products(obj, info, product_id):
     product = Product.find_or_fail(product_id)
     return Product.query.join(Category).filter(Product.id!=product_id, Category.id==product.category_id).limit(4).all()
 
+
+@query.field("cart")
+def resolve_cart(_, info, id):
+    return Cart.with_joined("items", "items.product", "items.product.images").filter_by(id=id).first()
 
