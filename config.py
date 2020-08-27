@@ -1,4 +1,6 @@
 import os
+from urllib.parse import urlparse
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -27,3 +29,16 @@ DB_URL = os.getenv("DB_URL")
 SQLALCHEMY_DATABASE_URI = DB_URL
 
 APP_ENV = os.getenv("APP_ENV")
+
+result = urlparse(DB_URL)
+
+ORATOR_DATABASES = {
+    "postgres": {
+        "driver": "postgres",
+        "host": result.hostname,
+        "database": result.path[1:],
+        "user": result.username,
+        "password": result.password,
+        "port": result.port,
+    }
+}
