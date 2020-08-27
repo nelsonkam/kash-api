@@ -1,0 +1,6 @@
+type Mutation {
+    add_to_cart(cart_id: ID, product_id: ID!, quantity: Int!): Cart!
+    delete_cart_item(id: ID!): ID!
+    update_cart_item(id: ID!, quantity: Int!): Item!
+}
+

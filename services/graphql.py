@@ -4,9 +4,10 @@ from flask import request, jsonify, Blueprint, current_app as app
 
 from resolvers import query
 from resolvers.extensions import QueryExecutionExtension
+from resolvers.mutations import mutation
 
 type_defs = load_schema_from_path("schemas")
-schema = make_executable_schema(type_defs, query)
+schema = make_executable_schema(type_defs, query, mutation)
 blueprint = Blueprint("graphql", __name__, url_prefix="/graphql")
 
 
