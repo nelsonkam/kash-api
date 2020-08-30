@@ -15,9 +15,8 @@ def resolve_shops(obj, info, username=None, limit=None, offset=0):
 
 @query.field("products")
 def resolve_products(obj, info, slug=None, limit=None, offset=0, order_by="-created_at"):
-    print("obj", obj)
     relations = ["shop", "images", "category", "category.products"]
-    if id:
+    if slug:
         return Product.with_(*relations).where('slug', slug).get().serialize()
     return Product.with_(*relations).order_by('created_at', 'desc').limit(limit).offset(offset).get().serialize()
 
