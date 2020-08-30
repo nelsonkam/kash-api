@@ -1,7 +1,6 @@
 import time
 
 from ariadne.types import ExtensionSync as Extension
-from sqlalchemy import event
 
 from app import db
 
@@ -19,7 +18,6 @@ class QueryExecutionExtension(Extension):
 
     def request_finished(self, context):
         self.end_timestamp = time.perf_counter_ns()
-        event.remove(db.engine, "before_cursor_execute", self.query_callback)
 
     def query_callback(self, *_):
         self.count += 1
