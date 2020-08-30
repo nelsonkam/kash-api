@@ -1,7 +1,11 @@
+from orator.orm import belongs_to
+
 from app import db
-from models import mixins
 
 
-class ProductImage(mixins.BaseModel):
-    url = db.Column(db.Text, nullable=False)
-    product_id = mixins.foreign_key("product")
+class ProductImage(db.Model):
+    @belongs_to
+    def product(self):
+        from models import Product
+
+        return Product

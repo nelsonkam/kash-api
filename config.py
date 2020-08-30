@@ -40,5 +40,6 @@ ORATOR_DATABASES = {
         "user": result.username,
         "password": result.password,
         "port": result.port,
+        "log_queries": os.getenv("FLASK_ENV") == "development"
     }
 }

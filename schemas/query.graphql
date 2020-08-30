@@ -1,10 +1,9 @@
 type Query {
     shops(username: String, limit: Int, offset: Int): [Shop]!
-    products(id: ID, limit: Int, offset: Int, order_by: String): [Product]!
+    products(slug: String, limit: Int, offset: Int, order_by: String): [Product]!
     similar_products(product_id: ID): [Product]
     categories(slug: String): [Category]!
     banners(id: ID): [Banner]!
-    cart(id: ID!): Cart
 }
 
 type Shop {
@@ -34,7 +33,8 @@ type User {
 }
 
 type Product {
-    id: ID!,
+    id: ID!
+    slug: String!
     created_at: String!
     updated_at: String!
     name: String

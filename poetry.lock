@@ -30,6 +30,17 @@ asgi-file-uploads = ["python-multipart (>=0.0.5)"]
 
 [[package]]
 category = "main"
+description = "Internationalization utilities"
+name = "babel"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "2.8.0"
+
+[package.dependencies]
+pytz = ">=2015.7"
+
+[[package]]
+category = "main"
 description = "Useful utilities for Python."
 name = "backpack"
 optional = false
@@ -127,12 +138,12 @@ description = "Faker is a Python package that generates fake data for you."
 name = "faker"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "0.8.18"
+version = "0.8.12"
 
 [package.dependencies]
 python-dateutil = ">=2.4"
-six = ">=1.10"
-text-unidecode = "1.2"
+six = "*"
+text-unidecode = "*"
 
 [[package]]
 category = "main"
@@ -396,6 +407,18 @@ tzlocal = ">=1.5.0.0,<2.0.0.0"
 
 [[package]]
 category = "main"
+description = "Python price handling for humans"
+name = "prices"
+optional = false
+python-versions = "*"
+version = "1.0.0"
+
+[package.dependencies]
+babel = ">=2.5.0"
+typing = ">=3.6.0"
+
+[[package]]
+category = "main"
 description = "psycopg2 - Python-PostgreSQL Database Adapter"
 name = "psycopg2-binary"
 optional = false
@@ -474,6 +497,20 @@ version = "1.0.4"
 
 [[package]]
 category = "main"
+description = "A Python Slugify application that handles Unicode"
+name = "python-slugify"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+version = "4.0.1"
+
+[package.dependencies]
+text-unidecode = ">=1.3"
+
+[package.extras]
+unidecode = ["Unidecode (>=1.1.1)"]
+
+[[package]]
+category = "main"
 description = "World timezone definitions, modern and historical"
 name = "pytz"
 optional = false
@@ -527,6 +564,17 @@ socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7)", "win-inet-pton"]
 
 [[package]]
 category = "main"
+description = "A lightweight REST miniframework for Python."
+name = "restless"
+optional = false
+python-versions = "*"
+version = "2.1.1"
+
+[package.dependencies]
+six = ">=1.4.0"
+
+[[package]]
+category = "main"
 description = "An Amazon S3 Transfer Manager"
 name = "s3transfer"
 optional = false
@@ -535,6 +583,17 @@ version = "0.3.3"
 
 [package.dependencies]
 botocore = ">=1.12.36,<2.0a.0"
+
+[[package]]
+category = "main"
+description = "An e-commerce framework"
+name = "satchless"
+optional = false
+python-versions = "*"
+version = "1.2.0"
+
+[package.dependencies]
+prices = ">=1.0,<1.1"
 
 [[package]]
 category = "main"
@@ -614,7 +673,15 @@ description = "The most basic Text::Unidecode port"
 name = "text-unidecode"
 optional = false
 python-versions = "*"
-version = "1.2"
+version = "1.3"
+
+[[package]]
+category = "main"
+description = "Type Hints for Python"
+name = "typing"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "3.7.4.3"
 
 [[package]]
 category = "main"
@@ -680,7 +747,7 @@ python-versions = "*"
 version = "1.12.1"
 
 [metadata]
-content-hash = "c081891bff3f7b2459331d1fd746e581556c55863a17f0cd472e1d6787eef98f"
+content-hash = "e581e33a4364a65e4ed28c5c4f7191e38f530ec51d6a0d2d34ceb444fe0b7ecb"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -690,6 +757,10 @@ alembic = [
 ariadne = [
     {file = "ariadne-0.12.0-py3-none-any.whl", hash = "sha256:e88b574d13c155f934d5e57431e5f9ab3a266a7064a6e397e7c662241276e2e3"},
     {file = "ariadne-0.12.0.tar.gz", hash = "sha256:00a21584eb5ca8751380f9870d560db0a486ff69747884674caaee811a2ae64b"},
+]
+babel = [
+    {file = "Babel-2.8.0-py2.py3-none-any.whl", hash = "sha256:d670ea0b10f8b723672d3a6abeb87b565b244da220d76b4dba1b66269ec152d4"},
+    {file = "Babel-2.8.0.tar.gz", hash = "sha256:1aac2ae2d0d8ea368fa90906567f5c08463d98ade155c0c4bfedd6a0f7160e38"},
 ]
 backpack = [
     {file = "backpack-0.1.tar.gz", hash = "sha256:0162cf7b34c810ba4ddbbd32a1e5e804ef96fcf2fea5ce2848aa4950770d3893"},
@@ -727,8 +798,8 @@ docutils = [
     {file = "docutils-0.15.2.tar.gz", hash = "sha256:a2aeea129088da402665e92e0b25b04b073c04b2dce4ab65caaa38b7ce2e1a99"},
 ]
 faker = [
-    {file = "Faker-0.8.18-py2.py3-none-any.whl", hash = "sha256:12e950f6f361c3b959ddf5e99d42cc9f5d89d3082688828d978b11c6029294d0"},
-    {file = "Faker-0.8.18.tar.gz", hash = "sha256:0184fa252f86214308bb6bed344f96294f2e3528fbffafc727890cf2a86d6027"},
+    {file = "Faker-0.8.12-py2.py3-none-any.whl", hash = "sha256:b06d0dc0166618298e668ced513ced7b10df34f3ad2045f22f1d7d88704e8e9c"},
+    {file = "Faker-0.8.12.tar.gz", hash = "sha256:9cc12b821f32ff45f6edfdc1ab7be3893b60b1224e952d68322a57e5b26a4a15"},
 ]
 flask = [
     {file = "Flask-1.1.2-py2.py3-none-any.whl", hash = "sha256:8a4fdd8936eba2512e9c85df320a37e694c93945b33ef33c89946a340a238557"},
@@ -868,6 +939,9 @@ pendulum = [
     {file = "pendulum-1.5.1-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:e7df37447824f9af0b58c7915a4caf349926036afd86ad38e7529a6b2f8fc34b"},
     {file = "pendulum-1.5.1.tar.gz", hash = "sha256:738878168eb26e5446da5d1f7b3312ae993a542061be8882099c00ef4866b1a2"},
 ]
+prices = [
+    {file = "prices-1.0.0.tar.gz", hash = "sha256:1e920a2f3b8d610985e7effcecd2b9ccfe58798c4c9641f76f6b5eb4a4bcd91b"},
+]
 psycopg2-binary = [
     {file = "psycopg2-binary-2.8.5.tar.gz", hash = "sha256:ccdc6a87f32b491129ada4b87a43b1895cf2c20fdb7f98ad979647506ffc41b6"},
     {file = "psycopg2_binary-2.8.5-cp27-cp27m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl", hash = "sha256:96d3038f5bd061401996614f65d27a4ecb62d843eb4f48e212e6d129171a721f"},
@@ -931,6 +1005,9 @@ python-editor = [
     {file = "python_editor-1.0.4-py3-none-any.whl", hash = "sha256:1bf6e860a8ad52a14c3ee1252d5dc25b2030618ed80c022598f00176adc8367d"},
     {file = "python_editor-1.0.4-py3.5.egg", hash = "sha256:c3da2053dbab6b29c94e43c486ff67206eafbe7eb52dbec7390b5e2fb05aac77"},
 ]
+python-slugify = [
+    {file = "python-slugify-4.0.1.tar.gz", hash = "sha256:69a517766e00c1268e5bbfc0d010a0a8508de0b18d30ad5a1ff357f8ae724270"},
+]
 pytz = [
     {file = "pytz-2020.1-py2.py3-none-any.whl", hash = "sha256:a494d53b6d39c3c6e44c3bec237336e14305e4f29bbf800b599253057fbb79ed"},
     {file = "pytz-2020.1.tar.gz", hash = "sha256:c35965d010ce31b23eeb663ed3cc8c906275d6be1a34393a1d73a41febf4a048"},
@@ -960,9 +1037,15 @@ requests = [
     {file = "requests-2.24.0-py2.py3-none-any.whl", hash = "sha256:fe75cc94a9443b9246fc7049224f75604b113c36acb93f87b80ed42c44cbb898"},
     {file = "requests-2.24.0.tar.gz", hash = "sha256:b3559a131db72c33ee969480840fff4bb6dd111de7dd27c8ee1f820f4f00231b"},
 ]
+restless = [
+    {file = "restless-2.1.1.tar.gz", hash = "sha256:f66b590cd1a248fd60a7f6540dff318a180bcbf073eefa16ac5ea978c161087b"},
+]
 s3transfer = [
     {file = "s3transfer-0.3.3-py2.py3-none-any.whl", hash = "sha256:2482b4259524933a022d59da830f51bd746db62f047d6eb213f2f8855dcb8a13"},
     {file = "s3transfer-0.3.3.tar.gz", hash = "sha256:921a37e2aefc64145e7b73d50c71bb4f26f46e4c9f414dc648c6245ff92cf7db"},
+]
+satchless = [
+    {file = "satchless-1.2.0.tar.gz", hash = "sha256:51b1e99d79172a813a62f9a201b92c9010df3bbbf8dc2698b1d1956648de2bc9"},
 ]
 simplejson = [
     {file = "simplejson-3.17.2-cp27-cp27m-macosx_10_13_x86_64.whl", hash = "sha256:2d3eab2c3fe52007d703a26f71cf649a8c771fcdd949a3ae73041ba6797cfcf8"},
@@ -1057,8 +1140,12 @@ starlette = [
     {file = "starlette-0.13.8.tar.gz", hash = "sha256:82df29b2149437ad828a883674bf031788600c876dae50835e98398bd1706183"},
 ]
 text-unidecode = [
-    {file = "text-unidecode-1.2.tar.gz", hash = "sha256:5a1375bb2ba7968740508ae38d92e1f889a0832913cb1c447d5e2046061a396d"},
-    {file = "text_unidecode-1.2-py2.py3-none-any.whl", hash = "sha256:801e38bd550b943563660a91de8d4b6fa5df60a542be9093f7abf819f86050cc"},
+    {file = "text-unidecode-1.3.tar.gz", hash = "sha256:bad6603bb14d279193107714b288be206cac565dfa49aa5b105294dd5c4aab93"},
+    {file = "text_unidecode-1.3-py2.py3-none-any.whl", hash = "sha256:1311f10e8b895935241623731c2ba64f4c455287888b18189350b67134a822e8"},
+]
+typing = [
+    {file = "typing-3.7.4.3-py2-none-any.whl", hash = "sha256:283d868f5071ab9ad873e5e52268d611e851c870a2ba354193026f2dfb29d8b5"},
+    {file = "typing-3.7.4.3.tar.gz", hash = "sha256:1187fb9c82fd670d10aa07bbb6cfcfe4bdda42d6fab8d5134f04e8c4d0b71cc9"},
 ]
 typing-extensions = [
     {file = "typing_extensions-3.7.4.3-py2-none-any.whl", hash = "sha256:dafc7639cde7f1b6e1acc0f457842a83e722ccca8eef5270af2d74792619a89f"},

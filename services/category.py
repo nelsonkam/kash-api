@@ -1,8 +1,18 @@
 from flask import Blueprint, current_app as app, jsonify, request, abort
 from flask_jwt_extended import get_jwt_identity, jwt_required, jwt_optional
+
+from models import Category
 from utils.graphql import graphql
+from utils.resources import ModelResource
 
 blueprint = Blueprint("category", __name__, url_prefix="/category")
+
+
+class CategoryResource(ModelResource):
+    model = Category
+
+
+CategoryResource.add_url_rules(blueprint, rule_prefix="/")
 
 
 @blueprint.route("/products/<slug>")

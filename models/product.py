@@ -1,14 +1,33 @@
+import secrets
+
+from orator.orm import belongs_to, has_many
+from slugify import slugify
 from app import db
-from models import mixins
 
 
-class Product(mixins.BaseModel):
-    name = db.Column(db.Text)
-    price = db.Column(db.Integer, nullable=False)
-    currency_iso = db.Column(db.String(10), nullable=False, default="XOF")
-    description = db.Column(db.Text)
-    shop_id = mixins.foreign_key("shop")
-    category_id = mixins.foreign_key("category", nullable=True)
-    images = db.relationship("ProductImage", backref="product")
-    cart_items = db.relationship("Item", backref="product")
+class Product(db.Model):
+    @belongs_to
+    def category(self):
+        from models import Category
 
+        return Category
+
+    @belongs_to
+    def shop(self):
+        from models import Shop
+
+        return Shop
+
+    @has_many
+    def images(self):
+        from models import ProductImage
+
+        return ProductImage
+
+
+class Observer(object):
+    def creating(self, product):
+        product.slug = slugify(product.name, max_length=40) + "-" + secrets.token_hex(2)
+
+
+Product.observe(Observer())

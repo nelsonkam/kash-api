@@ -3,11 +3,9 @@ from ariadne.constants import PLAYGROUND_HTML
 from flask import request, jsonify, Blueprint, current_app as app
 
 from resolvers import query
-from resolvers.extensions import QueryExecutionExtension
-from resolvers.mutations import mutation
 
 type_defs = load_schema_from_path("schemas")
-schema = make_executable_schema(type_defs, query, mutation)
+schema = make_executable_schema(type_defs, query)
 blueprint = Blueprint("graphql", __name__, url_prefix="/graphql")
 
 
@@ -27,7 +25,7 @@ def graphql_server():
 
     # Note: Passing the request to the context is optional.
     # In Flask, the current request is always accessible as flask.request
-    success, result = graphql_sync(schema, data, context_value=request, debug=app.debug, extensions=[QueryExecutionExtension])
+    success, result = graphql_sync(schema, data, context_value=request, debug=app.debug)
 
     status_code = 200 if success else 400
     return jsonify(result), status_code
