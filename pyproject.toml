@@ -40,6 +40,9 @@ werkzeug = "1.0.1"
 sqlalchemy_mixins = "^1.2.1"
 orator = "^0.9.9"
 flask-orator = "^0.2.0"
+satchless = "^1.2.0"
+restless = "^2.1.1"
+python-slugify = "^4.0.1"
 
 [tool.poetry.dev-dependencies]
 

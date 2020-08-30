@@ -1,13 +1,15 @@
+from orator.orm import has_many
+
 from app import db
-from models import mixins
 
 
-class User(mixins.BaseModel):
-    username = db.Column(db.String(255), unique=True)
-    name = db.Column(db.String(255), nullable=False)
-    phone_number = db.Column(db.String(255), nullable=False)
-    avatar_url = db.Column(db.Text)
-    shops = db.relationship('Shop', backref='owner', lazy=True)
+class User(db.Model):
+
+    @has_many
+    def shops(self):
+        from models import Shop
+
+        return Shop
 
 
 
