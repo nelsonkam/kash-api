@@ -10,8 +10,8 @@ deploy-prod:
     only:
         - master
     script:
-        - sudo apt-get install -y python-pip
-        - sudo pip install docker-compose
-        - sudo docker image prune -f
-        - sudo docker-compose -f docker-compose.yml build --no-cache
-        - sudo docker-compose -f docker-compose.yml up -d
+        - apt-get install -y python-pip
+        - pip install docker-compose
+        - docker image prune -f
+        - docker-compose -f docker-compose.yml build --no-cache
+        - docker-compose -f docker-compose.yml up -d
