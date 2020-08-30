@@ -2,6 +2,13 @@ image: docker:latest
 services:
     - docker:dind
 
+before_script:
+- docker info
+- apk update
+- apk upgrade
+- apk add python python-dev py-pip build-base
+- pip install docker-compose
+
 stages:
     - deploy
 
@@ -10,8 +17,5 @@ deploy-prod:
     only:
         - master
     script:
-        - apt-get install -y python-pip
-        - pip install docker-compose
-        - docker image prune -f
         - docker-compose -f docker-compose.yml build --no-cache
         - docker-compose -f docker-compose.yml up -d
