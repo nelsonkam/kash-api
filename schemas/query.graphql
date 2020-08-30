@@ -1,7 +1,7 @@
 type Query {
     shops(username: String, limit: Int, offset: Int): [Shop]!
     products(slug: String, limit: Int, offset: Int, order_by: String): [Product]!
-    similar_products(product_id: ID): [Product]
+    similar_products(slug: String): [Product]
     categories(slug: String): [Category]!
     banners(id: ID): [Banner]!
 }

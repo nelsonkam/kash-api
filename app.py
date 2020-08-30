@@ -10,8 +10,6 @@ cors = CORS()
 jwt = JWTManager()
 db = Orator()
 
-logging.basicConfig(level=logging.DEBUG)
-
 def register_blueprints(app):
     from services import auth, upload, notify, product, feed, category, shop, graphql
     from commands import blueprint
