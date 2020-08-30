@@ -6,7 +6,7 @@ before_script:
 - docker info
 - apk update
 - apk upgrade
-- apk add --update py-pip
+- apk add --update py-pip build-base libffi-dev openssl-dev
 - pip install docker-compose
 
 stages:
