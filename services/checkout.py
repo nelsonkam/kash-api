@@ -65,7 +65,7 @@ def shipping(uid):
                     }
                 ]
             )
-        elif "calavi" in checkout.country.lower():
+        elif "calavi" in checkout.city.lower():
             return jsonify(
                 [
                     {
