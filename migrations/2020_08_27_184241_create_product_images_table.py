@@ -8,9 +8,9 @@ class CreateProductImagesTable(Migration):
         """
         if not self.schema.has_table("product_image"):
             with self.schema.create("product_images") as table:
-                table.increments("id")
+                table.big_increments("id")
                 table.text("url")
-                table.integer("product_id").unsigned()
+                table.big_integer("product_id").unsigned()
                 table.foreign("product_id").references("id").on("products").on_delete(
                     "cascade"
                 )

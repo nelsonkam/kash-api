@@ -9,13 +9,13 @@ class CreateShopsTable(Migration):
         """
         if not self.schema.has_table("shop"):
             with self.schema.create('shops') as table:
-                table.increments('id')
+                table.big_increments('id')
                 table.string("username").unique()
                 table.string("name")
                 table.string("whatsapp_number", 255)
                 table.string("phone_number", 255)
                 table.text("avatar_url").nullable()
-                table.integer('user_id').unsigned()
+                table.big_integer('user_id').unsigned()
                 table.foreign('user_id').references('id').on('users').on_delete('cascade')
                 table.timestamps()
 

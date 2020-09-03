@@ -9,14 +9,14 @@ class CreateProductsTable(Migration):
         """
         if not self.schema.has_table("product"):
             with self.schema.create('products') as table:
-                table.increments('id')
+                table.big_increments('id')
                 table.string("name").nullable()
                 table.integer("price")
                 table.text("description").nullable()
                 table.string("currency_iso", 10).default("XOF")
-                table.integer('shop_id').unsigned()
+                table.big_integer('shop_id').unsigned()
                 table.foreign('shop_id').references('id').on('shops').on_delete("cascade")
-                table.integer('category_id').unsigned().nullable()
+                table.big_integer('category_id').unsigned().nullable()
                 table.foreign('category_id').references('id').on('categories').on_delete("cascade")
                 table.timestamps()
 

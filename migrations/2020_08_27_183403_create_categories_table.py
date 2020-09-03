@@ -9,7 +9,7 @@ class CreateCategoriesTable(Migration):
         """
         if not self.schema.has_table("category"):
             with self.schema.create('categories') as table:
-                table.increments('id')
+                table.big_increments('id')
                 table.string("name").unique()
                 table.text("slug").unique()
                 table.timestamps()

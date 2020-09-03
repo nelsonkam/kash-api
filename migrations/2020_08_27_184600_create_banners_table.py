@@ -9,7 +9,7 @@ class CreateBannersTable(Migration):
         """
         if not self.schema.has_table("banner"):
             with self.schema.create('banners') as table:
-                table.increments('id')
+                table.big_increments('id')
                 table.text("link")
                 table.text("image_url")
                 table.timestamps()

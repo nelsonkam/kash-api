@@ -9,7 +9,7 @@ class CreateUsersTable(Migration):
         """
         if not self.schema.has_table("user"):
             with self.schema.create('users') as table:
-                table.increments('id')
+                table.big_increments('id')
                 table.string("username").unique().nullable()
                 table.string("name")
                 table.string("phone_number").unique()

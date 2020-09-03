@@ -11,7 +11,7 @@ jwt = JWTManager()
 db = Orator()
 
 def register_blueprints(app):
-    from services import auth, upload, notify, product, feed, category, shop, graphql
+    from services import auth, upload, notify, product, feed, category, shop, graphql, cart, checkout
     from commands import blueprint
 
     app.register_blueprint(auth.blueprint)
@@ -22,6 +22,8 @@ def register_blueprints(app):
     app.register_blueprint(category.blueprint)
     app.register_blueprint(shop.blueprint)
     app.register_blueprint(graphql.blueprint)
+    app.register_blueprint(cart.blueprint)
+    app.register_blueprint(checkout.blueprint)
     app.register_blueprint(blueprint)
 
 

@@ -1,11 +1,12 @@
 import secrets
 
 from orator.orm import belongs_to, has_many
+from satchless.item import Item
 from slugify import slugify
 from app import db
 
 
-class Product(db.Model):
+class Product(db.Model, Item):
     @belongs_to
     def category(self):
         from models import Category

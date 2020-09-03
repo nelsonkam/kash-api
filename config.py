@@ -43,3 +43,4 @@ ORATOR_DATABASES = {
         "log_queries": os.getenv("FLASK_ENV") == "development"
     }
 }
+FEDAPAY_API_KEY = os.getenv("FEDAPAY_API_KEY")
