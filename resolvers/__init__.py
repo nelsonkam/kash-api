@@ -39,7 +39,7 @@ def resolve_banners(obj, info, id=None):
 @query.field("similar_products")
 def resolve_similar_products(obj, info, slug):
     product = Product.where('slug', slug).first()
-    return Product.where("slug", "!=", slug).where_has('category', lambda q: q.where('id', product.category_id)).limit(4).get().serialize()
+    return Product.with_("images").where("slug", "!=", slug).where_has('category', lambda q: q.where('id', product.category_id)).limit(4).get().serialize()
 
 
 
