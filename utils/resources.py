@@ -1,10 +1,8 @@
 import sys
-
+from flask import current_app as app
 from restless.exceptions import NotFound, RestlessError
-from restless.fl import FlaskResource
 from restless.utils import format_traceback
 
-from app import db
 from restless.fl import FlaskResource
 
 from app import db
@@ -38,10 +36,8 @@ class ModelResource(FlaskResource):
             body = self.serializer.serialize({"error": "Internal Server Error"})
             status = 500
 
-
-        print(format_traceback(sys.exc_info()))
+        app.logger.error(format_traceback(sys.exc_info()))
         return self.build_response(body, status=status)
-
 
     def get_collection(self):
         return self.model.all()
