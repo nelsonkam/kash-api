@@ -44,7 +44,10 @@ def register_blueprints(app):
     app.register_blueprint(checkout.blueprint)
     app.register_blueprint(blueprint)
 
-
+def configure_gunicorn_logger(app):
+    gunicorn_error_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers.extend(gunicorn_error_logger.handlers)
+    app.logger.setLevel(logging.DEBUG)
 
 def create_app(config_file="config.py"):
     app = Flask(__name__)
@@ -53,5 +56,6 @@ def create_app(config_file="config.py"):
     jwt.init_app(app)
     db.init_app(app)
     register_blueprints(app)
+    configure_gunicorn_logger(app)
     return app
 
