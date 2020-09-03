@@ -38,6 +38,7 @@ flask-orator = "^0.2.0"
 satchless = "^1.2.0"
 restless = "^2.1.1"
 python-slugify = "^4.0.1"
+sentry-sdk = {extras = ["flask"], version = "^0.17.3"}
 
 [tool.poetry.dev-dependencies]
 

@@ -535,6 +535,41 @@ prices = ">=1.0,<1.1"
 
 [[package]]
 category = "main"
+description = "Python client for Sentry (https://sentry.io)"
+name = "sentry-sdk"
+optional = false
+python-versions = "*"
+version = "0.17.3"
+
+[package.dependencies]
+certifi = "*"
+urllib3 = ">=1.10.0"
+
+[package.dependencies.blinker]
+optional = true
+version = ">=1.1"
+
+[package.dependencies.flask]
+optional = true
+version = ">=0.11"
+
+[package.extras]
+aiohttp = ["aiohttp (>=3.5)"]
+beam = ["apache-beam (>=2.12)"]
+bottle = ["bottle (>=0.12.13)"]
+celery = ["celery (>=3)"]
+django = ["django (>=1.8)"]
+falcon = ["falcon (>=1.4)"]
+flask = ["flask (>=0.11)", "blinker (>=1.1)"]
+pure_eval = ["pure-eval", "executing", "asttokens"]
+pyspark = ["pyspark (>=2.4.4)"]
+rq = ["rq (>=0.6)"]
+sanic = ["sanic (>=0.8)"]
+sqlalchemy = ["sqlalchemy (>=1.2)"]
+tornado = ["tornado (>=5)"]
+
+[[package]]
+category = "main"
 description = "Simple, fast, extensible JSON encoder/decoder for Python"
 name = "simplejson"
 optional = false
@@ -653,7 +688,7 @@ python-versions = "*"
 version = "1.12.1"
 
 [metadata]
-content-hash = "57e6bc2b7b4e53733531f10930387d5b180c40063562e0ed73f109a70f4f9e27"
+content-hash = "0a09dbc209aa9a7475df739c980cd4b056e5f7f3fd9360c645452aa44b09f5da"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -930,6 +965,10 @@ s3transfer = [
 ]
 satchless = [
     {file = "satchless-1.2.0.tar.gz", hash = "sha256:51b1e99d79172a813a62f9a201b92c9010df3bbbf8dc2698b1d1956648de2bc9"},
+]
+sentry-sdk = [
+    {file = "sentry-sdk-0.17.3.tar.gz", hash = "sha256:0af429c221670e602f960fca85ca3f607c85510a91f11e8be8f742a978127f78"},
+    {file = "sentry_sdk-0.17.3-py2.py3-none-any.whl", hash = "sha256:a088a1054673c6a19ea590045c871c38da029ef743b61a07bfee95e9f3c060f7"},
 ]
 simplejson = [
     {file = "simplejson-3.17.2-cp27-cp27m-macosx_10_13_x86_64.whl", hash = "sha256:2d3eab2c3fe52007d703a26f71cf649a8c771fcdd949a3ae73041ba6797cfcf8"},

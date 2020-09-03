@@ -1,5 +1,6 @@
 import logging
 
+import sentry_sdk
 from flask import Flask
 from flask.logging import default_handler
 from flask_cors import CORS
@@ -7,6 +8,8 @@ from flask_jwt_extended import JWTManager
 from flask_orator import Orator
 
 from logging.config import dictConfig
+
+from sentry_sdk.integrations.flask import FlaskIntegration
 
 dictConfig({
     'version': 1,
@@ -57,5 +60,11 @@ def create_app(config_file="config.py"):
     db.init_app(app)
     register_blueprints(app)
     configure_gunicorn_logger(app)
+    if not app.debug:
+        sentry_sdk.init(
+            dsn="https://4c4f295e7f2845118ca85670803681a2@o441760.ingest.sentry.io/5416328",
+            integrations=[FlaskIntegration()],
+            traces_sample_rate=1.0
+        )
     return app
 
