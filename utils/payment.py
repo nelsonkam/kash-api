@@ -17,7 +17,7 @@ class Payment:
             "firstname": names[0],
         }
         if len(names) > 1:
-            customer.lastname = names[1]
+            customer['lastname'] = names[1]
 
         if checkout.customer.email:
             customer['email'] = checkout.customer.email
