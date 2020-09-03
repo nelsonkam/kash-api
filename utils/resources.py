@@ -38,8 +38,8 @@ class ModelResource(FlaskResource):
             body = self.serializer.serialize({"error": "Internal Server Error"})
             status = 500
 
-        if self.is_debug():
-            print(format_traceback(sys.exc_info()))
+
+        print(format_traceback(sys.exc_info()))
         return self.build_response(body, status=status)
 
 
