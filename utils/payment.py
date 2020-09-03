@@ -12,10 +12,13 @@ def fedapay_request(method, url, data=None):
 class Payment:
     @classmethod
     def create_transaction(cls, checkout):
+        names = checkout.customer.name.split(" ")
         customer = {
-            "firstname": checkout.customer.name.split(" ")[0],
-            "lastname": checkout.customer.name.split(" ")[1],
+            "firstname": names[0],
         }
+        if len(names) > 1:
+            customer.lastname = names[1]
+
         if checkout.customer.email:
             customer['email'] = checkout.customer.email
 
