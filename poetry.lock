@@ -353,6 +353,14 @@ tzlocal = ">=1.5.0.0,<2.0.0.0"
 
 [[package]]
 category = "main"
+description = "Python version of Google's common library for parsing, formatting, storing and validating international phone numbers."
+name = "phonenumbers"
+optional = false
+python-versions = "*"
+version = "8.12.9"
+
+[[package]]
+category = "main"
 description = "Python price handling for humans"
 name = "prices"
 optional = false
@@ -688,7 +696,7 @@ python-versions = "*"
 version = "1.12.1"
 
 [metadata]
-content-hash = "0a09dbc209aa9a7475df739c980cd4b056e5f7f3fd9360c645452aa44b09f5da"
+content-hash = "3af1648b9ecbf8a0603bf67e16902a8abef9e5e6421a9eb754cb6eca54a77a78"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -864,6 +872,10 @@ pendulum = [
     {file = "pendulum-1.5.1-cp36-cp36m-manylinux1_i686.whl", hash = "sha256:56a347d0457859c84b8cdba161fc37c7df5db9b3becec7881cd770e9d2058b3c"},
     {file = "pendulum-1.5.1-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:e7df37447824f9af0b58c7915a4caf349926036afd86ad38e7529a6b2f8fc34b"},
     {file = "pendulum-1.5.1.tar.gz", hash = "sha256:738878168eb26e5446da5d1f7b3312ae993a542061be8882099c00ef4866b1a2"},
+]
+phonenumbers = [
+    {file = "phonenumbers-8.12.9-py2.py3-none-any.whl", hash = "sha256:b8644c1dccd45d4c0f54c5b10effcc8c3f733e6a3c2caf40c9175fabc5010ffe"},
+    {file = "phonenumbers-8.12.9.tar.gz", hash = "sha256:f887eceb3d9db17ec479a85245bd0ebe74c5f43489217784215ffb231f8c9e88"},
 ]
 prices = [
     {file = "prices-1.0.0.tar.gz", hash = "sha256:1e920a2f3b8d610985e7effcecd2b9ccfe58798c4c9641f76f6b5eb4a4bcd91b"},

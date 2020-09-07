@@ -7,3 +7,4 @@ from .banner import *
 from .cart import *
 from .checkout import *
 from .customer import *
+from .phone_verification import *

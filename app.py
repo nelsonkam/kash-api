@@ -11,21 +11,7 @@ from logging.config import dictConfig
 
 from sentry_sdk.integrations.flask import FlaskIntegration
 
-dictConfig({
-    'version': 1,
-    'formatters': {'default': {
-        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-    }},
-    'handlers': {'wsgi': {
-        'class': 'logging.StreamHandler',
-        'stream': 'ext://flask.logging.wsgi_errors_stream',
-        'formatter': 'default'
-    }},
-    'root': {
-        'level': 'INFO',
-        'handlers': ['wsgi']
-    }
-})
+
 
 cors = CORS()
 jwt = JWTManager()
@@ -50,7 +36,7 @@ def register_blueprints(app):
 def configure_gunicorn_logger(app):
     gunicorn_error_logger = logging.getLogger('gunicorn.error')
     app.logger.handlers.extend(gunicorn_error_logger.handlers)
-    app.logger.setLevel(logging.DEBUG)
+    app.logger.setLevel(logging.INFO)
 
 def create_app(config_file="config.py"):
     app = Flask(__name__)

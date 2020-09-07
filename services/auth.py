@@ -4,9 +4,14 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
     jwt_optional,
+    create_refresh_token,
 )
+import phonenumbers
+from phonenumbers import NumberParseException
 
 import config
+from models import User
+from models.phone_verification import PhoneVerification
 from utils.graphql import graphql
 from utils.slack import send_message
 
@@ -273,3 +278,42 @@ def get_shop():
     shop = resp.get("data").get("shop")[0]
 
     return jsonify({"shop": shop})
+
+
+@blueprint.route("/phone/register", methods=["POST"])
+def phone_register():
+    phone_number = request.json.get("phone_number")
+    try:
+        number = phonenumbers.parse(phone_number, None)
+        if not phonenumbers.is_valid_number(number):
+            return jsonify({"error": "Invalid phone number"}), 400
+    except NumberParseException:
+        return jsonify({"error": "Invalid phone number"}), 400
+
+    verification = PhoneVerification.send_verification_code(phone_number)
+
+    return jsonify({"session_token": verification.session_token})
+
+
+@blueprint.route("/phone/verify", methods=["POST"])
+def phone_verify():
+    session_token = request.json.get("session_token")
+    security_code = request.json.get("security_code")
+    phone_number = request.json.get("phone_number")
+    if PhoneVerification.verify(phone_number, security_code, session_token):
+        user = User.where("phone_number", phone_number).first() or User()
+        user.phone_number = phone_number
+        user.save()
+        user.load("shops")
+        return jsonify(
+            {
+                "access": create_access_token(
+                    {"phone_number": phone_number, "user_id": user.id,}
+                ),
+                "refresh": create_refresh_token(
+                    {"phone_number": phone_number, "user_id": user.id,}
+                ),
+                "user": user.serialize()
+            }
+        )
+    return jsonify({"error": "Invalid verification credentials"}), 400
