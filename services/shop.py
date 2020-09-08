@@ -1,125 +1,67 @@
 from flask import Blueprint, current_app as app, jsonify, request, abort
-from flask_jwt_extended import get_jwt_identity, jwt_required, jwt_optional
+from flask_jwt_extended import (
+    get_jwt_identity,
+    jwt_required,
+    jwt_optional,
+    verify_jwt_in_request,
+)
+from flask_jwt_extended.exceptions import JWTExtendedException
+
+from models import User, Shop
 from utils.graphql import graphql
+from utils.resources import ModelResource, APIError
 from utils.slack import send_message
 import config
 
 blueprint = Blueprint("shop", __name__, url_prefix="/shop")
 
 
-@blueprint.route("/create", methods=["POST"])
-def create_shop():
-    data = request.get_json()
+class ShopResource(ModelResource):
+    lookup_field = "username"
+    model = Shop
 
-    query = """
-        mutation ($shop_name: String!, $phone_number: String!, $username: String!, $description: String!, $avatar_url: String!) {
-            insert_shop(objects: {name: $shop_name, username: $username, whatsapp_number: $phone_number, description: $description, avatar_url: $avatar_url}) {
-                returning {
-                    id
-                    name
-                    username
-                    whatsapp_number
-                    avatar_url
-                    description
-                }
-            }
-        }
-    """
+    def get_object(self, lookup_value):
+        shop = super().get_object(lookup_value)
+        shop.load("products")
+        return shop
 
-    resp = graphql(
-        query,
-        {
-            "shop_name": data.get("name"),
-            "phone_number": data.get("phone"),
-            "username": data.get("username"),
-            "avatar_url": data.get("avatar_url"),
-            "description": data.get("description"),
-        },
-    )
+    def is_authenticated(self):
+        try:
+            verify_jwt_in_request()
+            return True
+        except JWTExtendedException:
+            return self.request_method() == "GET"
 
-    if "errors" in resp:
-        error = resp.get("errors")[0]
-        code = "UNKNOWN_ERROR"
-        if "unique" in error.get("message"):
-            if "user_id" in error.get("message"):
-                code = "SHOP_EXISTS"
-            elif "username" in error.get("message"):
-                code = "USERNAME_TAKEN"
-        return jsonify({"code": code, "message": error.get("message")}), 400
+    @property
+    def user(self):
+        identity = get_jwt_identity()
+        return User.find(identity.get("user_id"))
 
-    shop = resp.get("data").get("insert_shop").get("returning")[0]
-
-    message = [
-        {
-            "fallback": f"New shop created!💪🏾",
-            "color": "#30BCED",
-            "actions": [
-                {
-                    "type": "button",
-                    "text": "📞 Contact on WhatsApp",
-                    "url": "https://wa.me/" + shop.get("whatsapp_number")[1:],
-                }
-            ],
-            "pretext": "New shop created!💪🏾",
-            "fields": [
-                {"title": "Name", "value": shop.get("name"), "short": True},
-                {"title": "Username", "value": shop.get("username"), "short": True},
-                {
-                    "title": "Phone Number",
-                    "value": shop.get("whatsapp_number"),
-                    "short": True,
+    def create(self):
+        print(self.data)
+        if Shop.where("username", self.data.get("username")).first():
+            raise APIError(
+                data={
+                    "errors": {
+                        "username": {
+                            "message": "Username already exists",
+                            "code": "unique_username",
+                        }
+                    }
                 },
-            ],
-        }
-    ]
-    channel = "#notifications" if config.APP_ENV == "production" else "#dev-test"
-    send_message(message, channel)
-    return jsonify({"shop": shop})
+                status=400,
+            )
+
+        shop = Shop()
+        shop.username = self.data.get("username")
+        shop.name = self.data.get("name")
+        shop.phone_number = self.data.get("phone_number")
+        shop.whatsapp_number = self.data.get("phone_number")
+        shop.avatar_url = self.data.get("avatar_url")
+        shop.user_id = self.user.id
+        shop.save()
+        shop.load("products")
+        return shop.serialize()
 
 
-@blueprint.route("/<username>")
-def get_shop(username):
-
-    query = """
-    query Shop($username: String!) {
-        shop(where: {username: {_eq: $username}}) {
-          id
-          description
-          name
-          products(order_by: {created_at: desc}) {
-            id
-            name
-            price
-            sold
-            product_images {
-              id
-              url
-            }
-            
-          }
-          avatar_url
-          username
-          whatsapp_number
-        }
-        categories: category(order_by: {products_aggregate: {count: desc}}) {
-            id
-            name
-            slug
-            products(order_by: {id: asc}, limit: 1, offset: 10) {
-              product_images {
-                url
-              }
-            }
-          }
-      }
-    """
-
-    resp = graphql(query, {"username": username},)
-
-    if "errors" in resp:
-        error = resp.get("errors")[0]
-        code = "GRAPHQL_ERROR"
-        print(resp)
-        return jsonify({"code": code, "message": error.get("message")}), 400
-
-    return jsonify(resp.get("data"))
+ShopResource.add_url_rules(blueprint, "/")

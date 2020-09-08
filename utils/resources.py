@@ -1,11 +1,14 @@
 import sys
 from flask import current_app as app
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+from flask_jwt_extended.exceptions import JWTExtendedException
 from restless.exceptions import NotFound, RestlessError
 from restless.utils import format_traceback
 
 from restless.fl import FlaskResource
 
 from app import db
+from models import User
 
 
 class ModelResource(FlaskResource):
@@ -32,6 +35,9 @@ class ModelResource(FlaskResource):
 
             body = self.serializer.serialize(data)
             status = getattr(err, 'status', 500)
+        elif isinstance(err, APIError):
+            body = err.data
+            status = err.status
         else:
             body = self.serializer.serialize({"error": "Internal Server Error"})
             status = 500
@@ -56,3 +62,24 @@ class ModelResource(FlaskResource):
         item = self.find_or_404(pk)
         item.update(**self.data)
         return self.get_object(item.get_attribute(self.lookup_field)).serialize()
+
+
+class APIError(Exception):
+
+    def __init__(self, status=500, data=None):
+        self.status = status
+        self.data = data
+
+
+class AuthMixin:
+    def is_authenticated(self):
+        try:
+            verify_jwt_in_request()
+            return True
+        except JWTExtendedException:
+            return self.request_method() == "GET"
+
+    @property
+    def user(self):
+        identity = get_jwt_identity()
+        return User.find(identity.get("user_id"))

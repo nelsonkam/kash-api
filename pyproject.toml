@@ -40,6 +40,7 @@ restless = "^2.1.1"
 python-slugify = "^4.0.1"
 sentry-sdk = {extras = ["flask"], version = "^0.17.3"}
 phonenumbers = "^8.12.9"
+marshmallow = "^3.7.1"
 
 [tool.poetry.dev-dependencies]
 
