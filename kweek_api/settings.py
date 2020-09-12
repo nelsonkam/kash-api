@@ -187,6 +187,8 @@ AWS_REGION_NAME="us-east-1"
 
 FEDAPAY_API_KEY = env("FEDAPAY_API_KEY")
 
+CLIENT_VERSION = "1.0.0"
+
 if not DEBUG:
     sentry_sdk.init(
         dsn="https://4c4f295e7f2845118ca85670803681a2@o441760.ingest.sentry.io/5416328",

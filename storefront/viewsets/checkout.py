@@ -14,7 +14,7 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
     lookup_field = "uid"
     queryset = Checkout.objects.all()
 
-    @action(detail=True)
+    @action(detail=True, methods=['post'])
     def pay(self, request, uid=None):
         checkout = self.get_object()
         if request.data.get("shipping"):
