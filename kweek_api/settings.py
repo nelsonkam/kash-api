@@ -12,7 +12,9 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 import environ
+import sentry_sdk
 from django.utils.translation import gettext_lazy as _
+from sentry_sdk.integrations.django import DjangoIntegration
 
 env = environ.Env(DEBUG=(bool, False))
 
@@ -30,7 +32,7 @@ SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "prod.kweek.africa"]
 
 # Application definition
 
@@ -179,3 +181,14 @@ DO_SPACES_BUCKET = env("DO_SPACES_BUCKET")
 DO_SPACES_REGION = env("DO_SPACES_REGION")
 DO_SPACES_ENDPOINT_URL = env("DO_SPACES_ENDPOINT_URL")
 FEDAPAY_API_KEY = env("FEDAPAY_API_KEY")
+
+if not DEBUG:
+    sentry_sdk.init(
+        dsn="https://4c4f295e7f2845118ca85670803681a2@o441760.ingest.sentry.io/5416328",
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=1.0,
+
+        # If you wish to associate users to errors (assuming you are using
+        # django.contrib.auth) you may enable sending PII data.
+        send_default_pii=True
+    )
