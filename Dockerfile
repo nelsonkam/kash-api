@@ -3,6 +3,7 @@ RUN apk update \
   && apk add --virtual build-deps gcc python3-dev musl-dev git wget bash \
   && apk add postgresql-dev \
   && apk add libffi-dev py-cffi
+ENV DJANGO_SETTINGS_MODULE kweek_api.settings
 
 RUN apk add --no-cache tzdata
 ENV TZ Europe/London
@@ -18,5 +19,3 @@ RUN poetry install --no-interaction
 
 COPY ./ /usr/src/app
 RUN chmod +x docker-entrypoint.sh
-
-ENV FLASK_APP app.py
