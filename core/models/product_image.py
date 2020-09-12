@@ -4,8 +4,8 @@ from core.models.base import BaseModel
 
 
 class ProductImage(BaseModel):
-    url = models.URLField()
-    product = models.ForeignKey('Product', models.CASCADE)
+    url = models.URLField(null=True)
+    product = models.ForeignKey('Product', models.CASCADE, related_name="images")
 
     class Meta:
         managed = True

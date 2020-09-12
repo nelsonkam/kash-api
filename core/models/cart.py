@@ -6,6 +6,9 @@ from core.models.base import BaseModel, generate_uid
 class Cart(BaseModel):
     uid = models.CharField(unique=True, max_length=40, default=generate_uid)
 
+    def total(self):
+        return sum([item.total() for item in self.items.select_related("product")])
+
     class Meta:
         managed = True
         db_table = "carts"
@@ -13,8 +16,11 @@ class Cart(BaseModel):
 
 class CartItem(BaseModel):
     quantity = models.IntegerField()
-    cart = models.ForeignKey("core.Cart", models.CASCADE)
+    cart = models.ForeignKey("core.Cart", models.CASCADE, related_name="items")
     product = models.ForeignKey("core.Product", models.CASCADE)
+
+    def total(self):
+        return self.product.price * self.quantity
 
     class Meta:
         managed = True

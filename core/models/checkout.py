@@ -1,6 +1,6 @@
 from django.db import models
 
-from core.models.base import BaseModel
+from core.models.base import BaseModel, generate_uid
 
 
 class Checkout(BaseModel):
@@ -9,7 +9,7 @@ class Checkout(BaseModel):
     country = models.CharField(max_length=255)
     city = models.CharField(max_length=255)
     address = models.TextField()
-    uid = models.CharField(unique=True, max_length=40)
+    uid = models.CharField(unique=True, max_length=40, default=generate_uid)
     shipping_option = models.JSONField(blank=True, null=True)  # This field type is a guess.
 
     class Meta:

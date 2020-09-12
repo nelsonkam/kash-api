@@ -10,7 +10,7 @@ class Shop(BaseModel):
     whatsapp_number = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     phone_number = models.CharField(max_length=255)
-    user = models.ForeignKey('core.User', models.CASCADE)
+    user = models.ForeignKey('core.User', models.CASCADE, related_name="shops")
 
     class Meta:
         managed = True
