@@ -23,7 +23,7 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
 
         transaction = Payment.create_transaction(checkout)
         token = Payment.create_payment_token(transaction.get("id"))
-        return {"payment_url": token.get("url")}
+        return Response({"payment_url": token.get("url")})
 
     @action(detail=True)
     def shipping(self, request, uid=None):
