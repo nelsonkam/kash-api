@@ -9,13 +9,14 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from core.models import Product, Shop
+from core.models import Product, Shop, ProductImage
 from core.utils import upload_base64
 from shop_admin.permissions import IsCurrentShopOwner
-from shop_admin.serializers.product import ProductSerializer
+from shop_admin.serializers.product import ProductSerializer, ProductImageSerializer
+from shop_admin.viewsets.base import BaseModelViewSet
 
 
-class ProductViewSet(ModelViewSet):
+class ProductViewSet(BaseModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated, IsCurrentShopOwner]
     authentication_classes = [JWTAuthentication]
@@ -36,3 +37,10 @@ class ProductViewSet(ModelViewSet):
             product.images.create(url=url)
 
         return Response(ProductSerializer(instance=product).data)
+
+
+class ProductImageViewSet(BaseModelViewSet):
+    serializer_class = ProductImageSerializer
+
+    def get_queryset(self):
+        return ProductImage.objects.filter(product__shop=self.request.shop).all()

@@ -1,7 +1,13 @@
 from rest_framework import serializers
 
-from core.models import Product
+from core.models import Product, ProductImage
 from core.serializers.base import BaseModelSerializer
+
+
+class ProductImageSerializer(BaseModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = ("id", "product", "url")
 
 
 class ProductSerializer(BaseModelSerializer):

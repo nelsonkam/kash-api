@@ -1,2 +1,2 @@
 from .shop import ShopViewSet
-from .product import ProductViewSet
+from .product import ProductViewSet, ProductImageViewSet
