@@ -13,6 +13,7 @@ from datetime import timedelta
 from pathlib import Path
 import environ
 import sentry_sdk
+import stripe
 from django.utils.translation import gettext_lazy as _
 from sentry_sdk.integrations.django import DjangoIntegration
 
@@ -186,6 +187,8 @@ AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
 AWS_REGION_NAME="us-east-1"
 
 FEDAPAY_API_KEY = env("FEDAPAY_API_KEY")
+STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY")
+stripe.api_key = STRIPE_SECRET_KEY
 
 CLIENT_VERSION = "1.0.0"
 

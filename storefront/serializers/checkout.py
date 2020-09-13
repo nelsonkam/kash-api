@@ -10,6 +10,7 @@ class CheckoutSerializer(BaseModelSerializer):
     name = serializers.CharField(write_only=True)
     contact = serializers.CharField(write_only=True)
     cart_uid = serializers.CharField(write_only=True)
+    uid = serializers.CharField(read_only=True)
 
     def create(self, validated_data):
         contact = validated_data.pop("contact")
@@ -42,6 +43,8 @@ class CheckoutSerializer(BaseModelSerializer):
             "shipping_option",
             "contact",
             "name",
-            "cart_uid"
+            "cart_uid",
+            "ref_id",
+            "payment_method"
         ]
         depth = 1

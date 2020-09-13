@@ -2,7 +2,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from core.models import Checkout
+from core.models import Checkout, Order, CartItem
 from core.utils.payment import Payment
 from core.viewsets.base import CreateRetrieveUpdateViewSet
 from storefront.serializers import CheckoutSerializer
@@ -21,9 +21,33 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
             checkout.shipping_option = request.data.get("shipping")
             checkout.save()
 
-        transaction = Payment.create_transaction(checkout)
-        token = Payment.create_payment_token(transaction.get("id"))
-        return Response({"payment_url": token.get("url")})
+        data = Payment.create_transaction(checkout)
+        return Response(data)
+
+    @action(detail=True, methods=['post'])
+    def paid(self, request, uid):
+        checkout = self.get_object()
+
+        if not checkout.paid:
+            cart = checkout.cart
+            for shop in cart.shops.all():
+                order = Order.objects.create(
+                    customer=checkout.customer,
+                    country=checkout.country,
+                    city=checkout.city,
+                    address=checkout.address,
+                    shipping_option=checkout.shipping_option,
+                    payment_method=checkout.payment_method,
+                    shop=shop
+                )
+                items = CartItem.objects.filter(cart=cart, product__shop=shop).select_related("product").all()
+                for item in items:
+                    order.items.create(quantity=item.quantity, product=item.product)
+                order.notify_shop()
+            checkout.paid = True
+            checkout.save()
+
+        return Response(self.get_serializer(checkout).data)
 
     @action(detail=True)
     def shipping(self, request, uid=None):

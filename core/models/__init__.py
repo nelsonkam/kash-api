@@ -7,3 +7,4 @@ from .product import Product
 from .product_image import ProductImage
 from .shop import Shop
 from .user import User
+from .order import Order, OrderItem
