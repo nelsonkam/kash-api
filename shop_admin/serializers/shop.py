@@ -10,15 +10,6 @@ from core.utils import upload_base64
 
 
 class ShopSerializer(BaseModelSerializer):
-    avatar_uri = serializers.CharField(write_only=True)
-
-    def create(self, validated_data):
-        avatar_uri = validated_data.pop("avatar_uri")
-        url = upload_base64(avatar_uri)
-        shop = Shop(**validated_data)
-        shop.avatar_url = url
-        shop.save()
-        return shop
 
     class Meta:
         model = Shop
@@ -26,7 +17,6 @@ class ShopSerializer(BaseModelSerializer):
             "name",
             "username",
             "avatar_url",
-            "avatar_uri",
             "whatsapp_number",
             "description",
             "phone_number",

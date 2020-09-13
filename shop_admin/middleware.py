@@ -9,6 +9,6 @@ class ShopMiddleware:
 
     def __call__(self, request):
         shop_id = request.META.get("HTTP_X_SHOP_ID", None)
-        request.shop = Shop.objects.filter(id=shop_id).first()
+        request.shop = None if not shop_id else Shop.objects.filter(pk=shop_id).first()
         response = self.get_response(request)
         return response
