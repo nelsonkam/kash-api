@@ -2,7 +2,7 @@ import requests
 import stripe
 from django.conf import settings
 
-FEDAPAY_URL = "https://sandbox-api.fedapay.com"
+FEDAPAY_URL = "https://sandbox-api.fedapay.com" if settings.DEBUG else "https://api.fedapay.com"
 
 
 def fedapay_request(method, url, data=None):

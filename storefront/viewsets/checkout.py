@@ -21,7 +21,7 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
             checkout.shipping_option = request.data.get("shipping")
             checkout.save()
 
-        data = Payment.create_transaction(checkout)
+        data = Payment.create_transaction(checkout, checkout.payment_method)
         return Response(data)
 
     @action(detail=True, methods=['post'])
