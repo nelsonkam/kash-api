@@ -31,7 +31,7 @@ class Product(BaseModel):
     @cached_property
     def similar(self):
         return Product.objects.prefetch_related("images").filter(
-            ~Q(pk=self.pk) & Q(category__id=self.category_id)
+            ~Q(pk=self.pk) & Q(shop=self.shop)
         )[0:4]
 
     class Meta:

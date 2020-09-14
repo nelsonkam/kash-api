@@ -10,13 +10,14 @@ class ShopSerializer(ModelSerializer):
     class Meta:
         model = Shop
         fields = [
-            'id',
-            'username',
-            'name',
-            'avatar_url',
-            'whatsapp_number',
-            'description',
-            'phone_number',
-            "products"
+            "id",
+            "username",
+            "name",
+            "avatar_url",
+            "whatsapp_number",
+            "description",
+            "phone_number",
+            "products",
+            "cover_url",
         ]
         depth = 2
