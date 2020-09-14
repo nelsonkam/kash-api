@@ -22,6 +22,8 @@ class ShopSerializer(BaseModelSerializer):
             "phone_number",
             "user",
             "products",
+            "balance",
+            "order_count",
             "id"
         ]
         depth = 1

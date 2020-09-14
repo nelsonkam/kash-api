@@ -12,6 +12,14 @@ class Shop(BaseModel):
     phone_number = models.CharField(max_length=255)
     user = models.ForeignKey('core.User', models.CASCADE, related_name="shops")
 
+    @property
+    def balance(self):
+        return sum([order.earnings for order in self.order_set.all()])
+
+    @property
+    def order_count(self):
+        return self.order_set.count()
+
     class Meta:
         managed = True
         db_table = 'shops'
