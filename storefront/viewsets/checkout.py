@@ -27,8 +27,7 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
     @action(detail=True, methods=['post'])
     def paid(self, request, uid):
         checkout = self.get_object()
-
-        if not checkout.paid:
+        if not checkout.paid and Payment.verify_transaction(**request.data):
             cart = checkout.cart
             for shop in cart.shops.all():
                 order = Order.objects.create(

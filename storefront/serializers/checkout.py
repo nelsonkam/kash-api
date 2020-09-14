@@ -45,6 +45,7 @@ class CheckoutSerializer(BaseModelSerializer):
             "name",
             "cart_uid",
             "ref_id",
-            "payment_method"
+            "payment_method",
+            "paid"
         ]
         depth = 1

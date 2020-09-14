@@ -1,7 +1,7 @@
 import requests
 import stripe
 from django.conf import settings
-
+from kkiapay import Kkiapay
 FEDAPAY_URL = "https://sandbox-api.fedapay.com" if settings.DEBUG else "https://api.fedapay.com"
 
 
@@ -16,7 +16,33 @@ class Payment:
         if method == "card":
             return StripePayment.create_transaction(checkout)
         else:
-            return FedaPayment.create_transaction(checkout)
+            return KKiaPayment.create_transaction(checkout)
+
+    @classmethod
+    def verify_transaction(cls, **kwargs):
+        transaction_id = kwargs.pop("transaction_id", None)
+        if transaction_id:
+            return KKiaPayment.verify_transaction(transaction_id)
+
+        session_id = kwargs.pop("session_id", None)
+        if session_id:
+            return StripePayment.verify_transaction(session_id)
+
+        return False
+
+
+class KKiaPayment:
+
+    @classmethod
+    def create_transaction(cls, checkout):
+        return {"processor": "kkiapay", "amount": checkout.total()}
+
+    @classmethod
+    def verify_transaction(cls, transaction_id):
+        k = Kkiapay(settings.KKIAPAY_PUBLIC_KEY, settings.KKIAPAY_PRIVATE_KEY, settings.KKIAPAY_SECRET_KEY, sandbox=settings.DEBUG)
+        transaction = k.verify_transaction(transaction_id)
+        return transaction.status == 'SUCCESS'
+
 
 
 class FedaPayment:
@@ -80,7 +106,7 @@ class StripePayment:
             mode="payment",
             customer_email=checkout.customer.email,
             client_reference_id=checkout.customer.id,
-            success_url=f"https://kweek.africa/order/{checkout.uid}/confirmed",
+            success_url=f"https://kweek.africa/order/{checkout.uid}/confirmed/?session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"https://kweek.africa/checkout/{checkout.uid}/shipping",
             metadata={
                 'checkout_id': checkout.uid,
@@ -88,3 +114,8 @@ class StripePayment:
         )
 
         return {"processor": "stripe", "session_id": session.id}
+
+    @classmethod
+    def verify_transaction(cls, session_id):
+        session = stripe.checkout.Session.retrieve(session_id)
+        return session.payment_status == 'paid'
