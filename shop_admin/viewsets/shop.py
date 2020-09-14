@@ -27,6 +27,14 @@ class ShopViewSet(ModelViewSet):
         shop.save()
         return Response(self.get_serializer(instance=shop).data)
 
+    @action(detail=True, methods=['post'])
+    def cover(self, request, pk=None):
+        shop = self.get_object()
+        image = request.data['cover']
+        shop.cover_url = upload_content_file(image, f"{uuid4()}-{image.name}")
+        shop.save()
+        return Response(self.get_serializer(instance=shop).data)
+
     def get_queryset(self):
         return self.request.user.shops.all()
 
