@@ -83,11 +83,14 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
                     ]
                 )
         else:
+            weight = 0
+            for item in checkout.cart.items.all().select_related("product"):
+                weight += (item.product.weight or 1) * item.quantity
             return Response(
                 [
                     {
                         "name": "Futurix Logistic",
-                        "price": {"amount": 21000, "currency": "XOF"},
+                        "price": {"amount": 22000 + (8000 * (weight - 2)), "currency": "XOF"},
                         "eta": "7-14 jours",
                     }
                 ]
