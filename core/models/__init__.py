@@ -8,3 +8,4 @@ from .product_image import ProductImage
 from .shop import Shop
 from .user import User
 from .order import Order, OrderItem
+from .affiliate_agent import AffiliateAgent

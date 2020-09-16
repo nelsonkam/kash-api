@@ -7,5 +7,13 @@ from core.serializers.base import BaseModelSerializer
 class UserSerializer(BaseModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "first_name", "email", "phone_number", "shops"]
+        fields = [
+            "id",
+            "first_name",
+            "name",
+            "email",
+            "phone_number",
+            "shops",
+            "affiliate",
+        ]
         depth = 1

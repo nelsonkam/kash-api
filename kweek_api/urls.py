@@ -21,4 +21,5 @@ urlpatterns = [
     path("", include("core.urls")),
     path("store/", include("storefront.urls")),
     path("shop_admin/", include("shop_admin.urls")),
+    path("affiliate/", include("affiliates.urls")),
 ]

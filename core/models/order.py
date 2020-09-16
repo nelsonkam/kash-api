@@ -9,7 +9,7 @@ def generate_order_id():
 
 
 class Order(BaseModel):
-    shop = models.ForeignKey("core.Shop", on_delete=models.CASCADE)
+    shop = models.ForeignKey("core.Shop", on_delete=models.CASCADE, related_name="orders")
     customer = models.ForeignKey("core.Customer", models.CASCADE)
     country = models.CharField(max_length=255)
     city = models.CharField(max_length=255)

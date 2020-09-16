@@ -5,11 +5,13 @@ from django.core.files.base import ContentFile
 from rest_framework import serializers
 
 from core.models import Shop
+from core.serializers import UserSerializer
 from core.serializers.base import BaseModelSerializer
 from core.utils import upload_base64
 
 
 class ShopSerializer(BaseModelSerializer):
+    user = UserSerializer()
 
     class Meta:
         model = Shop
