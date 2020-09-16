@@ -19,6 +19,12 @@ class ShopViewSet(ModelViewSet):
     authentication_classes = [JWTAuthentication]
     parser_classes = [JSONParser, MultiPartParser]
 
+    def get_queryset(self):
+        return self.request.user.shops.all()
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
     @action(detail=True, methods=['post'])
     def avatar(self, request, pk=None):
         shop = self.get_object()
@@ -34,9 +40,3 @@ class ShopViewSet(ModelViewSet):
         shop.cover_url = upload_content_file(image, f"{uuid4()}-{image.name}")
         shop.save()
         return Response(self.get_serializer(instance=shop).data)
-
-    def get_queryset(self):
-        return self.request.user.shops.all()
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)

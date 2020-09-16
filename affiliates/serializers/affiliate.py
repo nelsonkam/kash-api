@@ -7,13 +7,13 @@ from core.serializers.base import BaseModelSerializer
 
 class AffiliateAgentSerializer(BaseModelSerializer):
     name = serializers.CharField(write_only=True)
-    user = UserSerializer()
+    user = UserSerializer(read_only=True)
 
     def create(self, validated_data):
         user = validated_data.pop("user")
         user.name = validated_data.pop("name")
         user.save()
-        if user.affiliate:
+        if hasattr(user, 'affiliate'):
             return user.affiliate
         return AffiliateAgent.objects.create(user=user, **validated_data)
 

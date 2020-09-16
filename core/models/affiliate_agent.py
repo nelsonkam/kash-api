@@ -10,7 +10,7 @@ def generate_affiliate_code():
 
 class AffiliateAgent(BaseModel):
     user = models.OneToOneField("core.User", on_delete=models.CASCADE, related_name="affiliate")
-    code = models.CharField(max_length=10, default=generate_affiliate_code)
+    code = models.CharField(max_length=10, default=generate_affiliate_code, unique=True)
     momo_number = models.CharField(max_length=255, null=True)
     avatar_url = models.URLField(blank=True)
     commission = models.DecimalField(max_digits=6, decimal_places=5, default=Decimal(0.08))
@@ -26,7 +26,7 @@ class AffiliateAgent(BaseModel):
 
     @property
     def balance(self):
-        return sum([order.affilate_earnings for order in self.orders])
+        return sum([order.affiliate_earnings for order in self.orders.all()])
 
     class Meta:
         db_table = "affiliate_agents"
