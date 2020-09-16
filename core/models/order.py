@@ -29,6 +29,10 @@ class Order(BaseModel):
         return self.total - self.commission
 
     @property
+    def affiliate_earnings(self):
+        return self.shipping_fees * self.shop.affiliate.commission
+
+    @property
     def shipping_fees(self):
         if self.shipping_option:
             return self.shipping_option.get("price").get("amount")
