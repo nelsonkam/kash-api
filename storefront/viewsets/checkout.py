@@ -89,7 +89,7 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
             return Response(
                 [
                     {
-                        "name": "Futurix Logistic",
+                        "name": "DHL Express",
                         "price": {"amount": 22000 + (8000 * (weight - 2)), "currency": "XOF"},
                         "eta": "7-14 jours",
                     }
