@@ -1,7 +1,13 @@
 from decimal import Decimal
 
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 from core.models.base import BaseModel, generate_ref_id
 from django.db import models
+
+from core.utils import slack
 
 
 def generate_affiliate_code():
@@ -30,3 +36,28 @@ class AffiliateAgent(BaseModel):
 
     class Meta:
         db_table = "affiliate_agents"
+
+@receiver(post_save, sender=AffiliateAgent)
+def notify_slack(sender, instance, created, **kwargs):
+    if created:
+        message = [
+            {
+                "fallback": f"New Partner on Kweek!💪🏾",
+                "color": "#30BCED",
+                "pretext": "New Partner on Kweek!💪🏾",
+                "fields": [
+                    {"title": "Name", "value": instance.user.name, "short": True},
+                    {
+                        "title": "Phone Number",
+                        "value": instance.user.phone_number,
+                        "short": True,
+                    },
+                    {
+                        "title": "Commission",
+                        "value": f"{round(instance.commission * 100)}%",
+                        "short": True,
+                    },
+                ],
+            }
+        ]
+        slack.send_message(message, "#test" if settings.DEBUG else "#notifications")

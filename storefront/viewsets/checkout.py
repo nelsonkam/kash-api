@@ -42,7 +42,7 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
                 items = CartItem.objects.filter(cart=cart, product__shop=shop).select_related("product").all()
                 for item in items:
                     order.items.create(quantity=item.quantity, product=item.product)
-                order.notify_shop()
+                order.notify()
             checkout.paid = True
             checkout.save()
 
