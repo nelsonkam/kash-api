@@ -86,11 +86,12 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
             weight = 0
             for item in checkout.cart.items.all().select_related("product"):
                 weight += (item.product.weight or 1) * item.quantity
+            price = 22000 if weight <= 2 else 22000 + (8000 * (weight - 2))
             return Response(
                 [
                     {
                         "name": "DHL Express",
-                        "price": {"amount": 22000 + (8000 * (weight - 2)), "currency": "XOF"},
+                        "price": {"amount": price, "currency": "XOF"},
                         "eta": "3-5 jours",
                     }
                 ]
