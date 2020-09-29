@@ -22,7 +22,7 @@ class SMSAuthBackend(BaseBackend):
         )
         if serializer.is_valid():
             user, created = User.objects.get_or_create(
-                phone_number=phone_number, defaults=dict(username=phone_number)
+                username=phone_number, defaults=dict(phone_number=phone_number)
             )
             return user
         return None
