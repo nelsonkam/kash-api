@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -17,6 +18,7 @@ class Shop(BaseModel):
     phone_number = models.CharField(max_length=255)
     user = models.ForeignKey('core.User', models.CASCADE, related_name="shops")
     affiliate = models.ForeignKey('core.AffiliateAgent', on_delete=models.SET_NULL, null=True, related_name="shops")
+    domains = ArrayField(models.CharField(max_length=255), default=list)
 
     @property
     def balance(self):
