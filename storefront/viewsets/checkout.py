@@ -77,7 +77,7 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
                     [
                         {
                             "name": "Futurix Logistic",
-                            "price": {"amount": 2500, "currency": "XOF"},
+                            "price": {"amount": 2000, "currency": "XOF"},
                             "eta": "2-3 jours",
                         }
                     ]
@@ -86,13 +86,13 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
             weight = 0
             for item in checkout.cart.items.all().select_related("product"):
                 weight += (item.product.weight or 1) * item.quantity
-            price = 22000 if weight <= 2 else 22000 + (8000 * (weight - 2))
+            price = 22000 if weight <= 2 else 22000 + (6300 * (weight - 2))
             return Response(
                 [
                     {
                         "name": "DHL Express",
                         "price": {"amount": price, "currency": "XOF"},
-                        "eta": "3-5 jours",
+                        "eta": "3 jours ouvrable",
                     }
                 ]
             )
