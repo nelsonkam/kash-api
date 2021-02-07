@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import axios from "axios"
 
-const baseURL = process.env.NODE_ENV === "production" ? "https://prod.kweek.africa/store/" : "http://localhost:8000/store/";
+const baseURL = location.href.indexOf("localhost") < 0 ? "https://prod.kweek.africa/store/" : "http://localhost:8000/store/";
 
 
 const api = axios.create({

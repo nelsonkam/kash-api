@@ -21,7 +21,7 @@
               produits que vous ajouterez à votre panier s'afficheront ici.</p>
           </div>
           <div v-else>
-            <div style="padding-top: 54px;">
+            <div style="padding-top: 54px; padding-bottom: 105px;">
               <div v-for="item in cart.items"
                    style="display:flex; align-items: center; border-bottom: 1px #e5e7eb solid; padding: 12px 16px;">
                 <img :src="item.product.images[0].url"
@@ -32,6 +32,15 @@
                     }}</p>
                   <p style="margin:12px 0;">{{ item.product.price }} {{ item.product.currency_iso }}</p>
                 </div>
+              </div>
+            </div>
+            <div class="panel-footer">
+              <div style="display:flex; align-items: center; justify-content: space-between; margin-bottom: 8pxpx; padding: 0px 12px;">
+                <p style="font-family: inherit; font-size: 16px">Sous total</p>
+                <p style="font-family: inherit; font-weight: bold; font-size: 16px">{{ cart.total }} XOF</p>
+              </div>
+              <div style="padding: 0px 12px 16px;">
+                <button class="button">Passer à la caisse</button>
               </div>
             </div>
           </div>
@@ -97,8 +106,36 @@ export default {
   max-width: 100vw;
 }
 
+.panel-footer {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 520px;
+  max-width: 100vw;
+  background-color: white;
+  border-top: 1px rgb(196, 196, 196) solid;
+}
+
 .pane-open {
   transform: translate(0px, 0px);
+}
+
+.button {
+  appearance: none;
+  background-color: black;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: none;
+  font-weight: 600;
+  font-size: 16px;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 150px;
+  width: 100%;
 }
 
 .pane-header-container {

@@ -28,11 +28,10 @@ class CartSerializer(BaseModelSerializer):
         return obj.total()
 
     def save_items(self, cart, items):
+        cart.items.all().delete()
         for item in items:
-            print(item)
-            cart_item, created = CartItem.objects.update_or_create(
-                pk=item.get("id"),
-                defaults={
+            cart_item = CartItem.objects.create(
+               **{
                     "quantity": item.get("quantity"),
                     "product_id": item.get("product_id"),
                     "cart_id": cart.id,
