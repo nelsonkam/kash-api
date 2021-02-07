@@ -1,0 +1,28 @@
+{% extends 'storefront/base.html' %}
+
+{% block content %}
+    <div class="min-w-screen min-h-screen">
+        {% include 'storefront/partials/header.html' %}
+        <div class="container mx-auto px-4" style="padding-top: 94px; padding-bottom: 64px">
+            <div class="flex flex-row items-start flex-wrap">
+                <div class="w-full lg:w-1/2 lg:px-4">
+                    <img class="rounded-lg shadow w-full h-auto" src="{{ product.images.first.url }}">
+                </div>
+                <div class="w-full lg:w-1/2 lg:px-6 pt-4 lg:pt-0">
+                    <div class="flex flex-row items-center justify-between flex-wrap">
+                        <p class="text-xl font-bold">{{ product.name }}</p>
+                        <div class="rounded-full flex px-6 py-2 my-4 bg-gray-200 font-bold">
+                            <p class="font-bold">{{ product.price }} {{ product.currency_iso }}</p>
+                        </div>
+                    </div>
+                    <div class="border-t h-1 w-full mb-4 mt-2"></div>
+                    <p class="text-lg font-semibold">Description</p>
+                    <div class="whitespace-pre-line mt-2 text-gray-600">{{ product.description }}</div>
+<div class="border-t h-1 w-full mt-6 my-4"></div>
+                    <kweek-cart-btn product-id="{{ product.id }}"></kweek-cart-btn>
+                </div>
+            </div>
+        </div>
+        {% include 'storefront/partials/footer.html' %}
+    </div>
+{% endblock %}

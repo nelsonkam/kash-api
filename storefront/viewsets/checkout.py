@@ -41,7 +41,7 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
                 )
                 items = CartItem.objects.filter(cart=cart, product__shop=shop).select_related("product").all()
                 for item in items:
-                    order.items.create(quantity=item.quantity, product=item.product)
+                    order.items.create(quantity=item.quantity, product=item.product_details)
                 order.notify()
             checkout.paid = True
             checkout.save()
@@ -85,7 +85,7 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
         else:
             weight = 0
             for item in checkout.cart.items.all().select_related("product"):
-                weight += (item.product.weight or 1) * item.quantity
+                weight += (item.product_details.weight or 1) * item.quantity
             price = 22000 if weight <= 2 else 22000 + (6300 * (weight - 2))
             return Response(
                 [

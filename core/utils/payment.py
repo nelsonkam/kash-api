@@ -85,8 +85,8 @@ class StripePayment:
             {
                 "price_data": {
                     "currency": "usd",
-                    "product_data": {"name": item.product.name,},
-                    "unit_amount": round(item.product.price / 5),
+                    "product_data": {"name": item.product_details.name, },
+                    "unit_amount": round(item.product_details.price / 5),
                 },
                 "quantity": item.quantity,
             }

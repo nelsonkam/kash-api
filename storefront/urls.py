@@ -7,10 +7,12 @@ from storefront.viewsets import CartViewSet, CheckoutViewSet, CategoryViewSet, S
 router = routers.SimpleRouter()
 router.register(r"cart", CartViewSet, basename="cart")
 router.register(r"checkout", CheckoutViewSet, basename="checkout")
-router.register(r"categories", CategoryViewSet, basename="category")
-router.register(r"shops", ShopViewSet, basename="shop")
-router.register(r"products", ProductViewSet, basename="product")
+# router.register(r"categories", CategoryViewSet, basename="category")
+# router.register(r"shops", ShopViewSet, basename="shop")
+# router.register(r"products", ProductViewSet, basename="product")
 
 urlpatterns = router.urls + [
-    path("feed/", views.feed)
+    path("feed/", views.feed),
+    path("", views.index),
+    path("product/<slug>/", views.product_details)
 ]

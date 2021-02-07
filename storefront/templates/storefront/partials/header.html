@@ -1,0 +1,12 @@
+{% load static %}
+<div class="fixed top-0 bg-blue-600 z-50 left-0 w-full px-4 lg:px-8 py-4 flex flex-row justify-between items-center">
+    <img src="{% static 'images/kweek.svg' %}">
+    <p class="text-xl font-bold text-white">{{ shop.name }}</p>
+    <button @click="toggleCart" id="cart-icon" class="header-icon text-xl text-white items-center flex flex-row">
+        <sl-icon-button name="bag-fill" label="Cart">
+        </sl-icon-button>
+        <sl-badge pill>1</sl-badge>
+    </button>
+</div>
+<kweek-cart-pane></kweek-cart-pane>
+

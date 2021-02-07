@@ -21,3 +21,4 @@ test.py
 .env
 
 .idea/
+node_modules/
