@@ -16,21 +16,35 @@
               </button>
             </div>
           </div>
-          <div v-if="!cart.id" style="display:flex; justify-content: center; align-items: center; height: 100%;">
+          <div v-if="!cart.id || cart.product_ids.length === 0" style="display:flex; justify-content: center; align-items: center; height: 100%;">
             <p style="color: #4444; text-align: center; font-family: inherit; font-size: 16px; font-weight: 600;">Les
               produits que vous ajouterez à votre panier s'afficheront ici.</p>
           </div>
           <div v-else>
             <div style="padding-top: 54px; padding-bottom: 105px;">
-              <div v-for="item in cart.items"
-                   style="display:flex; align-items: center; border-bottom: 1px #e5e7eb solid; padding: 12px 16px;">
+              <div :key="index" v-for="(item, index) in cart.items"
+                   style="display:flex; align-items: center; border-bottom: 1px #e5e7eb solid; padding: 8px 16px;">
                 <img :src="item.product.images[0].url"
                      style="height: 64px; width: 64px; background-color: #4444; border-radius: 6px;" alt="">
-                <div style="padding-left: 16px">
+                <div style="padding-left: 16px; width: 100%;">
                   <p style="font-size: 16px; font-family: inherit; margin: 6px 0; font-weight: 600">{{
                       item.product.name
                     }}</p>
-                  <p style="margin:12px 0;">{{ item.product.price }} {{ item.product.currency_iso }}</p>
+                  <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <p style="margin:12px 0;">{{ item.product.price }} {{ item.product.currency_iso }}</p>
+                    <div id="counter">
+                      <button @click="cart.updateCart(index, item.product.id, item.quantity > 1 ? parseInt(item.quantity, 10) - 1 : 1)" class="counter-btn" id="decrement">-</button>
+                      <div id="value" style="margin: 0 8px; font-size: 18px;">{{item.quantity}}</div>
+                      <button @click="cart.updateCart(index, item.product.id, parseInt(item.quantity, 10) + 1)" class="counter-btn" id="increment">+</button>
+                    </div>
+                    <button @click="cart.removeFromCart(index)" style="background-color: red; border: none; height: 28px; width: 28px; border-radius: 28px;display: flex;align-items: center; justify-content: center;">
+                      <svg style="width: 24px; height: 24px;flex-shrink: 0;" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                     fill="white" class="bi bi-x" viewBox="0 0 16 16">
+                  <path
+                      d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"></path>
+                </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

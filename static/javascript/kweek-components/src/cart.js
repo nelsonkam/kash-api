@@ -25,7 +25,7 @@ export default new Vue({
         }
     },
     created() {
-      const data =JSON.parse(localStorage.getItem("__kwk-cart__"))  ;
+      const data =JSON.parse(localStorage.getItem("__kwk-cart__"));
       this.id = data.id;
       this.product_ids = data.product_ids;
       if (this.id) {
@@ -36,9 +36,8 @@ export default new Vue({
       }
     },
     methods: {
-        addToCart(product_id, quantity) {
-            this.product_ids.push({product_id, quantity});
-            if (!this.id) {
+        sync() {
+          if (!this.id) {
                 return api.post("/cart/", {cart_items: JSON.parse(JSON.stringify(this.product_ids))}).then(res => {
                     this.id = res.data.uid;
                     this.items = res.data.items;
@@ -50,6 +49,20 @@ export default new Vue({
                     this.total = res.data.total;
                 })
             }
+        },
+        addToCart(product_id, quantity) {
+            this.product_ids.push({product_id, quantity});
+            return this.sync();
+        },
+        updateCart(index, product_id, quantity) {
+            this.$set(this.product_ids, index, {product_id, quantity})
+            return this.sync();
+        },
+        removeFromCart(index) {
+            console.log(index, JSON.parse(JSON.stringify(this.product_ids)))
+            this.product_ids = this.product_ids.filter((_, i) => i !== index);
+            console.log(index, JSON.parse(JSON.stringify(this.product_ids)))
+            return this.sync();
         }
     }
 })

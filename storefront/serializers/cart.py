@@ -30,16 +30,14 @@ class CartSerializer(BaseModelSerializer):
     def save_items(self, cart, items):
         cart.items.all().delete()
         for item in items:
-            cart_item = CartItem.objects.create(
-               **{
-                    "quantity": item.get("quantity"),
-                    "product_id": item.get("product_id"),
-                    "cart_id": cart.id,
-                },
-            )
-
-            if item.get("quantity", 0) == 0:
-                cart_item.delete()
+            if item.get("quantity", 0) != 0:
+                CartItem.objects.create(
+                   **{
+                        "quantity": item.get("quantity"),
+                        "product_id": item.get("product_id"),
+                        "cart_id": cart.id,
+                    },
+                )
 
     def create(self, validated_data):
         cart = Cart.objects.create()
