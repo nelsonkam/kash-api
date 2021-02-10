@@ -12,7 +12,7 @@ class Cart(BaseModel):
     def shops(self):
         from core.models import Shop
 
-        return Shop.objects.filter(products__in=self.products.all())
+        return Shop.objects.filter(products__in=self.products.all()).distinct()
 
     def total(self):
         return sum([item.total() for item in self.items.select_related("product")])

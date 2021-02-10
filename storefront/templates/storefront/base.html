@@ -13,8 +13,7 @@
             src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.26/dist/shoelace/shoelace.esm.js"></script>
     <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-    <script src="{% static "javascript/kweek-components/dist/kweek.js" %}"></script>
-    <link rel="stylesheet" href="{% static "javascript/kweek-components/dist/kweek.css" %}">
+
     <style>
         .header-icon sl-icon-button::part(base) {
             color: white;
@@ -22,6 +21,7 @@
     </style>
 </head>
 <body>
+
 <div id="content">
     {% block content %}
     {% endblock %}
@@ -31,4 +31,5 @@
 </body>
 
 <script src="{% static "javascript/index.js" %}"></script>
+<script src="{% static "javascript/kweek-components/dist/kweek.js" %}"></script>
 </html>
