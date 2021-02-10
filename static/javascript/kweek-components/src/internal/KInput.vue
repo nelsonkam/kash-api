@@ -13,7 +13,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .input {
   appearance: none;
   border: 1px #e5e7eb solid;

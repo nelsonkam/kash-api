@@ -51,7 +51,7 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
     @action(detail=True)
     def shipping(self, request, uid=None):
         checkout = self.get_object()
-        if checkout.country.lower() == "benin":
+        if checkout.country.lower() in ["benin", "bj"]:
             if "cotonou" in checkout.city.lower():
                 return Response(
                     [

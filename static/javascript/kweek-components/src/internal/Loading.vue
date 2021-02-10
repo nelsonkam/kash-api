@@ -14,7 +14,7 @@ name: "Loading",
 }
 </script>
 
-<style scoped>
+<style>
 .loading {
   height: 18px; width: 18px; border-width: 3px; border-style: solid;
 }

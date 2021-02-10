@@ -51,11 +51,14 @@
 </template>
 
 <script>
+import Vue from 'vue';
 import PaymentMethod from "@/internal/PaymentMethod";
 import KInput from "@/internal/KInput";
 import cart from '../cart';
 import checkout from '../checkout';
 import Loading from "./Loading";
+import vueCountryRegionSelect from 'vue-country-region-select'
+Vue.use(vueCountryRegionSelect)
 
 export default {
   name: "Checkout",
@@ -79,7 +82,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 
 .panel-footer {
   position: fixed;

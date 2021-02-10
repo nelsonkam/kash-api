@@ -30,6 +30,7 @@ export default new Vue({
             });
             if (Object.keys(errors).length > 0) {
                 this.errors = errors;
+                this.loading = false;
                 return Promise.reject(errors)
             } else {
                 return api.post("/checkout/", {...checkout, cart_uid: cart.id}).then(res => {
