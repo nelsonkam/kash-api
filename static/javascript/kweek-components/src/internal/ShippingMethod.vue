@@ -49,7 +49,7 @@ name: "ShippingMethod",
   border-width: 1px;
   border-style: solid;
   border-radius: 4px;
-  padding: 12px 12px;
+  padding: 8px 12px;
   flex-grow: 1;
   margin: 8px 0;
   font-size: 16px;

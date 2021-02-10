@@ -1,7 +1,7 @@
 <template>
-  <div>
+  <div style="display:flex; flex-direction: column;min-height: 100%;">
     <div v-if="!cart.id || cart.product_ids.length === 0"
-         style="display:flex; justify-content: center; align-items: center; height: 100%;">
+         style="display:flex; justify-content: center; align-items: center; height: 100%;flex-grow: 1;">
       <p style="color: #828282; text-align: center; font-family: inherit; font-size: 16px; font-weight: 600;">Les
         produits que vous ajouterez à votre panier s'afficheront ici.</p>
     </div>

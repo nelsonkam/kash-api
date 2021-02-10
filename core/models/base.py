@@ -26,3 +26,4 @@ class BaseModel(models.Model):
 class PaymentMethod(models.TextChoices):
     momo = "momo", "Mobile Money"
     card = "card", "Credit or debit card"
+    cash = 'cash', 'Cash on delivery'

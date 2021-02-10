@@ -1,15 +1,18 @@
 <template>
   <div @click="$emit('click')" class="container" :style="{'border-color': active ? 'black' : '#e5e7eb'}">
-    <div class="radio-container">
-      <div v-if="active" class="radio-active"></div>
+    <div class="row">
+      <div class="radio-container">
+        <div v-if="active" class="radio-active"></div>
+      </div>
+      <p style="margin: 0; font-size: 16px;">{{ name }}</p>
     </div>
-    <p style="margin: 0; font-size: 16px;">{{ name }}</p>
+    <slot v-if="active"></slot>
   </div>
 </template>
 
 <script>
 export default {
-name: "PaymentMethod",
+  name: "PaymentMethod",
   props: ['active', 'name'],
 
 }
@@ -26,12 +29,14 @@ name: "PaymentMethod",
   justify-content: center;
   margin-right: 8px;
 }
+
 .radio-active {
   height: 14px;
   width: 14px;
   background-color: black;
   border-radius: 16px;
 }
+
 .container {
   appearance: none;
   border-width: 1px;
@@ -41,6 +46,9 @@ name: "PaymentMethod",
   flex-grow: 1;
   margin: 8px 0;
   font-size: 16px;
+}
+
+.row {
   display: flex;
   align-items: center;
 }

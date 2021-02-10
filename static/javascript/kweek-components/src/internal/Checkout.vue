@@ -24,15 +24,7 @@
         <k-input v-model="checkout.info.address" :error="checkout.errors.address" type="text"
                  placeholder="Adresse de livraison"/>
       </div>
-      <p class="section-title">Mode de paiement</p>
-      <div style="display:flex; flex-direction: column;">
-        <payment-method @click="checkout.info.payment_mode = 'card'" :active="checkout.info.payment_mode === 'card'"
-                        name="Carte bancaire"></payment-method>
-        <payment-method @click="checkout.info.payment_mode = 'momo'" :active="checkout.info.payment_mode === 'momo'"
-                        name="Mobile Money"></payment-method>
-        <payment-method @click="checkout.info.payment_mode = 'cash'" :active="checkout.info.payment_mode === 'cash'"
-                        name="Paiement à la livraison"></payment-method>
-      </div>
+
       <div class="panel-footer">
         <div
             style="display:flex; align-items: center; justify-content: space-between; padding: 0px 12px;">

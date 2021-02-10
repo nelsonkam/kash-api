@@ -7,7 +7,7 @@
           <div class="pane-header-container">
             <div class="pane-header">
               <div style="display:flex; align-items:center;">
-                <button v-if="currentStep > 0" @click="currentStep--" style="padding: 4px; margin-right: 8px;background: none;border: none;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.41424 13L12.7071 19.2929L11.2929 20.7071L2.58582 12L11.2929 3.29291L12.7071 4.70712L6.41424 11H21V13H6.41424Z" fill="black"></path></svg></button>
+                <button v-if="currentStep > 0 && currentStep < 3" @click="currentStep--" style="padding: 4px; margin-right: 8px;background: none;border: none;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.41424 13L12.7071 19.2929L11.2929 20.7071L2.58582 12L11.2929 3.29291L12.7071 4.70712L6.41424 11H21V13H6.41424Z" fill="black"></path></svg></button>
                 <p style="font-family: inherit; font-size: 20px; font-weight: 600; margin: 0;">{{ title }}</p>
               </div>
               <button @click="open = false" style="appearance: none; border: none; padding: 4px; background: none;">
@@ -22,6 +22,7 @@
           <cart @next="currentStep++" v-if="currentStep === 0" />
           <checkout @next="currentStep++" v-if="currentStep === 1" />
           <shipping @back="currentStep--" @next="currentStep++" v-if="currentStep === 2" />
+          <order-completed @back="currentStep--" v-if="currentStep === 3" />
         </div>
       </div>
 
@@ -34,6 +35,7 @@ import cart from '../cart'
 import Cart from "../internal/Cart"
 import Checkout from "../internal/Checkout"
 import Shipping from "../internal/Shipping"
+import OrderCompleted from "../internal/OrderCompleted"
 export default {
   props: ['trigger'],
   data() {
@@ -44,18 +46,18 @@ export default {
     }
   },
   components: {
-    Cart, Checkout, Shipping
+    Cart, Checkout, Shipping, OrderCompleted
   },
   computed: {
     title() {
-      const titles = ["Votre panier","Ma commande","Livraison"]
+      const titles = ["Votre panier","Ma commande","Livraison & Paiement", "Confirmation"]
       return titles[this.currentStep];
     }
   },
   mounted() {
     document.querySelector(this.trigger).addEventListener("click", () => {
       this.open = true;
-    })
+    });
   },
   methods: {
     show() {

@@ -51,10 +51,14 @@ export default new Vue({
             return this.sync();
         },
         removeFromCart(index) {
-            console.log(index, JSON.parse(JSON.stringify(this.product_ids)))
             this.product_ids = this.product_ids.filter((_, i) => i !== index);
-            console.log(index, JSON.parse(JSON.stringify(this.product_ids)))
             return this.sync();
+        },
+        empty() {
+            this.id = null;
+            this.product_ids = [];
+            this.items = [];
+            this.total = 0;
         }
     }
 })

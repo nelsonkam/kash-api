@@ -20,9 +20,29 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
         if request.data.get("shipping"):
             checkout.shipping_option = request.data.get("shipping")
             checkout.save()
-
-        data = Payment.create_transaction(checkout, checkout.payment_method)
-        return Response(data)
+        payment = request.data.get("payment")
+        transaction = Payment.create_transaction(checkout, payment.get("method"), payment.get("payload"))
+        if transaction:
+            checkout = self.get_object()
+            cart = checkout.cart
+            for shop in cart.shops.all():
+                order = Order.objects.create(
+                    customer=checkout.customer,
+                    country=checkout.country,
+                    city=checkout.city,
+                    address=checkout.address,
+                    shipping_option=checkout.shipping_option,
+                    payment_method=checkout.payment_method,
+                    shop=shop
+                )
+                items = CartItem.objects.filter(cart=cart, product__shop=shop).select_related("product").all()
+                for item in items:
+                    order.items.create(quantity=item.quantity, product=item.product)
+                order.notify()
+            checkout.paid = True
+            checkout.save()
+            return Response(self.get_serializer(checkout).data)
+        return Response({'message': "Payment failed"}, status=400)
 
     @action(detail=True, methods=['post'])
     def paid(self, request, uid):
@@ -41,7 +61,7 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
                 )
                 items = CartItem.objects.filter(cart=cart, product__shop=shop).select_related("product").all()
                 for item in items:
-                    order.items.create(quantity=item.quantity, product=item.product_details)
+                    order.items.create(quantity=item.quantity, product=item.product)
                 order.notify()
             checkout.paid = True
             checkout.save()
