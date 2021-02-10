@@ -59,6 +59,7 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
                             "name": "Futurix Logistic",
                             "price": {"amount": 1000, "currency": "XOF"},
                             "eta": "1-2 jours",
+                            "logo": "https://kweek-api.s3.amazonaws.com/futurix-logo.png"
                         }
                     ]
                 )
@@ -69,6 +70,7 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
                             "name": "Futurix Logistic",
                             "price": {"amount": 1500, "currency": "XOF"},
                             "eta": "1-2 jours",
+                            "logo": "https://kweek-api.s3.amazonaws.com/futurix-logo.png"
                         }
                     ]
                 )
@@ -79,20 +81,22 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
                             "name": "Futurix Logistic",
                             "price": {"amount": 2000, "currency": "XOF"},
                             "eta": "2-3 jours",
+                            "logo": "https://kweek-api.s3.amazonaws.com/futurix-logo.png"
                         }
                     ]
                 )
         else:
             weight = 0
             for item in checkout.cart.items.all().select_related("product"):
-                weight += (item.product_details.weight or 1) * item.quantity
+                weight += (item.product.weight or 1) * item.quantity
             price = 22000 if weight <= 2 else 22000 + (6300 * (weight - 2))
             return Response(
                 [
                     {
                         "name": "DHL Express",
                         "price": {"amount": price, "currency": "XOF"},
-                        "eta": "3 jours ouvrable",
+                        "eta": "3 jours ouvrables",
+                        "logo": "https://kweek-api.s3.amazonaws.com/dhl.png"
                     }
                 ]
             )

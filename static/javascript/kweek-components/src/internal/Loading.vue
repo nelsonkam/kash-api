@@ -10,9 +10,6 @@ name: "Loading",
     return {
       styles: {borderRadius: '100%', borderColor: '#FFFFFF40', borderBottomColor: "#FFFFFF"}
     }
-  },
-  created() {
-    console.log(this.color, this.styles.borderColor)
   }
 }
 </script>

@@ -15,8 +15,12 @@ class Payment:
     def create_transaction(cls, checkout, method="card"):
         if method == "card":
             return StripePayment.create_transaction(checkout)
-        else:
+        elif method == 'momo':
             return KKiaPayment.create_transaction(checkout)
+        elif method == 'cash':
+            return CashOnDelivery.create_transaction(checkout)
+        else:
+            raise NotImplemented
 
     @classmethod
     def verify_transaction(cls, **kwargs):
@@ -119,3 +123,12 @@ class StripePayment:
     def verify_transaction(cls, session_id):
         session = stripe.checkout.Session.retrieve(session_id)
         return session.payment_status == 'paid'
+
+class CashOnDelivery:
+    @classmethod
+    def create_transaction(cls, checkout):
+        return {'processor': 'cash'}
+
+    @classmethod
+    def verify_transaction(cls):
+        return True

@@ -1,13 +1,5 @@
 import Vue from 'vue'
-import axios from "axios"
-
-const baseURL = location.href.indexOf("localhost") < 0 ? "https://prod.kweek.africa/store/" : "http://localhost:8000/store/";
-
-
-const api = axios.create({
-    baseURL,
-});
-
+import api from "./api"
 
 export default new Vue({
     data: {
@@ -25,11 +17,11 @@ export default new Vue({
         }
     },
     created() {
-      const data =JSON.parse(localStorage.getItem("__kwk-cart__"));
+      const data = JSON.parse(localStorage.getItem("__kwk-cart__"));
       this.id = data.id;
       this.product_ids = data.product_ids;
       if (this.id) {
-          api.get(`/cart/${this.id}`).then(res => {
+          api.get(`/cart/${this.id}/`).then(res => {
               this.items = res.data.items;
               this.total = res.data.total;
           });

@@ -19,7 +19,7 @@
 
 <script>
 import cart from "../cart";
-import Loading from "./Loading"
+import Loading from "../internal/Loading"
 export default {
   props: ['productId'],
   data() {

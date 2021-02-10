@@ -7949,6 +7949,13 @@ vm-browserify@^1.0.1:
   resolved "https://registry.npm.taobao.org/vm-browserify/download/vm-browserify-1.1.2.tgz#78641c488b8e6ca91a75f511e7a3b32a86e5dda0"
   integrity sha1-eGQcSIuObKkadfUR56OzKobl3aA=
 
+vue-country-region-select@^2.0.14:
+  version "2.0.14"
+  resolved "https://registry.yarnpkg.com/vue-country-region-select/-/vue-country-region-select-2.0.14.tgz#3f66b14057b3621692fd8d50116591b8f5ef1343"
+  integrity sha512-8iQMnwPbkWVmGcBkX++pCHBrQsS7cvgxcfP3xIZY74she7N2Pi0xIPd2p/Ba6zoxA9F7qiU1ZjxzK8xhi6/aKA==
+  dependencies:
+    vue "^2.5.17"
+
 vue-easy-toast@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/vue-easy-toast/-/vue-easy-toast-1.0.5.tgz#c2b5064b7b0e0b69500c9f38b0c63ff1a151e0b7"
@@ -8012,7 +8019,7 @@ vue-template-es2015-compiler@^1.9.0:
   resolved "https://registry.npm.taobao.org/vue-template-es2015-compiler/download/vue-template-es2015-compiler-1.9.1.tgz#1ee3bc9a16ecbf5118be334bb15f9c46f82f5825"
   integrity sha1-HuO8mhbsv1EYvjNLsV+cRvgvWCU=
 
-vue@^2.6.11:
+vue@^2.5.17, vue@^2.6.11:
   version "2.6.12"
   resolved "https://registry.npm.taobao.org/vue/download/vue-2.6.12.tgz#f5ebd4fa6bd2869403e29a896aed4904456c9123"
   integrity sha1-9evU+mvShpQD4pqJau1JBEVskSM=
