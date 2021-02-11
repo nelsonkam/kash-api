@@ -1,6 +1,6 @@
 FROM python:3.7-alpine
 RUN apk update \
-  && apk add --virtual build-deps gcc python3-dev musl-dev git wget bash \
+  && apk add --virtual build-deps curl gcc python3-dev musl-dev git wget bash \
   && apk add postgresql-dev \
   && apk add libffi-dev py-cffi \
   && apk add jpeg-dev zlib-dev libjpeg \
