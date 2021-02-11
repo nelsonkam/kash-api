@@ -33,6 +33,7 @@ Pillow = "^7.2.0"
 sentry-sdk = "^0.17.4"
 stripe = "^2.51.0"
 kkiapay = "^0.0.5"
+django-hosts = "^4.0"
 
 [tool.poetry.dev-dependencies]
 

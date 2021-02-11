@@ -19,7 +19,6 @@ from sentry_sdk.integrations.django import DjangoIntegration
 
 env = environ.Env(DEBUG=(bool, False))
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(env_file=str(BASE_DIR / ".env"))
@@ -33,7 +32,7 @@ SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "prod.kweek.africa"]
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
@@ -48,6 +47,7 @@ INSTALLED_APPS = [
     "storefront",
     "shop_admin",
     "django_extensions",
+    "django_hosts",
     "rest_framework",
     "corsheaders",
     "phone_verify",
@@ -56,6 +56,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'django_hosts.middleware.HostsRequestMiddleware',
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -65,9 +66,12 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "shop_admin.middleware.ShopMiddleware",
+    'django_hosts.middleware.HostsResponseMiddleware'
 ]
 
 ROOT_URLCONF = "kweek_api.urls"
+ROOT_HOSTCONF = 'kweek_api.hosts'
+DEFAULT_HOST = 'api'
 
 TEMPLATES = [
     {
@@ -87,12 +91,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "kweek_api.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 DATABASES = {"default": env.db()}
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -101,11 +103,10 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", },
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator", },
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator", },
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
@@ -119,7 +120,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
@@ -159,7 +159,6 @@ PHONE_VERIFICATION = {
     "VERIFY_SECURITY_CODE_ONLY_ONCE": False,
 }
 
-
 SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
     "REFRESH_TOKEN_LIFETIME": timedelta(days=60),
@@ -190,13 +189,13 @@ SLACK_TOKEN = env("SLACK_TOKEN")
 
 AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
-AWS_REGION_NAME="us-east-1"
+AWS_REGION_NAME = "us-east-1"
 
 FEDAPAY_API_KEY = env("FEDAPAY_API_KEY")
 
-KKIAPAY_PUBLIC_KEY= env('KKIAPAY_PUBLIC_KEY')
-KKIAPAY_PRIVATE_KEY= env('KKIAPAY_PRIVATE_KEY')
-KKIAPAY_SECRET_KEY= env('KKIAPAY_SECRET_KEY')
+KKIAPAY_PUBLIC_KEY = env('KKIAPAY_PUBLIC_KEY')
+KKIAPAY_PRIVATE_KEY = env('KKIAPAY_PRIVATE_KEY')
+KKIAPAY_SECRET_KEY = env('KKIAPAY_SECRET_KEY')
 STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY")
 stripe.api_key = STRIPE_SECRET_KEY
 

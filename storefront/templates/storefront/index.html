@@ -8,11 +8,11 @@
             <div class="flex flex-row items-center flex-wrap mx-4  mb-12 lg:mx-12 mt-8 mx-auto">
                 {% for product in shop.products.all %}
                     <div class="w-full md:w-1/2 lg:w-1/3 p-4">
-                        <a href="/store/product/{{ product.slug }}">
+                        <a href="/product/{{ product.slug }}">
                             <div class="hover:shadow-xl shadow-md cursor-pointer bg-white rounded">
                                 <img class="rounded-t" src="{{ product.images.first.url }}" alt="{{ product.name }}">
                                 <div class="p-4">
-                                    <a href="/store/product/{{ product.slug }}" class="font-bold">{{ product.name }}</a>
+                                    <a href="/product/{{ product.slug }}" class="font-bold">{{ product.name }}</a>
                                     <p class="text-grey-400">{{ product.price }} {{ product.currency_iso }}</p>
                                 </div>
                             </div>
