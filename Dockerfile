@@ -14,6 +14,7 @@ RUN apk add --no-cache tzdata
 ENV TZ Europe/London
 
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+RUN source $HOME/.poetry/env
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
