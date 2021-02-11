@@ -5,7 +5,6 @@ RUN apk update \
   && apk add libffi-dev py-cffi \
   && apk add jpeg-dev zlib-dev libjpeg \
   && apk add --update py-pip \
-  && apk add 'rust>1.45.0' cargo
 
 ENV DJANGO_SETTINGS_MODULE kweek_api.settings
 ENV CRYPTOGRAPHY_DONT_BUILD_RUST 1
