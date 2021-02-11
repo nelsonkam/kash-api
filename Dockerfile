@@ -11,7 +11,7 @@ ENV DJANGO_SETTINGS_MODULE kweek_api.settings
 RUN apk add --no-cache tzdata
 ENV TZ Europe/London
 
-RUN pip install poetry
+RUN pip install 'poetry==1.0.10'
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
