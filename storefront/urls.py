@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from rest_framework import routers
 
 from storefront import views
@@ -11,8 +11,9 @@ router.register(r"checkout", CheckoutViewSet, basename="checkout")
 # router.register(r"shops", ShopViewSet, basename="shop")
 # router.register(r"products", ProductViewSet, basename="product")
 
-urlpatterns = router.urls + [
+urlpatterns = [
     path("feed/", views.feed),
     path("", views.index),
+    path("api/", include(router.urls)),
     path("product/<slug>/", views.product_details)
 ]
