@@ -34,9 +34,10 @@ sentry-sdk = "^0.17.4"
 stripe = "^2.51.0"
 kkiapay = "^0.0.5"
 django-hosts = "^4.0"
+cryptography = "<=3.3.2"
 
 [tool.poetry.dev-dependencies]
 
 [build-system]
-requires = ["poetry>=0.12"]
+requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.masonry.api"
