@@ -20,7 +20,8 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
         if request.data.get("shipping"):
             checkout.shipping_option = request.data.get("shipping")
             checkout.save()
-
+        checkout.payment_method = request.data.get("payment_method")
+        checkout.save()
         data = Payment.create_transaction(checkout, checkout.payment_method, **request.data)
         return Response(data)
 

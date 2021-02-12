@@ -44,8 +44,8 @@ class Payment:
 class KKiaPayment:
 
     @classmethod
-    def create_transaction(cls, checkout, transaction_id=None):
-        return transaction.status == 'SUCCESS'
+    def create_transaction(cls, checkout, **kwargs):
+        return {"processor": "kkiapay", "amount": checkout.total()}
 
     @classmethod
     def verify_transaction(cls, transaction_id=None, **kwargs):

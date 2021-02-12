@@ -1,5 +1,21 @@
 {% extends 'storefront/base.html' %}
+{% block seo %}
+    <title>{{ product.name }} | {{ shop.name }}</title>
+    <meta name="title" content="{{product.name}}">
+    <meta name="description" content="Visitez notre boutique pour découvrir nos meilleurs articles et produits.">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{product.name}}">
+    <meta property="og:description" content="Visitez notre boutique pour découvrir nos meilleurs articles et produits.">
+    <meta property="og:image" content="{{product.images.first.url}}">
 
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="{{product.name}}">
+    <meta property="twitter:description" content="Visitez notre boutique pour découvrir nos meilleurs articles et produits.">
+    <meta property="twitter:image" content="{{product.images.first.url}}">
+{% endblock %}
 {% block content %}
     <div class="min-w-screen min-h-screen">
         {% include 'storefront/partials/header.html' %}

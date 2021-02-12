@@ -6,7 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <meta name="theme-color" content="#C4C4C4"/>
     {% block seo %}
-    <title>{{ shop.name }}</title>
+        <title>{{ shop.name }}</title>
+        <meta name="title" content="{{shop.name}}">
+        <meta name="description" content="Visitez notre boutique pour découvrir nos meilleurs articles et produits.">
+        
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="{{shop.name}}">
+        <meta property="og:description" content="Visitez notre boutique pour découvrir nos meilleurs articles et produits.">
+        <meta property="og:image" content="{{shop.cover_url}}">
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image">
+        <meta property="twitter:title" content="{{shop.name}}">
+        <meta property="twitter:description" content="Visitez notre boutique pour découvrir nos meilleurs articles et produits.">
+        <meta property="twitter:image" content="{{shop.cover_url}}">
     {% endblock %}
 
     <link rel="stylesheet"
@@ -39,5 +53,5 @@
 </body>
 
 <script src="{% static "javascript/index.js" %}"></script>
-<script src="https://cdn.kweek.shop/js/kweek.js"></script>
+<script src="http://localhost:5000/kweek.js"></script>
 </html>
