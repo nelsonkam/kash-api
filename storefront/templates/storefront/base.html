@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <meta name="theme-color" content="#C4C4C4"/>
+    {% block seo %}
     <title>{{ shop.name }}</title>
+    {% endblock %}
 
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.26/dist/shoelace/shoelace.css">
@@ -13,10 +15,16 @@
             src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.26/dist/shoelace/shoelace.esm.js"></script>
     <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
 
     <style>
+        * {
+            font-family: 'Avenir Next', sans-serif !important;
+        }
         .header-icon sl-icon-button::part(base) {
-            color: white;
+            color: black;
         }
     </style>
 </head>

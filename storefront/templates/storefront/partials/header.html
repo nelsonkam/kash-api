@@ -1,9 +1,16 @@
 {% load static %}
-<div class="fixed top-0 bg-blue-600 z-50 left-0 w-full px-4 lg:px-8 py-4 flex flex-row justify-between items-center">
-    <a href="/"><img src="{% static 'images/kweek.svg' %}"></a>
-    <p class="text-xl font-bold text-white">{{ shop.name }}</p>
+<div class="fixed bg-white top-0 border-b z-50 left-0 w-full px-4 lg:px-8 py-3 flex flex-row justify-between items-center">
+    <div class="flex items-center">
+        <a href="/"><img class="h-10 w-10 rounded-full border mr-2" src="{{shop.avatar_url}}"></a>
+        <a href="/" class="text-lg text-black">{{ shop.name }}</a>
+    </div>
+    <div class="md:flex hidden items-center justify-around">
+        <a href="/" class="text-black hover:underline font-semibold uppercase mx-4">Acceuil</a>
+        <a href="/products/" class="text-black hover:underline font-semibold uppercase mx-4">Catalogue</a>
+        <a href="/about/" class="text-black font-semibold uppercase hover:underline mx-4">À propos</a>
+    </div>
     <button @click="toggleCart" id="cart-icon" class="header-icon text-xl text-white items-center flex flex-row">
-        <sl-icon-button name="bag-fill" label="Cart">
+        <sl-icon-button color="black" name="bag-fill" label="Cart">
         </sl-icon-button>
         <sl-badge pill>1</sl-badge>
     </button>

@@ -1,25 +1,8 @@
-from urllib.parse import urlparse
-
 from django.shortcuts import render, get_object_or_404
+from django.views.defaults import page_not_found
 
-# Create your views here.
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
+from core.models import Shop
 
-from core.models import Banner, Category, Product, Shop
-from storefront.serializers import ProductSerializer
-from storefront.serializers.category import CategorySerializer
-
-
-@api_view()
-@permission_classes([AllowAny])
-def feed(request):
-    return Response(data={
-        'banners': Banner.objects.values(),
-        'categories': CategorySerializer(Category.objects.all(), many=True).data,
-        'products': ProductSerializer(Product.objects.order_by("-created_at")[0:50], many=True).data
-    })
 
 def index(request):
     host = request.headers['host'].split(':')[0]
@@ -28,10 +11,26 @@ def index(request):
     }
     return render(request, 'storefront/index.html', context)
 
+
 def product_details(request, slug=None):
-    product = get_object_or_404(Product, slug=slug)
+    host = request.headers['host'].split(':')[0]
+    shop = get_object_or_404(Shop, domains__contains=[host])
+    product = get_object_or_404(shop.products.all(), slug=slug)
     context = {
         'product': product,
         'shop': product.shop
     }
     return render(request, 'storefront/product.html', context)
+
+
+def product_catalogue(request):
+    host = request.headers['host'].split(':')[0]
+    shop = get_object_or_404(Shop, domains__contains=[host])
+    context = {
+        'products': shop.products.all(),
+        'shop': shop
+    }
+    return render(request, 'storefront/products.html', context)
+
+def handle_404(request, exception, template_name="404.html"):
+    return page_not_found(request, exception, template_name='storefront/404.html')

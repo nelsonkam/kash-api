@@ -12,8 +12,10 @@ router.register(r"checkout", CheckoutViewSet, basename="checkout")
 # router.register(r"products", ProductViewSet, basename="product")
 
 urlpatterns = [
-    path("feed/", views.feed),
-    path("", views.index),
     path("api/", include(router.urls)),
-    path("product/<slug>/", views.product_details)
+    path("", views.index),
+    path("products/", views.product_catalogue),
+    path("products/<slug>/", views.product_details)
 ]
+
+handler404 = 'storefront.views.handle_404'
