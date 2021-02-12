@@ -9,11 +9,7 @@
         <a href="/products/" class="text-black hover:underline font-semibold uppercase mx-4">Catalogue</a>
         <a href="/about/" class="text-black font-semibold uppercase hover:underline mx-4">À propos</a>
     </div>
-    <button @click="toggleCart" id="cart-icon" class="header-icon text-xl text-white items-center flex flex-row">
-        <sl-icon-button color="black" name="bag-fill" label="Cart">
-        </sl-icon-button>
-        <sl-badge pill>1</sl-badge>
-    </button>
+    <kweek-cart-icon-btn />
 </div>
 <kweek-cart-pane></kweek-cart-pane>
 
