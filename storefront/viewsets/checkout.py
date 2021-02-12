@@ -20,51 +20,14 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
         if request.data.get("shipping"):
             checkout.shipping_option = request.data.get("shipping")
             checkout.save()
-        payment = request.data.get("payment")
-        transaction = Payment.create_transaction(checkout, payment.get("method"), payment.get("payload"))
-        if transaction:
-            checkout = self.get_object()
-            cart = checkout.cart
-            for shop in cart.shops.all():
-                order = Order.objects.create(
-                    customer=checkout.customer,
-                    country=checkout.country,
-                    city=checkout.city,
-                    address=checkout.address,
-                    shipping_option=checkout.shipping_option,
-                    payment_method=checkout.payment_method,
-                    shop=shop
-                )
-                items = CartItem.objects.filter(cart=cart, product__shop=shop).select_related("product").all()
-                for item in items:
-                    order.items.create(quantity=item.quantity, product=item.product)
-                order.notify()
-            checkout.paid = True
-            checkout.save()
-            return Response(self.get_serializer(checkout).data)
-        return Response({'message': "Payment failed"}, status=400)
+
+        data = Payment.create_transaction(checkout, checkout.payment_method, **request.data)
+        return Response(data)
 
     @action(detail=True, methods=['post'])
     def paid(self, request, uid):
         checkout = self.get_object()
-        if not checkout.paid and Payment.verify_transaction(**request.data):
-            cart = checkout.cart
-            for shop in cart.shops.all():
-                order = Order.objects.create(
-                    customer=checkout.customer,
-                    country=checkout.country,
-                    city=checkout.city,
-                    address=checkout.address,
-                    shipping_option=checkout.shipping_option,
-                    payment_method=checkout.payment_method,
-                    shop=shop
-                )
-                items = CartItem.objects.filter(cart=cart, product__shop=shop).select_related("product").all()
-                for item in items:
-                    order.items.create(quantity=item.quantity, product=item.product)
-                order.notify()
-            checkout.paid = True
-            checkout.save()
+        checkout.pay(**request.data)
 
         return Response(self.get_serializer(checkout).data)
 

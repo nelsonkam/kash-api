@@ -4,9 +4,11 @@ from django.db import models
 from core.models.base import BaseModel, generate_uid
 
 
+
 class Cart(BaseModel):
     uid = models.CharField(unique=True, max_length=40, default=generate_uid)
     products = models.ManyToManyField('core.Product', through='core.CartItem')
+    paid = models.BooleanField(default=False)
 
     @property
     def shops(self):

@@ -12,102 +12,95 @@ def fedapay_request(method, url, data=None):
 
 class Payment:
     @classmethod
-    def create_transaction(cls, checkout, method="card", payload=None):
+    def get_processor_cls(cls, method):
+        return {
+            "card": StripePayment,
+            "cash": CashOnDelivery,
+            "momo": KKiaPayment
+        }[method]
+
+    @classmethod
+    def create_transaction(cls, checkout, method="card", **kwargs):
         if method == "card":
             try:
-                return StripePayment.create_transaction(checkout, payload.get("id"))
+                return StripePayment.create_transaction(checkout, **kwargs)
             except Exception as e:
                 print("[stripe error]", e)
                 return None
         elif method == 'momo':
-            return KKiaPayment.create_transaction(checkout, payload)
+            return KKiaPayment.create_transaction(checkout, **kwargs)
         elif method == 'cash':
-            return CashOnDelivery.create_transaction(checkout)
+            return CashOnDelivery.create_transaction(checkout, **kwargs)
         else:
             raise NotImplemented
 
     @classmethod
-    def verify_transaction(cls, **kwargs):
-        transaction_id = kwargs.pop("transaction_id", None)
-        if transaction_id:
-            return KKiaPayment.verify_transaction(transaction_id)
+    def verify_transaction(cls, method="card", **kwargs):
+        ProcessorClass = cls.get_processor_cls(method)
 
-        session_id = kwargs.pop("session_id", None)
-        if session_id:
-            return StripePayment.verify_transaction(session_id)
-
-        return False
+        return ProcessorClass.verify_transaction(**kwargs)
 
 
 class KKiaPayment:
 
     @classmethod
-    def create_transaction(cls, checkout, transaction_id):
-        k = Kkiapay(settings.KKIAPAY_PUBLIC_KEY, settings.KKIAPAY_PRIVATE_KEY, settings.KKIAPAY_SECRET_KEY,
-                    sandbox=settings.DEBUG)
-        transaction = k.verify_transaction(transaction_id)
+    def create_transaction(cls, checkout, transaction_id=None):
         return transaction.status == 'SUCCESS'
 
     @classmethod
-    def verify_transaction(cls, transaction_id):
+    def verify_transaction(cls, transaction_id=None, **kwargs):
         k = Kkiapay(settings.KKIAPAY_PUBLIC_KEY, settings.KKIAPAY_PRIVATE_KEY, settings.KKIAPAY_SECRET_KEY, sandbox=settings.DEBUG)
         transaction = k.verify_transaction(transaction_id)
         return transaction.status == 'SUCCESS'
 
 
-
-class FedaPayment:
-    @classmethod
-    def create_transaction(cls, checkout):
-        names = checkout.customer.name.split(" ")
-        customer = {
-            "firstname": names[0],
-        }
-        if len(names) > 1:
-            customer["lastname"] = names[1]
-
-        if checkout.customer.email:
-            customer["email"] = checkout.customer.email
-
-        resp = fedapay_request(
-            "post",
-            "/v1/transactions",
-            {
-                "description": "Paiement sur Kweek",
-                "amount": checkout.total(),
-                "callback_url": f"https://kweek.africa/order/{checkout.uid}/confirmed",
-                "currency": {"iso": "XOF"},
-                "customer": customer,
-            },
-        )
-        transaction = resp.json()["v1/transaction"]
-        token = cls.create_payment_token(transaction.get("id"))
-        return {"payment_url": token.get("url"), "processor": "fedapay"}
-
-    @classmethod
-    def create_payment_token(cls, payment_id):
-        return fedapay_request("post", f"/v1/transactions/{payment_id}/token").json()
-
-
 class StripePayment:
     @classmethod
-    def create_transaction(cls, checkout, token):
-        return stripe.Charge.create(
-          amount=checkout.total(),
-          currency="xof",
-          source=token,
+    def create_transaction(cls, checkout, **kwargs):
+        items = [
+            {
+                "price_data": {
+                    "currency": "xof",
+                    "product_data": {"name": item.product.name,},
+                    "unit_amount": round(item.product.price),
+                },
+                "quantity": item.quantity,
+            }
+            for item in checkout.cart.items.prefetch_related("product", "product__images").all()
+        ]
+        items.append({
+            "price_data": {
+                "currency": "xof",
+                "product_data": {"name": "Shipping Fees", },
+                "unit_amount": round(checkout.shipping_fees()),
+            },
+            "quantity": 1,
+        })
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=items,
+            mode="payment",
+            customer_email=checkout.customer.email,
+            client_reference_id=checkout.customer.id,
+            success_url=f"{kwargs.get('origin')}/order/{checkout.uid}/confirmed/?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=kwargs.get('return_url'),
+            metadata={
+                'checkout_id': checkout.uid,
+            }
         )
 
+        return {"processor": "stripe", "session_id": session.id}
+
     @classmethod
-    def verify_transaction(cls, session_id):
+    def verify_transaction(cls, session_id=None, **kwargs):
         session = stripe.checkout.Session.retrieve(session_id)
         return session.payment_status == 'paid'
 
 class CashOnDelivery:
     @classmethod
-    def create_transaction(cls, checkout):
-        return True
+    def create_transaction(cls, checkout, **kwargs):
+        return {"processor": "cash"}
 
     @classmethod
-    def verify_transaction(cls):
+    def verify_transaction(cls, **kwargs):
         return True

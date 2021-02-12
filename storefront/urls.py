@@ -15,7 +15,8 @@ urlpatterns = [
     path("api/", include(router.urls)),
     path("", views.index),
     path("products/", views.product_catalogue),
-    path("products/<slug>/", views.product_details)
+    path("products/<slug>/", views.product_details),
+    path("order/<checkout_uid>/confirmed/", views.order_confirmation)
 ]
 
 handler404 = 'storefront.views.handle_404'

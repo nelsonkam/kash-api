@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.views.defaults import page_not_found
 
-from core.models import Shop
-
+from core.models import Shop, Checkout, Order, CartItem
+from core.utils.payment import Payment
 
 def index(request):
     host = request.headers['host'].split(':')[0]
@@ -31,6 +31,13 @@ def product_catalogue(request):
         'shop': shop
     }
     return render(request, 'storefront/products.html', context)
+
+def order_confirmation(request, checkout_uid):
+    host = request.headers['host'].split(':')[0]
+    shop = get_object_or_404(Shop, domains__contains=[host])
+    checkout = get_object_or_404(Checkout, uid=checkout_uid)
+    checkout.pay(**request.GET.dict())
+    return render(request, 'storefront/order_confirmed.html', {'checkout': checkout, 'shop': shop})
 
 def handle_404(request, exception, template_name="404.html"):
     return page_not_found(request, exception, template_name='storefront/404.html')

@@ -50,4 +50,4 @@ class CartSerializer(BaseModelSerializer):
 
     class Meta:
         model = Cart
-        fields = ["uid", "created_at", "items", "cart_items", "total"]
+        fields = ["uid", "created_at", "items", "cart_items", "paid", "total"]
