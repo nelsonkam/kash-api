@@ -13,9 +13,10 @@ class Shop(BaseModel):
     username = models.CharField(unique=True, max_length=255)
     avatar_url = models.URLField(blank=True, null=True)
     cover_url = models.URLField(blank=True, null=True)
-    whatsapp_number = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    phone_number = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=255, blank=True)
+    country_code = models.CharField(max_length=10, default="BJ")
+    currency_iso = models.CharField(max_length=10, default="XOF")
     user = models.ForeignKey('core.User', models.CASCADE, related_name="shops")
     affiliate = models.ForeignKey('core.AffiliateAgent', on_delete=models.SET_NULL, null=True, related_name="shops")
     domains = ArrayField(models.CharField(max_length=255), default=list)
@@ -40,13 +41,7 @@ def notify_slack(sender, instance, created, **kwargs):
             {
                 "fallback": f"New shop created on Kweek!💪🏾",
                 "color": "#30BCED",
-                "actions": [
-                    {
-                        "type": "button",
-                        "text": "📞 Contact on WhatsApp",
-                        "url": "https://wa.me/" + instance.whatsapp_number,
-                    }
-                ],
+                
                 "pretext": "New shop created on Kweek!💪🏾",
                 "fields": [
                     {"title": "Name", "value": instance.name, "short": True},

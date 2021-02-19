@@ -14,7 +14,6 @@ class ShopSerializer(ModelSerializer):
             "username",
             "name",
             "avatar_url",
-            "whatsapp_number",
             "description",
             "phone_number",
             "products",

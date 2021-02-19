@@ -15,7 +15,7 @@ from shop_admin.serializers.shop import ShopSerializer
 
 class ShopViewSet(ModelViewSet):
     serializer_class = ShopSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
     parser_classes = [JSONParser, MultiPartParser]
 

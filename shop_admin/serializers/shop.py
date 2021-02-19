@@ -15,11 +15,14 @@ class ShopSerializer(BaseModelSerializer):
     affiliate_code = serializers.CharField(write_only=True, required=False, allow_null=True)
 
     def create(self, validated_data):
-        affiliate_code = validated_data.pop("affiliate_code")
         shop = Shop.objects.create(**validated_data)
-        if affiliate_code:
-            shop.affiliate = AffiliateAgent.objects.filter(code=affiliate_code).first()
-            shop.save()
+        shop.domains.append(f"{shop.username}.kweek.shop")
+        shop.save()
+        if hasattr(validated_data, 'affiliate_code'):
+            affiliate_code = validated_data.pop("affiliate_code")
+            if affiliate_code:
+                shop.affiliate = AffiliateAgent.objects.filter(code=affiliate_code).first()
+                shop.save()
         return shop
 
     class Meta:
@@ -28,7 +31,8 @@ class ShopSerializer(BaseModelSerializer):
             "name",
             "username",
             "avatar_url",
-            "whatsapp_number",
+            "currency_iso",
+            "country_code",
             "description",
             "phone_number",
             "user",
