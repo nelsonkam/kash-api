@@ -33,7 +33,7 @@ class Order(BaseModel):
 
     @property
     def earnings(self):
-        return self.total - self.commission
+        return self.total - self.commission - self.shipping_fees
 
     @property
     def affiliate_earnings(self):
