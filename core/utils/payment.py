@@ -60,7 +60,7 @@ class StripePayment:
         items = [
             {
                 "price_data": {
-                    "currency": "xof",
+                    "currency": item.product.currency_iso,
                     "product_data": {"name": item.product.name,},
                     "unit_amount": round(item.product.price),
                 },
@@ -70,7 +70,7 @@ class StripePayment:
         ]
         items.append({
             "price_data": {
-                "currency": "xof",
+                "currency": checkout.shipping_option.get("price").get("currency"),
                 "product_data": {"name": "Shipping Fees", },
                 "unit_amount": round(checkout.shipping_fees()),
             },
