@@ -8,7 +8,7 @@ router = routers.SimpleRouter()
 router.register(r"cart", CartViewSet, basename="cart")
 router.register(r"checkout", CheckoutViewSet, basename="checkout")
 # router.register(r"categories", CategoryViewSet, basename="category")
-# router.register(r"shops", ShopViewSet, basename="shop")
+router.register(r"shops", ShopViewSet, basename="shop")
 # router.register(r"products", ProductViewSet, basename="product")
 
 urlpatterns = [

@@ -12,7 +12,7 @@ class Product(BaseModel):
     name = models.TextField(blank=True, null=True)
     price = models.IntegerField()
     description = models.TextField(blank=True, null=True)
-    currency_iso = models.CharField(max_length=10)
+    old_currency_iso = models.CharField(max_length=10)
     shop = models.ForeignKey("core.Shop", models.CASCADE, related_name="products")
     category = models.ForeignKey(
         "core.Category", models.SET_NULL, blank=True, null=True, related_name="products"
@@ -33,6 +33,10 @@ class Product(BaseModel):
         return Product.objects.prefetch_related("images").filter(
             ~Q(pk=self.pk) & Q(shop=self.shop)
         )[0:4]
+
+    @cached_property
+    def currency_iso(self):
+        return self.shop.currency_iso
 
     class Meta:
         managed = True

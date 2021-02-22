@@ -16,7 +16,7 @@ class Shop(BaseModel):
     description = models.TextField(blank=True, null=True)
     phone_number = models.CharField(max_length=255, blank=True)
     country_code = models.CharField(max_length=10, default="BJ")
-    currency_iso = models.CharField(max_length=10, default="XOF")
+    currency_iso = models.CharField(max_length=10, default="EUR")
     user = models.ForeignKey('core.User', models.CASCADE, related_name="shops")
     affiliate = models.ForeignKey('core.AffiliateAgent', on_delete=models.SET_NULL, null=True, related_name="shops")
     domains = ArrayField(models.CharField(max_length=255), default=list)

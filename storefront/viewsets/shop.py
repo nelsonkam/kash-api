@@ -12,7 +12,10 @@ class ShopViewSet(ReadOnlyModelViewSet):
     serializer_class = ShopSerializer
     permission_classes = [AllowAny]
     lookup_field = "username"
-    queryset = Shop.objects.all()
+    
+    def get_queryset():
+        origin = urlparse(self.request.headers['origin'])
+        return Shop.objects.filter(domains__contains=[origin.hostname])
 
     def get_object(self):
         lookup_field_val = self.kwargs[self.lookup_field]
