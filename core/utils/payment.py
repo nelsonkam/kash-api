@@ -84,7 +84,7 @@ class StripePayment:
             {
                 "price_data": {
                     "currency": shipping_price.get("currency"),
-                    "product_data": {"name": "Shipping Fees"},
+                    "product_data": {"name": "Frais de livraison"},
                     "unit_amount": round(
                         checkout.shipping_fees()
                         if shipping_price.get("currency").lower() == "xof"
