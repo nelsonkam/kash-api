@@ -4,8 +4,9 @@ from django.views.defaults import page_not_found
 from core.models import Shop, Checkout, Order, CartItem
 from core.utils.payment import Payment
 
+
 def index(request):
-    host = request.headers['host'].split(':')[0]
+    host = request.headers['host'].split(':')[0].lower()
     context = {
         'shop': get_object_or_404(Shop, domains__contains=[host]),
     }
@@ -13,7 +14,7 @@ def index(request):
 
 
 def product_details(request, slug=None):
-    host = request.headers['host'].split(':')[0]
+    host = request.headers['host'].split(':')[0].lower()
     shop = get_object_or_404(Shop, domains__contains=[host])
     product = get_object_or_404(shop.products.all(), slug=slug)
     context = {
@@ -24,7 +25,7 @@ def product_details(request, slug=None):
 
 
 def product_catalogue(request):
-    host = request.headers['host'].split(':')[0]
+    host = request.headers['host'].split(':')[0].lower()
     shop = get_object_or_404(Shop, domains__contains=[host])
     context = {
         'products': shop.products.all(),
@@ -32,12 +33,14 @@ def product_catalogue(request):
     }
     return render(request, 'storefront/products.html', context)
 
+
 def order_confirmation(request, checkout_uid):
-    host = request.headers['host'].split(':')[0]
+    host = request.headers['host'].split(':')[0].lower()
     shop = get_object_or_404(Shop, domains__contains=[host])
     checkout = get_object_or_404(Checkout, uid=checkout_uid)
     checkout.pay(**request.GET.dict())
     return render(request, 'storefront/order_confirmed.html', {'checkout': checkout, 'shop': shop})
+
 
 def handle_404(request, exception, template_name="404.html"):
     return page_not_found(request, exception, template_name='storefront/404.html')

@@ -16,7 +16,7 @@ class ShopSerializer(BaseModelSerializer):
 
     def create(self, validated_data):
         shop = Shop.objects.create(**validated_data)
-        shop.domains.append(f"{shop.username}.kweek.shop")
+        shop.domains.append(f"{shop.username.lower()}.kweek.shop")
         shop.save()
         if hasattr(validated_data, 'affiliate_code'):
             affiliate_code = validated_data.pop("affiliate_code")
