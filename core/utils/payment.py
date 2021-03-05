@@ -8,9 +8,16 @@ FEDAPAY_URL = (
 )
 
 
+RAVE_URL = "https://api.flutterwave.com/v3"
+
 def fedapay_request(method, url, data=None):
     headers = {"Authorization": f"Bearer {settings.FEDAPAY_API_KEY}"}
     return requests.request(method, FEDAPAY_URL + url, json=data, headers=headers)
+
+
+def rave_request(method, url, data=None):
+    headers = {"Authorization": f"Bearer {settings.RAVE_SECRET_KEY}"}
+    return requests.request(method, RAVE_URL + url, json=data, headers=headers)
 
 
 class Payment:

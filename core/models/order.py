@@ -29,7 +29,7 @@ class Order(BaseModel):
 
     @property
     def commission(self):
-        return round(self.total * 0.08)
+        return round(self.total * settings.KWEEK_COMMISSION_RATIO)
 
     @property
     def earnings(self):

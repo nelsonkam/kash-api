@@ -41,6 +41,7 @@ class ShopSerializer(BaseModelSerializer):
             "order_count",
             "cover_url",
             "affiliate_code",
+            "bankaccount",
             "id"
         ]
         depth = 1

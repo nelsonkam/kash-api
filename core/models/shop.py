@@ -10,6 +10,7 @@ from core.utils import slack
 
 class Shop(BaseModel):
     name = models.CharField(max_length=255)
+    email = models.EmailField(blank=True)
     username = models.CharField(unique=True, max_length=255)
     avatar_url = models.URLField(blank=True, null=True)
     cover_url = models.URLField(blank=True, null=True)
