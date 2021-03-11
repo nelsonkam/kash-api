@@ -56,3 +56,13 @@ def notify_slack(sender, instance, created, **kwargs):
             }
         ]
         slack.send_message(message, "#test" if settings.DEBUG else "#notifications")
+
+
+@receiver(post_save, sender=Shop)
+def add_shop_design(sender, instance, created, **kwargs):
+    from core.models import ShopDesign
+
+    if created:
+        ShopDesign.objects.create(
+            tagline="Découvrez nos meilleurs produits et collections", hero_cta="Shoppez maintenant", shop=instance
+        )
