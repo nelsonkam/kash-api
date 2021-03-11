@@ -7,8 +7,14 @@ FEDAPAY_URL = (
     "https://sandbox-api.fedapay.com" if settings.DEBUG else "https://api.fedapay.com"
 )
 
-
 RAVE_URL = "https://api.flutterwave.com/v3"
+
+RAVE_PAYMENT_METHODS = [
+    "account", "card", "banktransfer", "mpesa", "mobilemoneyrwanda", "mobilemoneyzambia", "qr", "mobilemoneyuganda",
+    "ussd", "credit", "barter", "mobilemoneyghana", "payattitude", "mobilemoneyfranco", "paga", "1voucher",
+    "mobilemoneytanzania"
+]
+
 
 def fedapay_request(method, url, data=None):
     headers = {"Authorization": f"Bearer {settings.FEDAPAY_API_KEY}"}
@@ -29,23 +35,12 @@ class Payment:
 
     @classmethod
     def create_transaction(cls, checkout, method="card", **kwargs):
-        if method == "card":
-            try:
-                return StripePayment.create_transaction(checkout, **kwargs)
-            except Exception as e:
-                print("[stripe error]", e)
-                return None
-        elif method == "momo":
-            return KKiaPayment.create_transaction(checkout, **kwargs)
-        elif method == "cash":
-            return CashOnDelivery.create_transaction(checkout, **kwargs)
-        else:
-            raise NotImplemented
+        ProcessorClass = cls.get_processor_cls(method)
+        return ProcessorClass.create_transaction(checkout)
 
     @classmethod
     def verify_transaction(cls, method="card", **kwargs):
         ProcessorClass = cls.get_processor_cls(method)
-
         return ProcessorClass.verify_transaction(**kwargs)
 
 
@@ -64,6 +59,44 @@ class KKiaPayment:
         )
         transaction = k.verify_transaction(transaction_id)
         return transaction.status == "SUCCESS"
+
+
+class RavePayment:
+
+    @classmethod
+    def create_transaction(cls, checkout, **kwargs):
+        shop = checkout.cart.shop
+        data = {
+            "tx_ref": f"TX-{checkout.ref_id}",
+            "amount": checkout.total(),
+            "currency": shop.currency_iso,
+            "redirect_url": f"{kwargs.get('origin')}/order/{checkout.uid}/confirmed/",
+            "payment_options": ",".join(RAVE_PAYMENT_METHODS),
+            "meta": {
+                "checkout_ref": checkout.ref_id,
+            },
+            "customer": {
+                "email": "kamganelson@gmail.com",
+                "phonenumber": checkout.customer.phone_number,
+                "name": checkout.customer.name
+            },
+            "subaccounts": [{
+                "id": shop.bankaccount.rave_subaccount_id
+            }],
+            "customizations": {
+                "title": f"Pay {shop.name} for your order",
+                # "description": "Pay",
+                "logo": shop.avatar_url
+            }
+        }
+        resp = rave_request("POST", "/payments", data)
+        print(resp.text, resp.status_code)
+        return {"processor": "flutterwave", "link": resp.json().get('data').get('link')}
+
+    @classmethod
+    def verify_transaction(cls, transaction_id=None, **kwargs):
+        resp = rave_request("POST", f"/transactions/{transaction_id}/verify")
+        return resp.json().get("data").get("status") == "successful"
 
 
 class StripePayment:

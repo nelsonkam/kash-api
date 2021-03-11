@@ -74,7 +74,7 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
             for item in checkout.cart.items.all().select_related("product"):
                 weight += (item.product.weight or 1) * item.quantity
             price = 22000 if weight <= 2 else 22000 + (6300 * (weight - 2))
-            currency = checkout.cart.shops[0].currency_iso
+            currency = checkout.cart.shop.currency_iso
             if currency != "XOF":
                 price = price / 550 if currency == "USD" else price / 655
             price = round(price, 2)

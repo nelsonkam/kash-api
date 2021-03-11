@@ -13,7 +13,7 @@ class ShopViewSet(ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     lookup_field = "username"
     
-    def get_queryset():
+    def get_queryset(self):
         origin = urlparse(self.request.headers['origin'])
         return Shop.objects.filter(domains__contains=[origin.hostname])
 

@@ -40,7 +40,7 @@ class CartSerializer(BaseModelSerializer):
                 )
 
     def create(self, validated_data):
-        cart = Cart.objects.create()
+        cart = Cart.objects.create(shop=validated_data.get('shop'))
         self.save_items(cart, validated_data.get("cart_items"))
         return cart
 
