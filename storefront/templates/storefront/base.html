@@ -5,21 +5,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <meta name="theme-color" content="#C4C4C4"/>
+    <link rel="icon" type="image/*" href="{{ shop.avatar_url }}" />
+
     {% block seo %}
         <title>{{ shop.name }}</title>
         <meta name="title" content="{{shop.name}}">
-        <meta name="description" content="Visitez notre boutique pour découvrir nos meilleurs articles et produits.">
+        <meta name="description" content="{{ shop.design.tagline }}">
         
         <!-- Open Graph / Facebook -->
         <meta property="og:type" content="website">
         <meta property="og:title" content="{{shop.name}}">
-        <meta property="og:description" content="Visitez notre boutique pour découvrir nos meilleurs articles et produits.">
+        <meta property="og:description" content="{{ shop.design.tagline }}">
         <meta property="og:image" content="{{shop.cover_url}}">
 
         <!-- Twitter -->
         <meta property="twitter:card" content="summary_large_image">
         <meta property="twitter:title" content="{{shop.name}}">
-        <meta property="twitter:description" content="Visitez notre boutique pour découvrir nos meilleurs articles et produits.">
+        <meta property="twitter:description" content="{{ shop.design.tagline }}">
         <meta property="twitter:image" content="{{shop.cover_url}}">
     {% endblock %}
 
