@@ -9,4 +9,5 @@ class ShopDesign(BaseModel):
     hero_cta = models.CharField(max_length=100)
     instagram_link = models.URLField(blank=True)
     facebook_link = models.URLField(blank=True)
+    whatsapp_link = models.URLField(blank=True)
     language = models.CharField(max_length=10, default="fr")
