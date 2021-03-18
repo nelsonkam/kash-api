@@ -14,6 +14,10 @@ router.register(r"shops", ShopViewSet, basename="shop")
 urlpatterns = [
     path("api/", include(router.urls)),
     path("", views.index),
+    path("about/", views.ShopTemplateView.as_view(template_name="storefront/about.html")),
+    path("legal/return-policy/", views.ShopTemplateView.as_view(template_name="storefront/legal_return.html")),
+    path("legal/privacy-policy/", views.ShopTemplateView.as_view(template_name="storefront/legal_privacy.html")),
+    path("legal/terms/", views.ShopTemplateView.as_view(template_name="storefront/legal_terms.html")),
     path("products/", views.product_catalogue),
     path("products/<slug>/", views.product_details),
     path("order/<checkout_uid>/confirmed/", views.order_confirmation)

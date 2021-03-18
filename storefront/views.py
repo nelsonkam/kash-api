@@ -1,8 +1,15 @@
 from django.shortcuts import render, get_object_or_404
 from django.views.defaults import page_not_found
+from django.views.generic import TemplateView
 
 from core.models import Shop, Checkout, Order, CartItem
 from core.utils.payment import Payment
+
+class ShopTemplateView(TemplateView):
+    def get_context_data(self, **kwargs):
+        host = self.request.headers['host'].split(':')[0].lower()
+        kwargs['shop'] = get_object_or_404(Shop, domains__contains=[host])
+        return super(ShopTemplateView, self).get_context_data(**kwargs)
 
 
 def index(request):
