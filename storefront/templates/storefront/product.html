@@ -17,12 +17,19 @@
     <meta property="twitter:image" content="{{product.images.first.url}}">
 {% endblock %}
 {% block content %}
-    <div class="min-w-screen min-h-screen">
+    <div id="product-page" class="min-w-screen min-h-screen">
         {% include 'storefront/partials/header.html' %}
         <div class="container mx-auto px-4" style="padding-top: 94px; padding-bottom: 64px">
             <div class="flex flex-row items-start flex-wrap">
                 <div class="w-full lg:w-1/2 lg:px-4">
-                    <img class="rounded-lg shadow w-full h-auto" src="{{ product.images.first.url }}">
+                    <div class="w-full border rounded-lg" >
+                        <img class="rounded-lg shadow object-fit mx-auto object-contain" :src="activeProductImage || '{{ product.images.first.url }}'">
+                    </div>
+                    <div class="max-w-full py-1 overflow-scroll flex items-center my-3">
+                        {% for image in product.images.all %}
+                            <img :class="{'border-2': activeProductImage === '{{ image.url }}'}" @click="activeProductImage = '{{ image.url }}'" src="{{ image.url }}" class="h-20 w-20 mr-4 rounded-lg shadow border-black object-cover">
+                        {% endfor %}
+                    </div>
                 </div>
                 <div class="w-full lg:w-1/2 lg:px-6 pt-4 lg:pt-0">
                     <div class="flex flex-row items-center justify-between flex-wrap">
@@ -33,7 +40,7 @@
                     </div>
                     <div class="border-t h-1 w-full mb-4 mt-2"></div>
                     <p class="text-lg font-semibold">Description</p>
-                    <div class="whitespace-pre-line mt-2 text-gray-600">{{ product.description }}</div>
+                    <div class="whitespace-pre-line mt-2 text-gray-600">{% if product.description %}{{ product.description }}{% else %}Aucune description{% endif %}</div>
 <div class="border-t h-1 w-full mt-6 my-4"></div>
                     <kweek-cart-btn product-id="{{ product.id }}"></kweek-cart-btn>
                 </div>
