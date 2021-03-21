@@ -18,7 +18,8 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
     def pay(self, request, uid=None):
         checkout = self.get_object()
         if request.data.get("shipping"):
-            checkout.shipping_option = request.data.get("shipping")
+            checkout.shipping_profile_id = request.data.get("shipping").get('profile_id')
+            checkout.shipping_fees = request.data.get("shipping").get('rate').get('price')
             checkout.save()
         checkout.payment_method = request.data.get("payment_method")
         checkout.save()
@@ -35,56 +36,14 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
     @action(detail=True)
     def shipping(self, request, uid=None):
         checkout = self.get_object()
-        if checkout.country.lower() in ["benin", "bj"]:
-            if "cotonou" in checkout.city.lower():
-                return Response(
-                    [
-                        {
-                            "name": "Futurix Logistic",
-                            "price": {"amount": 1000, "currency": "XOF"},
-                            "eta": "1-2 jours",
-                            "logo": "https://kweek-api.s3.amazonaws.com/futurix-logo.png"
-                        }
-                    ]
-                )
-            elif "calavi" in checkout.city.lower():
-                return Response(
-                    [
-                        {
-                            "name": "Futurix Logistic",
-                            "price": {"amount": 1500, "currency": "XOF"},
-                            "eta": "1-2 jours",
-                            "logo": "https://kweek-api.s3.amazonaws.com/futurix-logo.png"
-                        }
-                    ]
-                )
-            else:
-                return Response(
-                    [
-                        {
-                            "name": "Futurix Logistic",
-                            "price": {"amount": 2000, "currency": "XOF"},
-                            "eta": "2-3 jours",
-                            "logo": "https://kweek-api.s3.amazonaws.com/futurix-logo.png"
-                        }
-                    ]
-                )
-        else:
-            weight = 0
-            for item in checkout.cart.items.all().select_related("product"):
-                weight += (item.product.weight or 1) * item.quantity
-            price = 22000 if weight <= 2 else 22000 + (6300 * (weight - 2))
-            currency = checkout.cart.shop.currency_iso
-            if currency != "XOF":
-                price = price / 550 if currency == "USD" else price / 655
-            price = round(price, 2)
-            return Response(
-                [
-                    {
-                        "name": "DHL Express",
-                        "price": {"amount": price, "currency": currency},
-                        "eta": "3 jours ouvrables",
-                        "logo": "https://kweek-api.s3.amazonaws.com/dhl.png"
-                    }
-                ]
-            )
+        zone = request.data.get("zone")
+        profiles = checkout.shop.shippingprofile_set.filter(zone__name=zone)
+        return Response(
+            [{
+                'id': profile.pk,
+                'name': profile.name,
+                'logo': profile.avatar_url,
+                'zone': zone,
+                'rates': profile.get_rates(zone, origin=checkout.shop.country_code, items=checkout.cart.items.all())
+            }] for profile in profiles
+        )

@@ -32,6 +32,7 @@ class Shop(BaseModel):
     def order_count(self):
         return self.orders.count()
 
+
     class Meta:
         managed = True
         db_table = 'shops'

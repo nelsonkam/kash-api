@@ -1,4 +1,9 @@
+from functools import cached_property
+
 from django.db import models
+from djmoney.contrib.exchange.models import convert_money
+from djmoney.models.fields import MoneyField
+from djmoney.money import Money
 
 from core.models.base import BaseModel, generate_uid, PaymentMethod, generate_ref_id
 from core.utils.payment import Payment
@@ -15,36 +20,38 @@ class Checkout(BaseModel):
     ref_id = models.CharField(unique=True, max_length=40, default=generate_checkout_ref)
     paid = models.BooleanField(default=False)
     uid = models.CharField(unique=True, max_length=40, default=generate_uid)
-    shipping_option = models.JSONField(blank=True, null=True)
     payment_method = models.CharField(max_length=10, default=PaymentMethod.card, choices=PaymentMethod.choices)
+    shipping_fees = MoneyField(max_digits=14, decimal_places=2, default_currency='XOF', null=True)
+    shipping_profile = models.ForeignKey('core.ShippingProfile', models.CASCADE, null=True)
 
-    def shipping_fees(self):
-        if self.shipping_option:
-            return self.shipping_option.get("price").get("amount")
-        return None
+    @cached_property
+    def shop(self):
+        return self.cart.shop
 
+    @property
     def total(self):
-        return self.cart.total.amount + (self.shipping_fees() or 0)
+        shipping_fees = convert_money(self.shipping_fees, self.shop.currency_iso) or Money(0, self.shop.currency_iso)
+        return self.cart.total + shipping_fees
 
     def pay(self, **kwargs):
-        from core.models import Shop, Checkout, Order, CartItem
+        from core.models import Order, CartItem
         
         if not self.paid and Payment.verify_transaction(self.payment_method, **kwargs):
             cart = self.cart
-            for shop in cart.shops.all():
-                order = Order.objects.create(
-                    customer=self.customer,
-                    country=self.country,
-                    city=self.city,
-                    address=self.address,
-                    shipping_option=self.shipping_option,
-                    payment_method=self.payment_method,
-                    shop=shop
-                )
-                items = CartItem.objects.filter(cart=cart, product__shop=shop).select_related("product").all()
-                for item in items:
-                    order.items.create(quantity=item.quantity, product=item.product, price=item.price)
-                order.notify()
+            order = Order.objects.create(
+                customer=self.customer,
+                country=self.country,
+                city=self.city,
+                address=self.address,
+                shipping_fees=self.shipping_fees,
+                shipping_profile=self.shipping_profile,
+                payment_method=self.payment_method,
+                shop=self.shop
+            )
+            items = CartItem.objects.filter(cart=cart, product__shop=self.shop).select_related("product").all()
+            for item in items:
+                order.items.create(quantity=item.quantity, product=item.product, price=item.price)
+            order.notify()
             self.paid = True
             cart.paid = True
             cart.save()

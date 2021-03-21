@@ -24,10 +24,11 @@ class Order(BaseModel):
     city = models.CharField(max_length=255)
     address = models.TextField()
     ref_id = models.CharField(unique=True, max_length=40, default=generate_order_id)
-    shipping_option = models.JSONField(blank=True, null=True)
     payment_method = models.CharField(
         max_length=10, default=PaymentMethod.card, choices=PaymentMethod.choices
     )
+    shipping_fees = MoneyField(max_digits=14, decimal_places=2, default_currency='XOF', null=True)
+    shipping_profile = models.ForeignKey('core.ShippingProfile', models.CASCADE, null=True)
 
     @property
     def commission(self):
@@ -36,12 +37,6 @@ class Order(BaseModel):
     @property
     def earnings(self):
         return self.total - self.commission
-
-    @property
-    def shipping_fees(self):
-        if self.shipping_option:
-            return self.shipping_option.get("price").get("amount")
-        return None
 
     @property
     def total(self):
@@ -81,7 +76,7 @@ class Order(BaseModel):
                     },
                     {
                         "title": "Option de livraison",
-                        "value": f"{self.shipping_option.get('name')} ({self.shipping_fees} XOF)",
+                        "value": f"{self.shipping_option.get('name')} ({self.shipping_fees})",
                         "short": True,
                     },
                     {

@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from core.models import Checkout, Customer, Cart
 from core.serializers.base import BaseModelSerializer
+from core.utils import money_to_dict
 from storefront.serializers.cart import CartSerializer
 
 
@@ -11,6 +12,10 @@ class CheckoutSerializer(BaseModelSerializer):
     contact = serializers.CharField(write_only=True)
     cart_uid = serializers.CharField(write_only=True)
     uid = serializers.CharField(read_only=True)
+    total = serializers.SerializerMethodField()
+
+    def get_total(self, obj):
+        return money_to_dict(obj.total)
 
     def create(self, validated_data):
         contact = validated_data.pop("contact")
@@ -40,7 +45,9 @@ class CheckoutSerializer(BaseModelSerializer):
             "city",
             "address",
             "uid",
-            "shipping_option",
+            "shipping_fees",
+            "shipping_fees_currency",
+            "shipping_profile",
             "contact",
             "name",
             "cart_uid",

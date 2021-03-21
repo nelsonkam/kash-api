@@ -47,7 +47,7 @@ class Payment:
 class KKiaPayment:
     @classmethod
     def create_transaction(cls, checkout, **kwargs):
-        return {"processor": "kkiapay", "amount": checkout.total()}
+        return {"processor": "kkiapay", "amount": checkout.total.amount}
 
     @classmethod
     def verify_transaction(cls, transaction_id=None, **kwargs):
@@ -68,8 +68,8 @@ class RavePayment:
         shop = checkout.cart.shop
         data = {
             "tx_ref": f"TX-{checkout.ref_id}",
-            "amount": checkout.total(),
-            "currency": shop.currency_iso,
+            "amount": checkout.total.amount,
+            "currency": str(checkout.total.currency),
             "redirect_url": f"{kwargs.get('origin')}/order/{checkout.uid}/confirmed/",
             "payment_options": ",".join(RAVE_PAYMENT_METHODS),
             "meta": {
@@ -119,16 +119,15 @@ class StripePayment:
                 "product", "product__images"
             ).all()
         ]
-        shipping_price = checkout.shipping_option.get("price")
         items.append(
             {
                 "price_data": {
-                    "currency": shipping_price.get("currency"),
+                    "currency": checkout.shipping_fees.currency,
                     "product_data": {"name": "Frais de livraison"},
                     "unit_amount": round(
-                        checkout.shipping_fees()
-                        if shipping_price.get("currency").lower() == "xof"
-                        else checkout.shipping_fees() * 100
+                        checkout.shipping_fees.amount
+                        if str(checkout.shipping_fees.currency).lower() == "xof"
+                        else checkout.shipping_fees.amount * 100
                     ),
                 },
                 "quantity": 1,
