@@ -4,7 +4,8 @@ var app = new Vue({
     delimeters: ["[[", "]]"],
     data: {
         cartOpen: false,
-        activeProductImage: null
+        activeProductImage: null,
+        showMobileNavLinks: false
     },
     methods: {
         toggleCart() {
