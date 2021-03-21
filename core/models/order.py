@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from djmoney.models.fields import MoneyField
+from djmoney.money import Money
 
 from core.models.base import BaseModel, PaymentMethod, generate_ref_id
 from django.db import models
@@ -29,15 +31,11 @@ class Order(BaseModel):
 
     @property
     def commission(self):
-        return round(self.total * settings.KWEEK_COMMISSION_RATIO)
+        return self.total * settings.KWEEK_COMMISSION_RATIO
 
     @property
     def earnings(self):
-        return self.total - self.commission - self.shipping_fees
-
-    @property
-    def affiliate_earnings(self):
-        return self.shipping_fees * self.shop.affiliate.commission
+        return self.total - self.commission
 
     @property
     def shipping_fees(self):
@@ -47,7 +45,8 @@ class Order(BaseModel):
 
     @property
     def total(self):
-        return sum([item.total for item in self.items.select_related("product")])
+        total = sum([item.total for item in self.items.select_related("product")])
+        return Money(0, self.shop.currency_iso) if total == 0 else total
 
     def notify(self):
         self.notify_shop()
@@ -114,10 +113,11 @@ class OrderItem(BaseModel):
     quantity = models.IntegerField()
     order = models.ForeignKey("core.Order", models.CASCADE, related_name="items")
     product = models.ForeignKey("core.Product", models.CASCADE)
+    price = MoneyField(max_digits=14, decimal_places=2, default_currency='XOF')
 
     @property
     def total(self):
-        return self.product.price * self.quantity
+        return self.price * self.quantity
 
     class Meta:
         managed = True

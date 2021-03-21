@@ -1,7 +1,9 @@
+from djmoney.money import Money
 from rest_framework import serializers
 
-from core.models import Cart, CartItem
+from core.models import Cart, CartItem, Product
 from core.serializers.base import BaseModelSerializer
+from core.utils import money_to_dict
 from storefront.serializers.product import ProductSerializer
 
 
@@ -10,7 +12,7 @@ class CartItemSerializer(BaseModelSerializer):
 
     class Meta:
         model = CartItem
-        fields = ["quantity", "product", "id"]
+        fields = ["quantity", "product", "id", "price", "price_currency"]
 
 
 class CartItemInputSerializer(serializers.Serializer):
@@ -25,17 +27,21 @@ class CartSerializer(BaseModelSerializer):
     total = serializers.SerializerMethodField()
 
     def get_total(self, obj):
-        return obj.total()
+        return money_to_dict(obj.total)
 
     def save_items(self, cart, items):
         cart.items.all().delete()
+        products = Product.objects.filter(pk__in=[item.get("product_id") for item in items]).all()
+        products = list(products)
         for item in items:
             if item.get("quantity", 0) != 0:
+                product = filter(lambda i: i.id == item.get("product_id"), products)[0]
                 CartItem.objects.create(
-                   **{
+                    **{
                         "quantity": item.get("quantity"),
                         "product_id": item.get("product_id"),
                         "cart_id": cart.id,
+                        "price": product.price
                     },
                 )
 

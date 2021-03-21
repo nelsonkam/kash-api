@@ -31,3 +31,10 @@ def upload_base64(encoded_file):
     filename = f"{uuid.uuid4()}.{ext}"
     file = ContentFile(base64.b64decode(imgstr), name=filename)
     return upload_content_file(file, filename)
+
+
+def money_to_dict(price):
+    return {
+        'amount': price.amount,
+        'currency': str(price.currency)
+    }

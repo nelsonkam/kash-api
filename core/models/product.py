@@ -4,15 +4,15 @@ from django.db import models
 from django.db.models import Q
 from django.utils.functional import cached_property
 from django.utils.text import slugify
+from djmoney.models.fields import MoneyField
 
 from core.models.base import BaseModel
 
 
 class Product(BaseModel):
     name = models.TextField(blank=True, null=True)
-    price = models.IntegerField()
+    price = MoneyField(max_digits=14, decimal_places=2, default_currency='XOF')
     description = models.TextField(blank=True, null=True)
-    old_currency_iso = models.CharField(max_length=10)
     shop = models.ForeignKey("core.Shop", models.CASCADE, related_name="products")
     category = models.ForeignKey(
         "core.Category", models.SET_NULL, blank=True, null=True, related_name="products"

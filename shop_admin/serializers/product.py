@@ -22,6 +22,7 @@ class ProductSerializer(BaseModelSerializer):
             "name",
             "description",
             "price",
+            "price_currency",
             "currency_iso",
             "shop",
             "weight",

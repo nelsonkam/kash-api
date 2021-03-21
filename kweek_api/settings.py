@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "phone_verify",
     "djmoney",
+    'djmoney.contrib.exchange',
     "storages",
 ]
 
@@ -135,7 +136,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
-
 AUTH_USER_MODEL = "core.User"
 
 AUTHENTICATION_BACKENDS = [
@@ -214,6 +214,8 @@ stripe.api_key = STRIPE_SECRET_KEY
 CLIENT_VERSION = "1.0.0"
 
 KWEEK_COMMISSION_RATIO = 0.05
+
+OPEN_EXCHANGE_RATES_APP_ID = env("OPEN_EXCHANGE_RATES_APP_ID")
 
 if not DEBUG:
     sentry_sdk.init(

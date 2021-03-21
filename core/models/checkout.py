@@ -24,7 +24,7 @@ class Checkout(BaseModel):
         return None
 
     def total(self):
-        return self.cart.total() + (self.shipping_fees() or 0)
+        return self.cart.total.amount + (self.shipping_fees() or 0)
 
     def pay(self, **kwargs):
         from core.models import Shop, Checkout, Order, CartItem
@@ -43,7 +43,7 @@ class Checkout(BaseModel):
                 )
                 items = CartItem.objects.filter(cart=cart, product__shop=shop).select_related("product").all()
                 for item in items:
-                    order.items.create(quantity=item.quantity, product=item.product)
+                    order.items.create(quantity=item.quantity, product=item.product, price=item.price)
                 order.notify()
             self.paid = True
             cart.paid = True

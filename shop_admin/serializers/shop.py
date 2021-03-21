@@ -7,12 +7,16 @@ from rest_framework import serializers
 from core.models import Shop, AffiliateAgent
 from core.serializers import UserSerializer
 from core.serializers.base import BaseModelSerializer
-from core.utils import upload_base64
+from core.utils import upload_base64, money_to_dict
 
 
 class ShopSerializer(BaseModelSerializer):
     user = UserSerializer(read_only=True)
     affiliate_code = serializers.CharField(write_only=True, required=False, allow_null=True)
+    balance = serializers.SerializerMethodField()
+
+    def get_balance(self, obj):
+        return money_to_dict(obj.balance)
 
     def create(self, validated_data):
         shop = Shop.objects.create(**validated_data)
