@@ -106,7 +106,7 @@
 </head>
 <body>
 
-<div id="content">
+<div :class="{'overflow-hidden h-screen': showMobileNavLinks}" id="content">
     {% block content %}
     {% endblock %}
 
