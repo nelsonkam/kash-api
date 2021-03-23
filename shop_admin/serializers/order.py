@@ -14,7 +14,7 @@ class OrderItemSerializer(BaseModelSerializer):
 
     class Meta:
         model = OrderItem
-        fields = ["id", "product", "quantity", "total", "created_at"]
+        fields = ["id", "product", "quantity", "total", "created_at", "price", "price_currency"]
         depth = 1
 
 
@@ -41,8 +41,9 @@ class OrderSerializer(BaseModelSerializer):
             "country",
             "city",
             "address",
-            "shipping_option",
             "shipping_fees",
+            "shipping_fees_currency",
+            "shipping_profile",
             "ref_id",
             "payment_method",
             "items",

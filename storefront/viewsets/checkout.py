@@ -1,3 +1,5 @@
+from djmoney.contrib.exchange.models import convert_money
+from djmoney.money import Money
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -19,7 +21,8 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
         checkout = self.get_object()
         if request.data.get("shipping"):
             checkout.shipping_profile_id = request.data.get("shipping").get('profile_id')
-            checkout.shipping_fees = request.data.get("shipping").get('rate').get('price')
+            price = request.data.get("shipping").get('rate').get('price')
+            checkout.shipping_fees = convert_money(Money(price.get('amount'), price.get('currency')), checkout.shop.currency_iso)
             checkout.save()
         checkout.payment_method = request.data.get("payment_method")
         checkout.save()

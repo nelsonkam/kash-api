@@ -14,14 +14,13 @@ class Product(BaseModel):
     price = MoneyField(max_digits=14, decimal_places=2, default_currency='XOF')
     description = models.TextField(blank=True, null=True)
     shop = models.ForeignKey("core.Shop", models.CASCADE, related_name="products")
-    category = models.ForeignKey(
-        "core.Category", models.SET_NULL, blank=True, null=True, related_name="products"
-    )
+
     slug = models.CharField(unique=True, max_length=255)
     weight = models.DecimalField(
         verbose_name="weight in kilograms", max_digits=6, decimal_places=3
     )
     available_units = models.PositiveIntegerField(null=True)
+    categories = models.ManyToManyField('core.Category', related_name='products')
 
     def save(self, *args, **kwargs):
         if not self.slug:
