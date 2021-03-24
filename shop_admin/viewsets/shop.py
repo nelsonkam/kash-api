@@ -75,7 +75,7 @@ class ShopViewSet(ModelViewSet):
                 serializer = BankAccountSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save(shop=shop)
-            shop.bankaccount.create_subaccount()
+            # shop.bankaccount.create_subaccount()
             return Response(serializer.data)
 
         if hasattr(shop, 'bankaccount'):

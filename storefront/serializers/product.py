@@ -35,7 +35,6 @@ class ProductSerializer(BaseModelSerializer):
             "price_currency",
             "slug",
             "description",
-            "category",
             "shop",
             "images",
             "similar",

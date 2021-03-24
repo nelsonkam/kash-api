@@ -14,8 +14,8 @@ def generate_checkout_ref():
 class Checkout(BaseModel):
     customer = models.ForeignKey('core.Customer', models.CASCADE)
     cart = models.ForeignKey('core.Cart', models.CASCADE)
-    country = models.CharField(max_length=255)
-    city = models.CharField(max_length=255)
+    country = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=255, blank=True)
     address = models.TextField()
     ref_id = models.CharField(unique=True, max_length=40, default=generate_checkout_ref)
     paid = models.BooleanField(default=False)
@@ -23,6 +23,7 @@ class Checkout(BaseModel):
     payment_method = models.CharField(max_length=10, default=PaymentMethod.card, choices=PaymentMethod.choices)
     shipping_fees = MoneyField(max_digits=14, decimal_places=2, default_currency='XOF', null=True)
     shipping_profile = models.ForeignKey('core.ShippingProfile', models.CASCADE, null=True)
+    zone = models.CharField(max_length=255, blank=True)
 
     @cached_property
     def shop(self):
@@ -30,7 +31,7 @@ class Checkout(BaseModel):
 
     @property
     def total(self):
-        shipping_fees = convert_money(self.shipping_fees, self.shop.currency_iso) or Money(0, self.shop.currency_iso)
+        shipping_fees = convert_money(self.shipping_fees or Money(0, self.shop.currency_iso), self.shop.currency_iso)
         return self.cart.total + shipping_fees
 
     def pay(self, **kwargs):
@@ -46,6 +47,7 @@ class Checkout(BaseModel):
                 shipping_fees=self.shipping_fees,
                 shipping_profile=self.shipping_profile,
                 payment_method=self.payment_method,
+                zone=self.zone,
                 shop=self.shop
             )
             items = CartItem.objects.filter(cart=cart, product__shop=self.shop).select_related("product").all()

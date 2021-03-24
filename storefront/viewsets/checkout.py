@@ -39,14 +39,16 @@ class CheckoutViewSet(CreateRetrieveUpdateViewSet):
     @action(detail=True)
     def shipping(self, request, uid=None):
         checkout = self.get_object()
-        zone = request.data.get("zone")
-        profiles = checkout.shop.shippingprofile_set.filter(zone__name=zone)
+        zone = request.query_params.get("zone")
+        profiles = checkout.shop.shippingprofile_set.filter(zones__name=zone)
         return Response(
-            [{
+            {'options': [{
                 'id': profile.pk,
                 'name': profile.name,
                 'logo': profile.avatar_url,
                 'zone': zone,
                 'rates': profile.get_rates(zone, origin=checkout.shop.country_code, items=checkout.cart.items.all())
-            }] for profile in profiles
+            }] for profile in profiles}
         )
+
+

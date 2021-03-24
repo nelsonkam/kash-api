@@ -35,7 +35,7 @@ class CartSerializer(BaseModelSerializer):
         products = list(products)
         for item in items:
             if item.get("quantity", 0) != 0:
-                product = filter(lambda i: i.id == item.get("product_id"), products)[0]
+                product = [i for i in products if item.get("product_id") == i.id][0]
                 CartItem.objects.create(
                     **{
                         "quantity": item.get("quantity"),

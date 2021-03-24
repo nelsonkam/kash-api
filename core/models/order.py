@@ -29,9 +29,12 @@ class Order(BaseModel):
     )
     shipping_fees = MoneyField(max_digits=14, decimal_places=2, default_currency='XOF', null=True)
     shipping_profile = models.ForeignKey('core.ShippingProfile', models.CASCADE, null=True)
+    zone = models.CharField(max_length=255, blank=True)
 
     @property
     def commission(self):
+        if self.payment_method == PaymentMethod.cash:
+            return Money(0, self.shop.currency_iso)
         return self.total * settings.KWEEK_COMMISSION_RATIO
 
     @property
@@ -76,7 +79,7 @@ class Order(BaseModel):
                     },
                     {
                         "title": "Option de livraison",
-                        "value": f"{self.shipping_option.get('name')} ({self.shipping_fees})",
+                        "value": f"{self.shipping_profile.name} ({self.shipping_fees})",
                         "short": True,
                     },
                     {

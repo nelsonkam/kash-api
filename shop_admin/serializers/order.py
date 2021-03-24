@@ -49,6 +49,7 @@ class OrderSerializer(BaseModelSerializer):
             "items",
             "shop",
             "total",
+            "zone",
             "commission",
             "earnings",
             "created_at",

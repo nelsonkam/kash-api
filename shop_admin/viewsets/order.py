@@ -11,4 +11,4 @@ class OrderViewSet(BaseModelViewSet):
     serializer_class = OrderSerializer
 
     def get_queryset(self):
-        return self.request.shop.orders.all()
+        return self.request.shop.orders.all().order_by("-created_at")

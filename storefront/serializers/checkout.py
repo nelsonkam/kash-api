@@ -48,6 +48,8 @@ class CheckoutSerializer(BaseModelSerializer):
             "shipping_fees",
             "shipping_fees_currency",
             "shipping_profile",
+            "zone",
+            "total",
             "contact",
             "name",
             "cart_uid",

@@ -1,5 +1,6 @@
 from djmoney.money import Money
 
+from core.utils import money_to_dict
 
 
 class DHLExpressBackend:
@@ -13,5 +14,5 @@ class DHLExpressBackend:
         for item in items:
             weight += (item.product.weight or 1) * item.quantity
         price = 22000 if weight <= 2 else 22000 + (6300 * (weight - 2))
-        return [{'name': 'Express', 'description': '3-5 jours ouvrables', 'price': Money(price, "XOF")}]
+        return [{'name': 'Express', 'description': '3-5 jours ouvrables', 'price': money_to_dict(Money(price, "XOF"))}]
 
