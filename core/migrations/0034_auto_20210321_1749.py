@@ -8,8 +8,9 @@ from djmoney.money import Money
 def fill_prices_cart_items(apps, schema_editor):
     CartItem = apps.get_model("core", "CartItem")
     for item in CartItem.objects.all():
-        item.price = Money(item.product.price, item.product.shop.currency_iso)
-        item.save()
+        if item.product:
+            item.price = Money(item.product.price, item.product.shop.currency_iso)
+            item.save()
 
 
 class Migration(migrations.Migration):
