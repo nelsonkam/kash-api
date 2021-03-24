@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from djmoney.contrib.exchange.models import convert_money
+from djmoney.money import Money
 
 from core.models.base import BaseModel
 from core.utils import slack
@@ -26,6 +27,8 @@ class Shop(BaseModel):
     @property
     def balance(self):
         earnings = [convert_money(order.earnings, self.currency_iso) for order in self.orders.all()]
+        if earnings == 0:
+            return Money(0, self.currency_iso)
         return sum(earnings)
 
     @property
