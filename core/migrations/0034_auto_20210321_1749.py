@@ -7,9 +7,12 @@ from djmoney.money import Money
 
 def fill_prices_cart_items(apps, schema_editor):
     CartItem = apps.get_model("core", "CartItem")
-    for item in CartItem.objects.filter(product__isnull=False).all():
-        item.price = Money(item.product.price, item.product.shop.currency_iso)
-        item.save()
+    Product = apps.get_model("core", "Product")
+    for item in CartItem.objects.all():
+        product = Product.objects.filter(pk=item.product_id).first()
+        if product:
+            item.price = Money(product.price, product.shop.currency_iso)
+            item.save()
 
 
 class Migration(migrations.Migration):
