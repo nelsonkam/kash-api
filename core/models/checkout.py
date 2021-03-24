@@ -1,6 +1,6 @@
-from functools import cached_property
 
 from django.db import models
+from django.utils.functional import cached_property
 from djmoney.contrib.exchange.models import convert_money
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money
