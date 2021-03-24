@@ -20,6 +20,7 @@ urlpatterns = [
     path("legal/terms/", views.ShopTemplateView.as_view(template_name="storefront/legal_terms.html")),
     path("products/", views.product_catalogue),
     path("products/<slug>/", views.product_details),
+    path("categories/<slug>/", views.category),
     path("order/<checkout_uid>/confirmed/", views.order_confirmation)
 ]
 

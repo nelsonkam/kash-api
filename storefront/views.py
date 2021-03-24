@@ -5,13 +5,12 @@ from django.views.generic import TemplateView
 from core.models import Shop, Checkout, Order, CartItem
 from core.utils.payment import Payment
 
+
 class ShopTemplateView(TemplateView):
     def get_context_data(self, **kwargs):
         host = self.request.headers['host'].split(':')[0].lower()
         kwargs['shop'] = get_object_or_404(Shop, domains__contains=[host])
         return super(ShopTemplateView, self).get_context_data(**kwargs)
-
-
 
 
 def index(request):
@@ -21,6 +20,17 @@ def index(request):
         'shop': shop,
     }
     return render(request, f'{shop.design.theme}/index.html', context)
+
+
+def category(request, slug=None):
+    host = request.headers['host'].split(':')[0].lower()
+    shop = get_object_or_404(Shop, domains__contains=[host])
+    category = get_object_or_404(shop.category_set.all(), slug=slug)
+    context = {
+        'shop': shop,
+        'category': category,
+    }
+    return render(request, f'{shop.design.theme}/category.html', context)
 
 
 def product_details(request, slug=None):
