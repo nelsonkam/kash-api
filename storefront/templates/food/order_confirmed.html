@@ -1,0 +1,73 @@
+{% extends "food/base.html" %}
+{% load static %} 
+{% block content %}
+<div class="min-h-screen min-w-screen">
+ {% include 'food/partials/header.html' %}
+  <div style="display: flex; flex-direction: column; align-items: center;width: 100vw; height: 100vh; justify-content: center;">
+    <div>
+      <svg
+        width="64"
+        height="64"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          fill-rule="evenodd"
+          clip-rule="evenodd"
+          d="M12 23C5.92487 23 1 18.0751 1 12C1 5.92487 5.92487 1 12 1C18.0751 1 23 5.92487 23 12C23 18.0751 18.0751 23 12 23ZM12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21ZM15.2929 8.29289L10 13.5858L7.70711 11.2929L6.29289 12.7071L10 16.4142L16.7071 9.70711L15.2929 8.29289Z"
+          fill="green"
+        />
+      </svg>
+    </div>
+    <p
+      style="
+        color: #828282;
+        text-transform: uppercase;
+        font-size: 18px;
+        margin-top: 16px;
+        margin-bottom: 8px;
+      "
+    >
+      Nº {{ checkout.ref_id }}
+    </p>
+    <p
+      style="
+        font-weight: bold;
+        font-size: 24px;
+        margin-top: 4px;
+        margin-bottom: 8px;
+      "
+    >
+      Commande confirmée
+    </p>
+    <p
+      style="
+        color: #828282;
+        text-align: center;
+        max-width: 550px;
+        font-size: 18px;
+        padding: 0 16px;
+      "
+    >
+      Nous vous tiendrons informer du statut de votre commande par SMS ou
+      e-mail. Pour référence, veuillez noter le numéro de commande:
+      <span
+        class="font-bold text-black"
+        style="
+          font-weight: bold;
+          color: black;
+          font-family: inherit;
+          font-size: 16px;
+        "
+      >
+        {{ checkout.ref_id }}
+      </span>
+    </p>
+    <a href="/" class="my-6 text-blue-600" >
+      Retourner à la page d'accueil
+    </button>
+  </div>
+  {% include 'food/partials/footer.html' %}
+</div>
+{% endblock %}

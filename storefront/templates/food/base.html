@@ -1,0 +1,120 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#C4C4C4"/>
+    <link rel="icon" type="image/*" href="{{ shop.avatar_url }}"/>
+
+    {% block seo %}
+        <title>{{ shop.name }}</title>
+        <meta name="title" content="{{ shop.name }}">
+        <meta name="description" content="{{ shop.design.tagline }}">
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="{{ shop.name }}">
+        <meta property="og:description" content="{{ shop.design.tagline }}">
+        <meta property="og:image" content="{{ shop.cover_url }}">
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image">
+        <meta property="twitter:title" content="{{ shop.name }}">
+        <meta property="twitter:description" content="{{ shop.design.tagline }}">
+        <meta property="twitter:image" content="{{ shop.cover_url }}">
+    {% endblock %}
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.26/dist/shoelace/shoelace.css">
+    <script type="module"
+            src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.26/dist/shoelace/shoelace.esm.js"></script>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+
+    <style>
+        * {
+            font-family: 'Inter', sans-serif !important;
+        }
+
+        .header-icon sl-icon-button::part(base) {
+            color: black;
+        }
+
+
+
+        .fade-in {
+            animation: fadeIn ease 400ms;
+            -webkit-animation: fadeIn ease 400ms;
+            -moz-animation: fadeIn ease 400ms;
+            -o-animation: fadeIn ease 400ms;
+            -ms-animation: fadeIn ease 400ms;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @-moz-keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @-webkit-keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @-o-keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @-ms-keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+<div :class="{'overflow-hidden h-screen': showMobileNavLinks}" id="content">
+    {% block content %}
+    {% endblock %}
+
+</div>
+
+</body>
+<script>
+
+</script>
+<script src="{% static "javascript/index.js" %}"></script>
+{#<script src="https://cdn.kweek.shop/js/kweek.js"></script>#}
+<script src="http://localhost:6001/kweek.js"></script>
+</html>

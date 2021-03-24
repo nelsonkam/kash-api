@@ -12,12 +12,15 @@ class ShopTemplateView(TemplateView):
         return super(ShopTemplateView, self).get_context_data(**kwargs)
 
 
+
+
 def index(request):
     host = request.headers['host'].split(':')[0].lower()
+    shop = get_object_or_404(Shop, domains__contains=[host])
     context = {
-        'shop': get_object_or_404(Shop, domains__contains=[host]),
+        'shop': shop,
     }
-    return render(request, 'storefront/index.html', context)
+    return render(request, f'{shop.design.theme}/index.html', context)
 
 
 def product_details(request, slug=None):
@@ -28,7 +31,7 @@ def product_details(request, slug=None):
         'product': product,
         'shop': product.shop
     }
-    return render(request, 'storefront/product.html', context)
+    return render(request, f'{shop.design.theme}/product.html', context)
 
 
 def product_catalogue(request):
@@ -38,7 +41,7 @@ def product_catalogue(request):
         'products': shop.products.all(),
         'shop': shop
     }
-    return render(request, 'storefront/products.html', context)
+    return render(request, f'{shop.design.theme}/products.html', context)
 
 
 def order_confirmation(request, checkout_uid):
@@ -46,7 +49,7 @@ def order_confirmation(request, checkout_uid):
     shop = get_object_or_404(Shop, domains__contains=[host])
     checkout = get_object_or_404(Checkout, uid=checkout_uid)
     checkout.pay(**request.GET.dict())
-    return render(request, 'storefront/order_confirmed.html', {'checkout': checkout, 'shop': shop})
+    return render(request, f'{shop.design.theme}/order_confirmed.html', {'checkout': checkout, 'shop': shop})
 
 
 def handle_404(request, exception, template_name="404.html"):

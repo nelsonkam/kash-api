@@ -10,4 +10,5 @@ class ShopDesign(BaseModel):
     instagram_link = models.URLField(blank=True)
     facebook_link = models.URLField(blank=True)
     whatsapp_link = models.URLField(blank=True)
+    theme = models.CharField(max_length=255, default='storefront')
     language = models.CharField(max_length=10, default="fr")

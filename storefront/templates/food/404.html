@@ -1,0 +1,22 @@
+{% extends "food/base.html" %}
+{% load static %}
+{% block seo %}
+    <title>Cette page est introuvable</title>
+{% endblock %}
+{% block content %}
+    <div class="min-h-screen min-w-screen">
+
+        <div class="container mx-auto flex flex-col items-center justify-center h-screen w-screen">
+            <p class="text-5xl font-bold text-gray-200" style="font-size: 96px;">404</p>
+
+            <p class="text-xl font-bold my-4">Cette page est introuvable</p>
+
+            <a href="/" class="flex">
+                <div class="bg-black px-12 mt-6 py-3 text-lg text-white flex items-center justify-center font-bold">
+                    Retourner à l'acceuil
+                </div>
+            </a>
+
+        </div>
+    </div>
+{% endblock %}

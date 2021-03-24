@@ -1,0 +1,29 @@
+{% load static %}
+<div class="fixed bg-white top-0 border-b z-50 left-0 w-full lg:px-8 py-3 flex flex-row justify-between items-center">
+
+
+    <div class="flex items-center pl-4">
+        <a href="/"><img class="w-8 h-8 lg:h-10 lg:w-10 rounded-full border mr-2" src="{{ shop.avatar_url }}"></a>
+        <a href="/" class="text-lg text-black ">{{ shop.name }}</a>
+    </div>
+
+    <div class="pr-4 lg:pr-0">
+        <kweek-cart-icon-btn/>
+    </div>
+</div>
+<nav
+        v-if="showMobileNavLinks"
+        :class="{'fade-in': showMobileNavLinks, 'hidden': !showMobileNavLinks}"
+        :style="{'display': showMobileNavLinks ? 'flex': 'none'}"
+        class="hidden z-50 fixed top-0 left-0 bg-white h-screen w-screen overflow-hidden flex flex-col items-center justify-center">
+    <button @click="showMobileNavLinks = false" class="absolute appearance-none top-0 right-0 p-4">
+        <sl-icon class="text-3xl" name="x"></sl-icon>
+    </button>
+    <div class="flex flex-col items-center">
+        <a href="/" class="text-black text-xl hover:underline font-semibold uppercase m-4">Acceuil</a>
+        <a href="/products/" class="text-black text-xl hover:underline font-semibold uppercase m-4">Menu</a>
+        <a href="/about/" class="text-black text-xl font-semibold uppercase hover:underline m-4">À propos</a>
+    </div>
+</nav>
+<kweek-cart-pane></kweek-cart-pane>
+
