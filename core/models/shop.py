@@ -27,7 +27,7 @@ class Shop(BaseModel):
     @property
     def balance(self):
         earnings = [convert_money(order.earnings, self.currency_iso) for order in self.orders.all()]
-        if earnings == 0:
+        if sum(earnings) == 0:
             return Money(0, self.currency_iso)
         return sum(earnings)
 
