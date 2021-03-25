@@ -217,6 +217,8 @@ KWEEK_COMMISSION_RATIO = 0.05
 
 OPEN_EXCHANGE_RATES_APP_ID = env("OPEN_EXCHANGE_RATES_APP_ID")
 
+INTERNAL_IPS = ("127.0.0.1")
+
 if not DEBUG:
     sentry_sdk.init(
         dsn="https://4c4f295e7f2845118ca85670803681a2@o441760.ingest.sentry.io/5416328",

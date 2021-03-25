@@ -115,6 +115,10 @@
 
 </script>
 <script src="{% static "javascript/index.js" %}"></script>
+{% if debug %}
+    <script src="http://localhost:6001/kweek.js"></script>
+{% else %}
 <script src="https://cdn.kweek.shop/js/kweek.js"></script>
+{% endif %}
 {#<script src="http://cdn.kweek.shop/js/kweek.js"></script>#}
 </html>
