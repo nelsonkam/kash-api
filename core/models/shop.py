@@ -72,3 +72,12 @@ def add_shop_design(sender, instance, created, **kwargs):
         ShopDesign.objects.create(
             tagline="Découvrez nos meilleurs produits et collections", hero_cta="Shoppez maintenant", shop=instance
         )
+
+
+@receiver(post_save, sender=Shop)
+def add_shipping_profiles(sender, instance, created, **kwargs):
+    from core.models import ShippingProfile
+
+    if created:
+        profile = ShippingProfile.objects.filter(name__icontains="futurix").first()
+        profile.shops.add(instance)
