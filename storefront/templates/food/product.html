@@ -42,7 +42,7 @@
                     <p class="text-lg font-semibold">Description</p>
                     <div class="whitespace-pre-line mt-2 text-gray-600">{% if product.description %}{{ product.description }}{% else %}Aucune description{% endif %}</div>
 <div class="border-t h-1 w-full mt-6 my-4"></div>
-                    <kweek-cart-btn product-id="{{ product.id }}"></kweek-cart-btn>
+                    <kweek-cart-btn color="{{ shop.design.color }}" product-id="{{ product.id }}"></kweek-cart-btn>
                 </div>
             </div>
         </div>
