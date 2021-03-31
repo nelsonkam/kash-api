@@ -5,7 +5,6 @@ from storefront.serializers import ProductSerializer
 
 
 class ShopSerializer(ModelSerializer):
-    products = ProductSerializer(many=True, read_only=True)
 
     class Meta:
         model = Shop
@@ -16,7 +15,5 @@ class ShopSerializer(ModelSerializer):
             "avatar_url",
             "description",
             "phone_number",
-            "products",
             "cover_url",
         ]
-        depth = 2

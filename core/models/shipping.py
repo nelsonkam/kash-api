@@ -22,8 +22,9 @@ class ShippingProfile(BaseModel):
             zone = self.zones.filter(name=region).prefetch_related('shippingmethod_set').first()
             if not zone:
                 return []
-            return [{'name': method.name, 'description': method.description, 'price': money_to_dict(method.price)} for method in
-                zone.shippingmethod_set.all()]
+            return [{'name': method.name, 'description': method.description, 'price': money_to_dict(method.price)} for
+                    method in
+                    zone.shippingmethod_set.all()]
         elif self.profile_type == ShippingProfile.ProfileTypes.auto:
             backend_cls = import_string(self.backend)
             return backend_cls().get_rates(region, **kwargs)

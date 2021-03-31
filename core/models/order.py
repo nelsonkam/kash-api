@@ -20,8 +20,8 @@ class Order(BaseModel):
         "core.Shop", on_delete=models.CASCADE, related_name="orders"
     )
     customer = models.ForeignKey("core.Customer", models.CASCADE)
-    country = models.CharField(max_length=255)
-    city = models.CharField(max_length=255)
+    country = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=255, blank=True)
     address = models.TextField()
     ref_id = models.CharField(unique=True, max_length=40, default=generate_order_id)
     payment_method = models.CharField(
@@ -43,7 +43,7 @@ class Order(BaseModel):
 
     @property
     def total(self):
-        total = sum([item.total for item in self.items.select_related("product")])
+        total = sum([item.total for item in self.items.all()])
         return Money(0, self.shop.currency_iso) if total == 0 else total
 
     def notify(self):

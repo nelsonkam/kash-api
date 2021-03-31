@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "core",
     "storefront",
     "shop_admin",
+    "pay",
     "django_extensions",
     "django_hosts",
     "rest_framework",
@@ -229,3 +230,10 @@ if not DEBUG:
         # django.contrib.auth) you may enable sending PII data.
         send_default_pii=True
     )
+
+
+QOSIC_USERNAME = os.getenv('QOSIC_USERNAME', 'USR06')
+QOSIC_PASSWORD = os.getenv('QOSIC_PASSWORD', 'YG739G5XFVPYYV4ADJVW')
+QOSIC_MOOV_MONEY_CLIENT_ID = os.getenv('QOSIC_MOOV_MONEY_CLIENT_ID', 'MOOVTEST')
+QOSIC_MTN_MOBILE_MONEY_CLIENT_ID = os.getenv('QOSIC_MTN_MOBILE_MONEY_CLIENT_ID', 'UBHQ')
+QOSIC_URL = os.getenv('QOSIC_URL', 'http://74.208.84.251:8221')  # prod url: https://qosic.net:8443

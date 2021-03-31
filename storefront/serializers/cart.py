@@ -9,10 +9,14 @@ from storefront.serializers.product import ProductSerializer
 
 class CartItemSerializer(BaseModelSerializer):
     product = ProductSerializer(read_only=True)
+    total = serializers.SerializerMethodField()
+
+    def get_total(self, obj):
+        return money_to_dict(obj.total)
 
     class Meta:
         model = CartItem
-        fields = ["quantity", "product", "id", "price", "price_currency"]
+        fields = ["quantity", "total", "product", "id", "price", "price_currency"]
 
 
 class CartItemInputSerializer(serializers.Serializer):
