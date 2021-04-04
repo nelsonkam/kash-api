@@ -35,6 +35,7 @@ stripe = "^2.51.0"
 kkiapay = "^0.0.5"
 django-hosts = "^4.0"
 whitenoise = "^5.2.0"
+onesignal-sdk = "^2.0.0"
 
 [tool.poetry.dev-dependencies]
 

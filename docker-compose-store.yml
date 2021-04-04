@@ -11,15 +11,6 @@
       depends_on:
         - "redis"
 
-    worker:
-      build: .
-      command: python manage.py run_huey -w 4
-      volumes:
-        - .:/usr/src/app
-      depends_on:
-        - "web"
-        - "redis"
-
     redis:
       image: "redis:alpine"
       ports:

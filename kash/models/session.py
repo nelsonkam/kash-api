@@ -24,8 +24,8 @@ class CheckoutSession(BaseModel):
     paid_at = models.DateTimeField(null=True)
     cancel_url = models.URLField()
     order = models.OneToOneField('core.Order', on_delete=models.CASCADE, null=True)
-    user = models.ForeignKey('core.User', on_delete=models.SET_NULL)
-    transactions = GenericRelation('pay.Transaction')
+    user = models.ForeignKey('core.User', on_delete=models.SET_NULL, null=True)
+    transactions = GenericRelation('kash.Transaction')
 
     @property
     def session_id(self):
@@ -38,7 +38,7 @@ class CheckoutSession(BaseModel):
         return self.cart.total + shipping_fees
 
     def pay(self, payload=None):
-        from pay.models import Transaction
+        from kash.models import Transaction
 
         if self.order.payment_method == PaymentMethod.momo:
             Transaction.objects.request(**{

@@ -15,8 +15,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from core.models import Order, Customer, User
 from core.viewsets.base import CreateRetrieveUpdateViewSet
-from pay.models import CheckoutSession
-from pay.serializers.session import CheckoutSessionSerializer, CheckoutSessionPaymentSerializer
+from kash.models import CheckoutSession
+from kash.serializers.session import CheckoutSessionSerializer, CheckoutSessionPaymentSerializer
 
 
 class SessionPermission(BasePermission):

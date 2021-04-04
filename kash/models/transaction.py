@@ -5,24 +5,29 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.timezone import now
+from djmoney.models.fields import MoneyField
+from djmoney.money import Money
 
 from requests import ReadTimeout
 
-from pay.api import QosicAPI
-from pay.signals import transaction_status_changed
-from pay.utils import GatewayEnum, TransactionStatusEnum, generate_reference_10
+from kash.api import QosicAPI
+from kash.signals import transaction_status_changed
+from kash.tasks import request_transaction
+from kash.utils import GatewayEnum, TransactionStatusEnum, generate_reference_10, TransactionType
 
 
 class TransactionManager(models.Manager):
-    def request(self, obj, name, phone, amount, gateway, **kwargs):
+    def request(self, obj, name, phone, amount, gateway, initiator, txn_type=TransactionType.payment, **kwargs):
         assert gateway in GatewayEnum.values(), f"The gateway `{gateway}` is not supported."
 
         transaction = self.model(
             content_object=obj,
-            first_name=name,
+            name=name or '',
             phone=phone,
-            amount=amount,
+            amount=amount if isinstance(amount, Money) else Money(amount, 'XOF'),
             gateway=gateway,
+            initiator=initiator,
+            transaction_type=txn_type
         )
         if 'reference' in kwargs:
             transaction.reference = kwargs['reference']
@@ -31,7 +36,10 @@ class TransactionManager(models.Manager):
 
         # if settings.DEBUG:
         #     return
-        transaction.request()
+        if txn_type == TransactionType.payment:
+            request_transaction(transaction.id)
+        else:
+            transaction.request()
         return transaction
 
 
@@ -42,14 +50,17 @@ class Transaction(models.Model):
     gateway = models.CharField(max_length=20, choices=GatewayEnum.items())
     reference = models.CharField(max_length=20, default=generate_reference_10, unique=True)
     service_reference = models.CharField(max_length=40, null=True)
-    status = models.CharField(max_length=40, default=TransactionStatusEnum.pending.value, choices=TransactionStatusEnum.items())
-    amount = models.DecimalField(max_digits=17, decimal_places=4)
-    name = models.CharField(max_length=255)
+    status = models.CharField(max_length=40, default=TransactionStatusEnum.pending.value,
+                              choices=TransactionStatusEnum.items())
+    amount = MoneyField(max_digits=17, decimal_places=2, default_currency='XOF')
+    name = models.CharField(max_length=255, blank=True)
     phone = models.CharField(max_length=45)
+    transaction_type = models.CharField(max_length=10, choices=TransactionType.choices, default=TransactionType.payment)
     service_message = models.CharField(max_length=512, null=True)
     last_status_checked = models.DateTimeField(null=True)
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
+    initiator = models.ForeignKey('core.User', on_delete=models.CASCADE, null=True)
 
     objects = TransactionManager()
 
@@ -79,19 +90,67 @@ class Transaction(models.Model):
         return phone
 
     def request(self):
-        if self.gateway == GatewayEnum.mtn.value:
-            self._request_mtn_mobile_money()
-        elif self.gateway == GatewayEnum.moov.value:
-            self._request_moov_mobile_money()
+        if self.transaction_type == TransactionType.payment:
+            if self.gateway == GatewayEnum.mtn.value:
+                self._request_mtn_mobile_money()
+            elif self.gateway == GatewayEnum.moov.value:
+                self._request_moov_mobile_money()
+            else:
+                raise NotImplementedError()
+        elif self.transaction_type == TransactionType.payout:
+            if self.gateway == GatewayEnum.mtn.value:
+                self._payout_mtn_mobile_money()
+            elif self.gateway == GatewayEnum.moov.value:
+                self._payout_moov_mobile_money()
+            else:
+                raise NotImplementedError()
+
+    def _payout_mtn_mobile_money(self):
+        data = self._get_request_data()
+
+        try:
+            response = self.api.Transaction.payout(data)
+            assert response.status_code == 200, \
+                "%s: status_code: %s content: %s" % (self, response.status_code, response.text)
+            assert int(response.json()['responsecode']) == 0, "%s: responsecode: %s json: %s" % (
+            self, response.json()['responsecode'], response.json())
+        except (AssertionError, ReadTimeout, ValueError) as e:
+            # todo; add logger to see more
+            self.status = TransactionStatusEnum.failed.value
         else:
-            raise NotImplementedError()
+            response_data = response.json()
+            self.status = TransactionStatusEnum.success.value
+            self.service_message = response_data['responsemsg']
+            self.service_reference = response_data['serviceref']
+
+        self.last_status_checked = now()
+        self.save()
+
+    def _payout_moov_mobile_money(self):
+        data = self._get_request_data()
+
+        try:
+            response = self.api.Transaction.payout(data)
+            assert response.status_code == 200, \
+                "%s: status_code: %s content: %s" % (self, response.status_code, response.text)
+            assert int(response.json()['responsecode']) == 0, "%s: responsecode: %s json: %s" % (
+            self, response.json()['responsecode'], response.json())
+        except (AssertionError, ReadTimeout, ValueError) as e:
+            # todo; add logger to see more
+            self.status = TransactionStatusEnum.failed.value
+        else:
+            response_data = response.json()
+            self.status = TransactionStatusEnum.success.value
+            self.service_message = response_data['responsemsg']
+            self.service_reference = response_data['serviceref']
+
+        self.last_status_checked = now()
+        self.save()
 
     def _get_request_data(self):
         data = {
-            "amount": str(self.amount),
+            "amount": str(self.amount.amount),
             "msisdn": self.get_phone(),
-            "firstname": self.first_name,
-            "lastname": self.last_name,
             'transref': self.reference
         }
 
@@ -108,13 +167,13 @@ class Transaction(models.Model):
                 "%s: status_code: %s content: %s" % (self, response.status_code, response.text)
         except (AssertionError, ReadTimeout) as e:
             # todo; add logger to see more
-            self.status = GatewayEnum.failed.value
+            self.status = TransactionStatusEnum.failed.value
         else:
             response_data = response.json()
             if response_data['responsecode'] == '0':
-                self.status = GatewayEnum.success.value
+                self.status = TransactionStatusEnum.success.value
             elif response_data['responsecode'] in ['8', '92', '94', '95', '10', '91', '98', '99', '-1']:
-                self.status = GatewayEnum.failed.value
+                self.status = TransactionStatusEnum.failed.value
             else:
                 raise NotImplementedError
 
@@ -125,7 +184,7 @@ class Transaction(models.Model):
         self.save()
 
         if old_status != self.status:
-            transaction_status_changed.send(sender=self. __class__, transaction=self)
+            transaction_status_changed.send(sender=self.__class__, transaction=self)
 
     def _request_mtn_mobile_money(self):
         data = self._get_request_data()
@@ -139,7 +198,7 @@ class Transaction(models.Model):
         else:
             response_data = response.json()
 
-            self.status = GatewayEnum.pending.value
+            self.status = TransactionStatusEnum.pending.value
             self.service_message = response_data['responsemsg']
             self.service_reference = response_data['serviceref']
             self.save()
@@ -153,7 +212,8 @@ class Transaction(models.Model):
 
         data = self._get_request_data()
         response = self.api.Transaction.refund(data)
-        assert response.status_code == 200, "%s: status_code: %s content: %s" % (self, response.status_code, response.text)
+        assert response.status_code == 200, "%s: status_code: %s content: %s" % (
+            self, response.status_code, response.text)
         self.status = TransactionStatusEnum.refunded.value
         self.save()
 

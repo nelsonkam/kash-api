@@ -2,6 +2,7 @@ from _blake2 import blake2b
 from enum import Enum as BaseEnum
 from uuid import uuid4
 
+from django.db import models
 from django.utils.timezone import now
 
 
@@ -20,8 +21,8 @@ class Enum(BaseEnum):
 
 
 class GatewayEnum(Enum):
-    moov = 'MOOV MONEY'
-    mtn = 'MTN MOBILE MONEY'
+    moov = 'moov-bj'
+    mtn = 'mtn-bj'
 
 
 class TransactionStatusEnum(Enum):
@@ -40,3 +41,8 @@ def generate_reference(digest_size=5):
 
 def generate_reference_10():
     return generate_reference(digest_size=10)
+
+
+class TransactionType(models.TextChoices):
+    payment = 'payment'
+    payout = 'payout'

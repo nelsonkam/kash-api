@@ -2,14 +2,14 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-import pay.utils
+import kash.utils
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
         ('contenttypes', '0002_remove_content_type_name'),
-        ('pay', '0001_initial'),
+        ('kash', '0001_initial'),
     ]
 
     operations = [
@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('object_id', models.IntegerField()),
                 ('gateway', models.CharField(choices=[('MOOV MONEY', 'moov'), ('MTN MOBILE MONEY', 'mtn')], max_length=20)),
-                ('reference', models.CharField(default=pay.utils.generate_reference_10, max_length=20, unique=True)),
+                ('reference', models.CharField(default=kash.utils.generate_reference_10, max_length=20, unique=True)),
                 ('service_reference', models.CharField(max_length=40, null=True)),
                 ('status', models.CharField(choices=[('pending', 'pending'), ('success', 'success'), ('failed', 'failed'), ('refunded', 'refunded')], default='pending', max_length=40)),
                 ('amount', models.DecimalField(decimal_places=4, max_digits=17)),

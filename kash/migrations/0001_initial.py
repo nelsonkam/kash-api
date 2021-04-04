@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-import pay.models.session
+import kash.models.session
 
 
 class Migration(migrations.Migration):
@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(primary_key=True, serialize=False)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('uid', models.CharField(default=pay.models.session.generate_uid, max_length=255)),
+                ('uid', models.CharField(default=kash.models.session.generate_uid, max_length=255)),
                 ('paid_at', models.DateTimeField(null=True)),
                 ('cancel_url', models.URLField()),
                 ('cart', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.cart')),

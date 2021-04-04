@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
 from core.models import Shop, Cart
-from pay.models import CheckoutSession
+from kash.models import CheckoutSession
 from storefront.serializers import ShopSerializer, CartSerializer
 
 

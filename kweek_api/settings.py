@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     "core",
     "storefront",
     "shop_admin",
-    "pay",
+    "kash",
     "django_extensions",
     "django_hosts",
     "rest_framework",
@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "phone_verify",
     "djmoney",
     'djmoney.contrib.exchange',
+    'huey.contrib.djhuey',
     "storages",
 ]
 
@@ -231,9 +232,20 @@ if not DEBUG:
         send_default_pii=True
     )
 
+QOSIC_USERNAME = env('QOSIC_USERNAME')
+QOSIC_PASSWORD = env('QOSIC_PASSWORD')
+QOSIC_MOOV_MONEY_CLIENT_ID = env('QOSIC_MOOV_MONEY_CLIENT_ID')
+QOSIC_MTN_MOBILE_MONEY_CLIENT_ID = env('QOSIC_MTN_MOBILE_MONEY_CLIENT_ID')
+QOSIC_URL = env('QOSIC_URL')
 
-QOSIC_USERNAME = os.getenv('QOSIC_USERNAME', 'USR06')
-QOSIC_PASSWORD = os.getenv('QOSIC_PASSWORD', 'YG739G5XFVPYYV4ADJVW')
-QOSIC_MOOV_MONEY_CLIENT_ID = os.getenv('QOSIC_MOOV_MONEY_CLIENT_ID', 'MOOVTEST')
-QOSIC_MTN_MOBILE_MONEY_CLIENT_ID = os.getenv('QOSIC_MTN_MOBILE_MONEY_CLIENT_ID', 'UBHQ')
-QOSIC_URL = os.getenv('QOSIC_URL', 'http://74.208.84.251:8221')  # prod url: https://qosic.net:8443
+HUEY = {
+    'connection': {
+        'url': env('REDIS_URL')
+    },
+    'immediate': False
+}
+
+EXCHANGE_BACKEND = 'djmoney.contrib.exchange.backends.OpenExchangeRatesBackend'
+
+ONESIGNAL_APP_ID = env('ONESIGNAL_APP_ID')
+ONESIGNAL_REST_API_KEY = env('ONESIGNAL_REST_API_KEY')

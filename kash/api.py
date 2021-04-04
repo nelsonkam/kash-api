@@ -89,3 +89,12 @@ class TransactionResource:
 
     def refund(self, data, **kwargs):
         return self.api.post(f'{self.base_url}/refund', data, **kwargs)
+
+    def payout(self, data, **kwargs):
+        if self.api.client_type == 'moov':
+            url = f'{self.base_url}/depositmv'
+        elif self.api.client_type == 'mtn':
+            url = f'{self.base_url}/deposit'
+        else:
+            raise NotImplementedError
+        return self.api.post(url, data, **kwargs)
