@@ -50,7 +50,7 @@ class KashTransaction(BaseModel):
             gateway=gateway
         )
 
-    def notify_recipients(self, recipient, amount):
+    def notify_recipient(self, recipient, amount):
         amount = amount.amount if isinstance(amount, Money) else amount
         sender_name = "Quelqu'un" if self.is_incognito else f"${self.initiator.kashtag}"
 
@@ -91,7 +91,7 @@ def payout_recipients(sender, **kwargs):
             recipient = kash_txn.recipients.first()
             transaction = send_to_recipient(recipient, kash_txn, kash_txn.amount.amount)
             if transaction.status == TransactionStatusEnum.success.value:
-                kash_txn.notify_recipients(recipient, kash_txn.amount.amount)
+                kash_txn.notify_recipient(recipient, kash_txn.amount.amount)
         else:
             recipient_count = kash_txn.recipients.count()
             if kash_txn.group_mode == KashTransaction.GroupMode.normal:
@@ -99,12 +99,12 @@ def payout_recipients(sender, **kwargs):
                 for recipient in kash_txn.recipients.all():
                     transaction = send_to_recipient(recipient, kash_txn, amount.amount)
                     if transaction.status == TransactionStatusEnum.success.value:
-                        kash_txn.notify_recipients(recipient, amount)
+                        kash_txn.notify_recipient(recipient, amount)
             elif kash_txn.group_mode == KashTransaction.GroupMode.pacha:
                 for recipient in kash_txn.recipients.all():
                     transaction = send_to_recipient(recipient, kash_txn, kash_txn.amount.amount)
                     if transaction.status == TransactionStatusEnum.success.value:
-                        kash_txn.notify_recipients(recipient, kash_txn.amount.amount)
+                        kash_txn.notify_recipient(recipient, kash_txn.amount.amount)
             elif kash_txn.group_mode == KashTransaction.GroupMode.faro:
                 r = [random.randint(1, 9) for i in range(0, recipient_count)]
                 weights = [i/sum(r) for i in r]
@@ -113,6 +113,6 @@ def payout_recipients(sender, **kwargs):
                     print(amount)
                     transaction = send_to_recipient(recipient, kash_txn, amount)
                     if transaction.status == TransactionStatusEnum.success.value:
-                        kash_txn.notify_recipients(recipient, amount)
+                        kash_txn.notify_recipient(recipient, amount)
             else:
                 raise NotImplemented()

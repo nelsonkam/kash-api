@@ -55,3 +55,11 @@ class ProfileViewset(ModelViewSet):
         serializer = self.get_serializer(UserProfile.objects.exclude(pk=profile.pk).exclude(payout_methods__isnull=True), many=True)
 
         return Response(serializer.data)
+
+    @action(detail=True, methods=['get'])
+    def request_recipients(self, request, pk=None):
+        profile = self.get_object()
+        serializer = self.get_serializer(
+            UserProfile.objects.exclude(pk=profile.pk).exclude(payout_methods__isnull=True), many=True)
+
+        return Response(serializer.data)
