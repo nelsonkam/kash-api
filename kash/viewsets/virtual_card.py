@@ -47,3 +47,9 @@ class VirtualCardViewSet(ModelViewSet):
 
         return Response(card.get_transactions())
 
+    @action(detail=False, methods=['post'], permission_classes=[])
+    def txn_callback(self, request):
+        print(request.data)
+        return Response(status=200)
+
+
