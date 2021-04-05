@@ -18,7 +18,9 @@ class ProfileViewset(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return UserProfile.objects.filter(pk=self.request.user.profile.pk)
+        if hasattr(self.request.user, 'profile'):
+            return UserProfile.objects.filter(pk=self.request.user.profile.pk)
+        return UserProfile.objects.none()
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
