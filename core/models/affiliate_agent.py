@@ -7,7 +7,7 @@ from django.dispatch import receiver
 from core.models.base import BaseModel, generate_ref_id
 from django.db import models
 
-from core.utils import slack
+from core.utils import notify
 
 
 def generate_affiliate_code():
@@ -60,4 +60,4 @@ def notify_slack(sender, instance, created, **kwargs):
                 ],
             }
         ]
-        slack.send_message(message, "#test" if settings.DEBUG else "#notifications")
+        notify.send_message(message, "#test" if settings.DEBUG else "#notifications")

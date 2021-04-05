@@ -7,7 +7,8 @@ from djmoney.contrib.exchange.models import convert_money
 from djmoney.money import Money
 
 from core.models.base import BaseModel
-from core.utils import slack
+from core.utils import notify
+from core.utils.notify import tg_bot
 
 
 class Shop(BaseModel):
@@ -35,7 +36,6 @@ class Shop(BaseModel):
     def order_count(self):
         return self.orders.count()
 
-
     class Meta:
         managed = True
         db_table = 'shops'
@@ -44,11 +44,20 @@ class Shop(BaseModel):
 @receiver(post_save, sender=Shop)
 def notify_slack(sender, instance, created, **kwargs):
     if created:
+        tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"""
+        New shop created on Kweek!💪🏾
+
+        Nom: {instance.name}
+        Lien: https://{instance.username}.kweek.shop
+        Tel: {instance.phone_number}
+
+        {"_Ceci est un message test._" if settings.DEBUG else ""}
+        """)
         message = [
             {
                 "fallback": f"New shop created on Kweek!💪🏾",
                 "color": "#30BCED",
-                
+
                 "pretext": "New shop created on Kweek!💪🏾",
                 "fields": [
                     {"title": "Name", "value": instance.name, "short": True},
@@ -61,7 +70,7 @@ def notify_slack(sender, instance, created, **kwargs):
                 ],
             }
         ]
-        slack.send_message(message, "#test" if settings.DEBUG else "#notifications")
+        notify.send_message(message, "#test" if settings.DEBUG else "#notifications")
 
 
 @receiver(post_save, sender=Shop)

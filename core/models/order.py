@@ -7,7 +7,8 @@ from djmoney.money import Money
 from core.models.base import BaseModel, PaymentMethod, generate_ref_id
 from django.db import models
 
-from core.utils import slack
+from core.utils import notify
+from core.utils.notify import tg_bot
 from core.utils.sms import send_sms
 
 
@@ -55,6 +56,15 @@ class Order(BaseModel):
         send_sms(self.shop.user.phone_number, message)
 
     def notify_slack(self):
+        tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"""
+        Nouvelle commande sur Kweek!💪🏾
+        
+        Boutique: {self.shop.name} ({self.shop.username})
+        Panier: {self.total}
+        Frais de livraison: {self.shipping_fees}
+        
+        { "_Ceci est un message test._" if settings.DEBUG else "" }
+        """)
         message = [
             {
                 "fallback": f"Nouvelle commande sur Kweek!💪🏾",
@@ -100,7 +110,7 @@ class Order(BaseModel):
                 ],
             }
         ]
-        slack.send_message(message, "#test" if settings.DEBUG else "#notifications")
+        notify.send_message(message, "#test" if settings.DEBUG else "#notifications")
 
     class Meta:
         managed = True

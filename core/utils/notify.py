@@ -1,7 +1,9 @@
 from django.conf import settings
 from slackclient import SlackClient
+import telegram
 
 sc = SlackClient(settings.SLACK_TOKEN)
+tg_bot = telegram.Bot(token=settings.TG_BOT_TOKEN)
 
 
 def send():
