@@ -15,6 +15,7 @@ from pathlib import Path
 import environ
 import sentry_sdk
 import stripe
+from celery.schedules import crontab
 from django.utils.translation import gettext_lazy as _
 from sentry_sdk.integrations.django import DjangoIntegration
 
@@ -55,7 +56,6 @@ INSTALLED_APPS = [
     "phone_verify",
     "djmoney",
     'djmoney.contrib.exchange',
-    'huey.contrib.djhuey',
     "storages",
 ]
 
@@ -191,6 +191,8 @@ CORS_ALLOW_HEADERS = [
     "x-shop-id",
 ]
 
+APP_NAME = env('APP_NAME')
+
 DO_SPACES_KEY = env("DO_SPACES_KEY")
 DO_SPACES_SECRET = env("DO_SPACES_SECRET")
 DO_SPACES_BUCKET = env("DO_SPACES_BUCKET")
@@ -238,14 +240,29 @@ QOSIC_MOOV_MONEY_CLIENT_ID = env('QOSIC_MOOV_MONEY_CLIENT_ID')
 QOSIC_MTN_MOBILE_MONEY_CLIENT_ID = env('QOSIC_MTN_MOBILE_MONEY_CLIENT_ID')
 QOSIC_URL = env('QOSIC_URL')
 
-HUEY = {
-    'connection': {
-        'url': env('REDIS_URL')
-    },
-    'immediate': False
-}
-
 EXCHANGE_BACKEND = 'djmoney.contrib.exchange.backends.OpenExchangeRatesBackend'
 
 ONESIGNAL_APP_ID = env('ONESIGNAL_APP_ID')
 ONESIGNAL_REST_API_KEY = env('ONESIGNAL_REST_API_KEY')
+
+CELERY_BROKER_URL = env('REDIS_URL')
+CELERY_RESULT_BACKEND = env('REDIS_URL')
+
+CELERY_BEAT_SCHEDULE = {
+    "update_rates": {
+        "task": "core.tasks.update_rates",
+        "schedule": crontab(hour='*/3', minute='0'),
+    },
+    "check_txn_status": {
+        "task": "kash.tasks.check_txn_status",
+        "schedule": 15.0
+    },
+    "confirm_card_purchase": {
+        "task": "kash.tasks.confirm_card_purchase",
+        "schedule": crontab(minute='*/5'),
+    },
+    "send_pending_notifications": {
+        "task": "kash.tasks.send_pending_notifications",
+        "schedule": crontab(minute='*/3'),
+    },
+} if APP_NAME == "api-server" else {}

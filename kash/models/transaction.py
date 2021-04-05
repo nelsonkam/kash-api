@@ -37,7 +37,7 @@ class TransactionManager(models.Manager):
         # if settings.DEBUG:
         #     return
         if txn_type == TransactionType.payment:
-            request_transaction(transaction.id)
+            request_transaction.delay(transaction.id)
         else:
             transaction.request()
         return transaction
@@ -113,7 +113,7 @@ class Transaction(models.Model):
             assert response.status_code == 200, \
                 "%s: status_code: %s content: %s" % (self, response.status_code, response.text)
             assert int(response.json()['responsecode']) == 0, "%s: responsecode: %s json: %s" % (
-            self, response.json()['responsecode'], response.json())
+                self, response.json()['responsecode'], response.json())
         except (AssertionError, ReadTimeout, ValueError) as e:
             # todo; add logger to see more
             self.status = TransactionStatusEnum.failed.value
@@ -134,7 +134,7 @@ class Transaction(models.Model):
             assert response.status_code == 200, \
                 "%s: status_code: %s content: %s" % (self, response.status_code, response.text)
             assert int(response.json()['responsecode']) == 0, "%s: responsecode: %s json: %s" % (
-            self, response.json()['responsecode'], response.json())
+                self, response.json()['responsecode'], response.json())
         except (AssertionError, ReadTimeout, ValueError) as e:
             # todo; add logger to see more
             self.status = TransactionStatusEnum.failed.value
@@ -159,7 +159,7 @@ class Transaction(models.Model):
         return data
 
     def _request_moov_mobile_money(self):
-        old_status = self.status
+        status = self.status
         data = self._get_request_data()
         try:
             response = self.api.Transaction.create(data)
@@ -167,13 +167,13 @@ class Transaction(models.Model):
                 "%s: status_code: %s content: %s" % (self, response.status_code, response.text)
         except (AssertionError, ReadTimeout) as e:
             # todo; add logger to see more
-            self.status = TransactionStatusEnum.failed.value
+            status = TransactionStatusEnum.failed.value
         else:
             response_data = response.json()
-            if response_data['responsecode'] == '0':
-                self.status = TransactionStatusEnum.success.value
+            if int(response_data['responsecode']) == 0:
+                status = TransactionStatusEnum.success.value
             elif response_data['responsecode'] in ['8', '92', '94', '95', '10', '91', '98', '99', '-1']:
-                self.status = TransactionStatusEnum.failed.value
+                status = TransactionStatusEnum.failed.value
             else:
                 raise NotImplementedError
 
@@ -183,7 +183,9 @@ class Transaction(models.Model):
         self.last_status_checked = now()
         self.save()
 
-        if old_status != self.status:
+        if Transaction.objects.get(pk=self.pk).status != status:
+            self.status = status
+            self.save()
             transaction_status_changed.send(sender=self.__class__, transaction=self)
 
     def _request_mtn_mobile_money(self):
@@ -194,7 +196,7 @@ class Transaction(models.Model):
                 "%s: status_code: %s content: %s" % (self, response.status_code, response.text)
         except (AssertionError, ReadTimeout) as e:
             self.status = TransactionStatusEnum.failed.value
-            self.save(update_fields=('status',))
+            self.save()
         else:
             response_data = response.json()
 
@@ -225,31 +227,33 @@ class Transaction(models.Model):
 
         response = self.api.Transaction.status(data={'transref': self.reference})
 
-        old_status = self.status
+        status = self.status
 
         if response.status_code == 200:
             response_data = response.json()
 
-            if response_data['responsecode'] == "00":
-                self.status = TransactionStatusEnum.success.value
+            if int(response_data['responsecode']) == 0:
+                status = TransactionStatusEnum.success.value
 
             elif response_data['responsecode'] == '01':
-                self.status = TransactionStatusEnum.pending.value
+                status = TransactionStatusEnum.pending.value
             elif response_data['responsecode'] == '529':
-                self.status = TransactionStatusEnum.failed.value
+                status = TransactionStatusEnum.failed.value
             elif response_data['responsemsg'] == 'FAILED' and response_data['responsecode'] == '-1':
-                self.status = TransactionStatusEnum.failed.value
+                status = TransactionStatusEnum.failed.value
 
             self.service_message = response_data['responsemsg']
             self.service_reference = response_data['serviceref']
 
             self.last_status_checked = now()
+            self.save()
 
-        if self.created + timedelta(minutes=3) < now() and self.status != TransactionStatusEnum.success.value:
-            self.status = TransactionStatusEnum.failed.value
-        self.save()
+        if self.created + timedelta(minutes=3) < now() and status != TransactionStatusEnum.success.value:
+            status = TransactionStatusEnum.failed.value
 
-        if self.status != old_status:
+        if Transaction.objects.get(pk=self.pk).status != status:
+            self.status = status
+            self.save()
             transaction_status_changed.send(sender=self.__class__, transaction=self)
 
     def __str__(self):

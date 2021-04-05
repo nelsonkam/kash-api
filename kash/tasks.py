@@ -1,11 +1,10 @@
+from celery import shared_task
 from django.contrib.contenttypes.models import ContentType
-from huey import crontab
-from huey.contrib.djhuey import db_task, db_periodic_task
 
 from kash.utils import TransactionStatusEnum, TransactionType
 
 
-@db_task()
+@shared_task
 def request_transaction(txn_id=None):
     from kash.models import Transaction
 
@@ -13,16 +12,16 @@ def request_transaction(txn_id=None):
     txn.request()
 
 
-@db_periodic_task(crontab(minute="*"))
+@shared_task
 def check_txn_status():
     from kash.models import Transaction
 
     for txn in Transaction.objects.filter(status=TransactionStatusEnum.pending.value,
                                           transaction_type=TransactionType.payment):
-        txn.request()
+        txn.check_status()
 
 
-@db_periodic_task(crontab(minute="*/5"))
+@shared_task
 def confirm_card_purchase():
     from kash.models import VirtualCard, Transaction
     cards = VirtualCard.objects.filter(external_id__isnull=True)
@@ -34,20 +33,7 @@ def confirm_card_purchase():
         card.create_external(amount=txn.amount - card.issuance_cost)
 
 
-@db_task()
-def send_push_notification(profile_id, title, description, obj):
-    from kash.models import Notification
-
-    notif = Notification.objects.create(
-        title=title,
-        description=description,
-        content_object=obj,
-        profile_id=profile_id
-    )
-    notif.send()
-
-
-@db_periodic_task(crontab(minute="*/5"))
+@shared_task
 def send_pending_notifications():
     from kash.models import Notification
 

@@ -7,8 +7,8 @@ from djmoney.models.fields import MoneyField
 from djmoney.money import Money
 
 from core.models.base import BaseModel
+
 from kash.signals import transaction_status_changed
-from kash.tasks import send_push_notification
 from kash.utils import TransactionType, TransactionStatusEnum
 
 
@@ -24,6 +24,7 @@ class KashTransaction(BaseModel):
     group_mode = models.CharField(max_length=10, blank=True, choices=GroupMode.choices)
     is_incognito = models.BooleanField(default=False)
     amount = MoneyField(max_digits=17, decimal_places=2, default_currency='XOF')
+    paid_recipients = models.ManyToManyField('kash.UserProfile')
 
     @property
     def fees(self):
@@ -51,17 +52,26 @@ class KashTransaction(BaseModel):
         )
 
     def notify_recipient(self, recipient, amount):
+        from kash.models import Notification
         amount = amount.amount if isinstance(amount, Money) else amount
         sender_name = "Quelqu'un" if self.is_incognito else f"${self.initiator.kashtag}"
 
         if self.group_mode == KashTransaction.GroupMode.faro:
-            send_push_notification(recipient.id, "Le goût de ça 🤑",
-                                   f"{sender_name} vient de te faroter {amount} FCFA pour \"{self.note}\"",
-                                   self)
+            notif = Notification.objects.create(
+                title="Le goût de ça 🤑",
+                description=f"{sender_name} vient de te faroter {amount} FCFA pour \"{self.note}\"",
+                content_object=self,
+                profile=recipient
+            )
+            notif.send()
         else:
-            send_push_notification(recipient.id, "Le goût de ça 🤑",
-                                   f"{sender_name} vient de t'envoyer {amount} FCFA pour \"{self.note}\"",
-                                   self)
+            notif = Notification.objects.create(
+                title="Le goût de ça 🤑",
+                description=f"{sender_name} vient de t'envoyer {amount} FCFA pour \"{self.note}\"",
+                content_object=self,
+                profile=recipient
+            )
+            notif.send()
 
 
 @receiver(transaction_status_changed)
@@ -72,6 +82,8 @@ def payout_recipients(sender, **kwargs):
     kash_txn_type = ContentType.objects.get_for_model(KashTransaction)
 
     def send_to_recipient(recipient, kash_txn, amount):
+        if kash_txn.paid_recipients.filter(pk=recipient.id).exists():
+            return
         payment_method = recipient.payout_methods.filter(gateway=txn.gateway).first()
         if not payment_method:
             payment_method = recipient.payout_methods.first()
@@ -84,13 +96,15 @@ def payout_recipients(sender, **kwargs):
             initiator=txn.initiator,
             txn_type=TransactionType.payout
         )
-
-    if txn.content_type == kash_txn_type:
+    print("txn status changed", txn.reference, txn.status)
+    if txn.content_type == kash_txn_type and txn.status == TransactionStatusEnum.success.value:
         kash_txn = txn.content_object
         if kash_txn.recipients.count() == 1:
             recipient = kash_txn.recipients.first()
             transaction = send_to_recipient(recipient, kash_txn, kash_txn.amount.amount)
             if transaction.status == TransactionStatusEnum.success.value:
+                kash_txn.paid_recipients.add(recipient)
+                kash_txn.save()
                 kash_txn.notify_recipient(recipient, kash_txn.amount.amount)
         else:
             recipient_count = kash_txn.recipients.count()
