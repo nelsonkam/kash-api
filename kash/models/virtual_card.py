@@ -10,7 +10,7 @@ from djmoney.money import Money
 
 from core.models.base import BaseModel
 from core.utils import money_to_dict
-from core.utils.payment import rave_request
+from core.utils.payment import rave_request, rave2_request
 from kash.models import Transaction
 
 
@@ -54,7 +54,6 @@ class VirtualCard(BaseModel):
         else:
             raise Exception(f"Card creation failed: {resp.get('message')}")
 
-
     @property
     def card_details(self):
         if not self.external_id:
@@ -87,8 +86,6 @@ class VirtualCard(BaseModel):
         resp = rave_request('GET', f'/virtual-cards/{self.external_id}')
 
         return resp.json().get("data")
-
-
 
     def get_transactions(self):
         if not self.external_id:
@@ -250,13 +247,21 @@ class VirtualCard(BaseModel):
         #         }
         #     ]
 
-        query = {
-            'from': (self.created_at - timedelta(days=90)).date().isoformat(),
-            'to': date.today().isoformat(),
-            'size': 1000,
-            'index': 0
+        # query = {
+        #     'from': (self.created_at - timedelta(days=90)).date().isoformat(),
+        #     'to': date.today().isoformat(),
+        #     'size': 10,
+        #     'index': 1
+        # }
+        # resp = rave_request('GET', f'/virtual-cards/{self.external_id}/transactions?{parse.urlencode(query)}')
+        data = {
+            "FromDate": (self.created_at - timedelta(days=90)).date().isoformat(),
+            "ToDate": date.today().isoformat(),
+            "PageIndex": 0,
+            "PageSize": 20,
+            "CardId": self.external_id,
+            "secret_key": settings.RAVE_SECRET_KEY
         }
-
-        resp = rave_request('GET', f'/virtual-cards/{self.external_id}/transactions?{parse.urlencode(query)}')
-        return resp.json().get("data")
-
+        resp = rave2_request("POST", '/services/virtualcards/transactions', data)
+        print(resp.json())
+        return resp.json().get("Statements") or []

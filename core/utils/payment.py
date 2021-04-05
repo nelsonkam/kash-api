@@ -26,6 +26,11 @@ def rave_request(method, url, data=None):
     return requests.request(method, RAVE_URL + url, json=data, headers=headers)
 
 
+def rave2_request(method, url, data=None):
+    base_url = "https://api.ravepay.co/v2"
+    return requests.request(method, base_url + url, json=data)
+
+
 class Payment:
     @classmethod
     def get_processor_cls(cls, method):
