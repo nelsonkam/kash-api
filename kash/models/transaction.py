@@ -5,6 +5,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.timezone import now
+from djmoney.contrib.exchange.models import convert_money
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money
 
@@ -19,12 +20,13 @@ from kash.utils import GatewayEnum, TransactionStatusEnum, generate_reference_10
 class TransactionManager(models.Manager):
     def request(self, obj, name, phone, amount, gateway, initiator, txn_type=TransactionType.payment, **kwargs):
         assert gateway in GatewayEnum.values(), f"The gateway `{gateway}` is not supported."
-
+        amount = amount if isinstance(amount, Money) else Money(amount, 'XOF')
+        amount = round(convert_money(amount, "XOF"))
         transaction = self.model(
             content_object=obj,
             name=name or '',
             phone=phone,
-            amount=amount if isinstance(amount, Money) else Money(amount, 'XOF'),
+            amount=amount,
             gateway=gateway,
             initiator=initiator,
             transaction_type=txn_type
@@ -170,7 +172,7 @@ class Transaction(models.Model):
             status = TransactionStatusEnum.failed.value
         else:
             response_data = response.json()
-            if int(response_data['responsecode']) == 0:
+            if response_data['responsecode'] and int(response_data['responsecode']) == 0:
                 status = TransactionStatusEnum.success.value
             elif response_data['responsecode'] in ['8', '92', '94', '95', '10', '91', '98', '99', '-1']:
                 status = TransactionStatusEnum.failed.value
@@ -231,10 +233,12 @@ class Transaction(models.Model):
 
         if response.status_code == 200:
             response_data = response.json()
+            print(response_data)
 
-            if int(response_data['responsecode']) == 0:
+            if response_data['responsecode'] and int(response_data['responsecode']) == 0:
                 status = TransactionStatusEnum.success.value
-
+            elif response_data['responsemsg'] and 'success' in response_data['responsemsg'].lower():
+                status = TransactionStatusEnum.success.value
             elif response_data['responsecode'] == '01':
                 status = TransactionStatusEnum.pending.value
             elif response_data['responsecode'] == '529':

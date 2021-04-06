@@ -23,7 +23,14 @@ def fedapay_request(method, url, data=None):
 
 def rave_request(method, url, data=None):
     headers = {"Authorization": f"Bearer {settings.RAVE_SECRET_KEY}"}
-    return requests.request(method, RAVE_URL + url, json=data, headers=headers)
+    resp = requests.request(method, RAVE_URL + url, json=data, headers=headers)
+    if 200 > resp.status_code >= 399:
+        if resp.json():
+            raise Exception(resp.json().get('message'))
+        else:
+            raise Exception(f"Rave API call `{method} {url}` failed: `{resp.text}`")
+    return resp
+
 
 
 def rave2_request(method, url, data=None):

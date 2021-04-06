@@ -96,7 +96,7 @@ def payout_recipients(sender, **kwargs):
             initiator=txn.initiator,
             txn_type=TransactionType.payout
         )
-    print("txn status changed", txn.reference, txn.status)
+
     if txn.content_type == kash_txn_type and txn.status == TransactionStatusEnum.success.value:
         kash_txn = txn.content_object
         if kash_txn.recipients.count() == 1:

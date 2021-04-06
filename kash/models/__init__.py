@@ -1,7 +1,7 @@
 from .session import CheckoutSession
 from .transaction import Transaction
 from .user_profile import UserProfile
-from .virtual_card import VirtualCard
+from .virtual_card import VirtualCard, FundingHistory
 from .kash_transaction import KashTransaction
 from .payout_method import PayoutMethod
 from .notifications import Notification
