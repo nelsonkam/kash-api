@@ -172,6 +172,7 @@ class Transaction(models.Model):
             status = TransactionStatusEnum.failed.value
         else:
             response_data = response.json()
+            print(response_data)
             if response_data['responsecode'] and int(response_data['responsecode']) == 0:
                 status = TransactionStatusEnum.success.value
             elif response_data['responsecode'] in ['8', '92', '94', '95', '10', '91', '98', '99', '-1']:
