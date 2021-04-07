@@ -28,6 +28,7 @@ class VirtualCard(BaseModel):
         return Money(1000, 'XOF')
 
     def purchase(self, initial_amount, phone, gateway):
+        from kash.models import Transaction
         return Transaction.objects.request(**{
             'obj': self,
             'name': self.profile.name,
@@ -133,6 +134,7 @@ class VirtualCard(BaseModel):
         # return resp.json().get("Statements") or []
 
     def fund(self, amount, phone, gateway):
+        from kash.models import Transaction
         return Transaction.objects.request(**{
             'obj': self,
             'name': self.profile.name,
