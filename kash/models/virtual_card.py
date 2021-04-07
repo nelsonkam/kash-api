@@ -1,5 +1,6 @@
 import secrets
 from datetime import timedelta, date
+from urllib import parse
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -11,9 +12,8 @@ from djmoney.money import Money
 
 from core.models.base import BaseModel
 from core.utils.payment import rave_request, rave2_request
-from kash.models import Transaction
 from kash.signals import transaction_status_changed
-from kash.utils import TransactionStatusEnum
+from kash.utils import TransactionStatusEnum, TransactionType
 
 
 class VirtualCard(BaseModel):
@@ -61,7 +61,7 @@ class VirtualCard(BaseModel):
         if not self.external_id:
             return None
 
-        if settings.DEBUG:
+        if not settings.DEBUG:
             return {
                 "id": "7dc7b98c-7f6d-48f3-9b31-859a145c8085",
                 "account_id": 65637,
@@ -96,31 +96,41 @@ class VirtualCard(BaseModel):
             return [
                 {
                     "id": 39250,
-                    "amount": 12,
-                    "merchant": "Funding",
-                    "type": "Debit",
-                    "date": "2020-01-13",
+                    "amount": 25,
+                    "fee": 0,
+                    "product": "Card Transactions",
+                    "gateway_reference_details": "Card Withdrawal ",
+                    "reference": "CF-BARTER-20200113051758201204",
+                    "response_code": 5,
+                    "gateway_reference": "536613*******6517",
+                    "amount_confirmed": 0,
+                    "narration": "Card Withdrawal",
+                    "indicator": "D",
+                    "created_at": "2020-01-13T05:17:58.777Z",
+                    "status": "Successful",
+                    "response_message": "Transaction was Successful",
+                    "currency": "USD"
                 },
-
             ]
 
-        # query = {
-        #     'from': (self.created_at - timedelta(days=90)).date().isoformat(),
-        #     'to': date.today().isoformat(),
-        #     'size': 10,
-        #     'index': 1
-        # }
-        # resp = rave_request('GET', f'/virtual-cards/{self.external_id}/transactions?{parse.urlencode(query)}')
-        data = {
-            "FromDate": (self.created_at - timedelta(days=90)).date().isoformat(),
-            "ToDate": date.today().isoformat(),
-            "PageIndex": 0,
-            "PageSize": 20,
-            "CardId": self.external_id,
-            "secret_key": settings.RAVE_SECRET_KEY
+        query = {
+            'from': (self.created_at - timedelta(days=90)).date().isoformat(),
+            'to': date.today().isoformat(),
+            'size': 10,
+            'index': 1
         }
-        resp = rave2_request("POST", '/services/virtualcards/transactions', data)
-        return resp.json().get("Statements") or []
+        resp = rave_request('GET', f'/virtual-cards/{self.external_id}/transactions?{parse.urlencode(query)}')
+        return resp.json().get('data')
+        # data = {
+        #     "FromDate": (self.created_at - timedelta(days=90)).date().isoformat(),
+        #     "ToDate": date.today().isoformat(),
+        #     "PageIndex": 0,
+        #     "PageSize": 20,
+        #     "CardId": self.external_id,
+        #     "secret_key": settings.RAVE_SECRET_KEY
+        # }
+        # resp = rave2_request("POST", '/services/virtualcards/transactions', data)
+        # return resp.json().get("Statements") or []
 
     def fund(self, amount, phone, gateway):
         return Transaction.objects.request(**{
@@ -163,19 +173,47 @@ class VirtualCard(BaseModel):
         self.save()
         return
 
+    def withdraw(self, amount):
+        from kash.models import Transaction
+        if not self.external_id:
+            return None
+        if not settings.DEBUG:
+            rave_request("POST", f'/virtual-cards/{self.external_id}/withdraw', {
+                'amount': int(amount.amount)
+            })
+        withdraw_amount = convert_money(amount, "XOF") - Money(200, "XOF") # withdrawal fee
+        payout_method = self.profile.payout_methods.first()
+        txn = Transaction.objects.request(
+            obj=self,
+            name=self.profile.name,
+            amount=withdraw_amount,
+            phone=payout_method.phone,
+            gateway=payout_method.gateway,
+            initiator=self.profile.user,
+            txn_type=TransactionType.payout
+        )
+        WithdrawalHistory.objects.create(txn_ref=txn.reference, card=self, amount=amount)
+        return
+
     def terminate(self):
         if not self.external_id:
             return None
         if not settings.DEBUG:
             rave_request("PUT", f'/virtual-cards/{self.external_id}/terminate')
-        self.external_id = False
+        self.external_id = None
         self.is_active = False
         self.save()
         return
 
 
 class FundingHistory(BaseModel):
-    txn_ref = models.CharField(max_length=255)
+    txn_ref = models.CharField(max_length=255, unique=True)
+    card = models.ForeignKey(VirtualCard, on_delete=models.CASCADE)
+    amount = MoneyField(max_digits=17, decimal_places=2, default_currency="XOF")
+
+
+class WithdrawalHistory(BaseModel):
+    txn_ref = models.CharField(max_length=255, unique=True)
     card = models.ForeignKey(VirtualCard, on_delete=models.CASCADE)
     amount = MoneyField(max_digits=17, decimal_places=2, default_currency="XOF")
 

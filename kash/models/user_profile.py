@@ -29,6 +29,7 @@ class UserProfile(BaseModel):
     user = models.OneToOneField('core.User', on_delete=models.CASCADE, related_name='profile')
     kashtag = models.CharField(max_length=30, unique=True, validators=[KashtagValidator, MinLengthValidator(3)])
     device_ids = ArrayField(models.CharField(max_length=255), default=list)
+    avatar_url = models.URLField(blank=True)
 
     @property
     def name(self):

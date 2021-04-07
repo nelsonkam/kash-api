@@ -3,6 +3,7 @@ from rest_framework.serializers import ModelSerializer
 
 from core.serializers import UserSerializer
 from kash.models import UserProfile
+from kash.serializers.invite_code import InviteCodeSerializer
 from kash.serializers.payout_method import PayoutMethodSerializer
 
 
@@ -10,6 +11,7 @@ class ProfileSerializer(ModelSerializer):
     user = UserSerializer(read_only=True)
     name = serializers.CharField()
     payout_methods = PayoutMethodSerializer(many=True, read_only=True)
+    invite = InviteCodeSerializer(read_only=True)
 
     def create(self, validated_data):
         name = validated_data.pop('name')
@@ -21,4 +23,4 @@ class ProfileSerializer(ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ['kashtag', 'device_ids', 'user', 'name', 'payout_methods']
+        fields = ['kashtag', 'avatar_url', 'device_ids', 'user', 'name', 'payout_methods', 'invite']

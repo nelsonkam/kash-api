@@ -2,10 +2,11 @@ from django.urls import path
 from rest_framework.routers import SimpleRouter
 
 from kash.models import KashRequest
+from kash.viewsets.invite_code import InviteCodeViewset
 from kash.viewsets.kash_request import KashRequestViewSet
 from kash.viewsets.kash_transaction import KashTransactionViewSet
 from kash.viewsets.notification import NotificationViewset
-from kash.viewsets.payment_method import PayoutMethodViewset
+from kash.viewsets.payout_method import PayoutMethodViewset
 from kash.viewsets.profile import ProfileViewset
 from kash.viewsets.session import CheckoutSessionViewset
 from kash.viewsets.transaction import TransactionViewSet
@@ -22,5 +23,6 @@ router.register("send", KashTransactionViewSet, "send-kash")
 router.register("payout-methods", PayoutMethodViewset, "payout-methods")
 router.register("requests", KashRequestViewSet, "request-kash")
 router.register("notifications", NotificationViewset, "notifications")
+router.register("invites", InviteCodeViewset, "invites")
 
 urlpatterns = router.urls

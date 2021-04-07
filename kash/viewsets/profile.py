@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.db.models.query import QuerySet
 from django.http import Http404
 from rest_framework.decorators import action
@@ -8,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from core.utils import upload_content_file
 from kash.models import UserProfile
 from kash.serializers.profile import ProfileSerializer
 
@@ -65,3 +68,11 @@ class ProfileViewset(ModelViewSet):
             UserProfile.objects.exclude(pk=profile.pk).exclude(payout_methods__isnull=True), many=True)
 
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def avatar(self, request, pk=None):
+        profile = self.get_object()
+        image = request.data['avatar']
+        profile.avatar_url = upload_content_file(image, f"{uuid4()}-{image.name}")
+        profile.save()
+        return Response(self.get_serializer(instance=profile).data)

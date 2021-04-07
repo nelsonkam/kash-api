@@ -86,6 +86,12 @@ class VirtualCardViewSet(ModelViewSet):
         card.terminate()
         return Response(self.get_serializer(card).data)
 
+    @action(detail=True, methods=['post'])
+    def withdraw(self, request, pk=None):
+        card = self.get_object()
+        card.withdraw(Money(request.data.get('amount'), 'USD'))
+        return Response(self.get_serializer(card).data)
+
     @action(detail=False, methods=['post'], permission_classes=[])
     def txn_callback(self, request):
         print(request.data)
