@@ -1,6 +1,7 @@
 from django.urls import path
 from rest_framework.routers import SimpleRouter
 
+from kash import views
 from kash.models import KashRequest
 from kash.viewsets.invite_code import InviteCodeViewset
 from kash.viewsets.kash_request import KashRequestViewSet
@@ -25,4 +26,6 @@ router.register("requests", KashRequestViewSet, "request-kash")
 router.register("notifications", NotificationViewset, "notifications")
 router.register("invites", InviteCodeViewset, "invites")
 
-urlpatterns = router.urls
+urlpatterns = router.urls + [
+    path('version/', views.version, name='kash-version')
+]
