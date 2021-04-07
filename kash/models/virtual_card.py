@@ -61,7 +61,7 @@ class VirtualCard(BaseModel):
         if not self.external_id:
             return None
 
-        if not settings.DEBUG:
+        if settings.DEBUG:
             return {
                 "id": "7dc7b98c-7f6d-48f3-9b31-859a145c8085",
                 "account_id": 65637,
