@@ -10,8 +10,14 @@ from kash.serializers.payout_method import PayoutMethodSerializer
 class ProfileSerializer(ModelSerializer):
     user = UserSerializer(read_only=True)
     name = serializers.CharField()
-    payout_methods = PayoutMethodSerializer(many=True, read_only=True)
+    payout_methods = serializers.SerializerMethodField()
     invite = InviteCodeSerializer(read_only=True)
+
+    def get_payout_methods(self, obj):
+        serializer = PayoutMethodSerializer(obj.payout_methods.all(), many=True)
+        if len(serializer.data) == 0:
+            return None
+        return serializer.data
 
     def create(self, validated_data):
         name = validated_data.pop('name')
