@@ -24,7 +24,7 @@ def check_txn_status():
 @shared_task
 def confirm_card_purchase():
     from kash.models import VirtualCard, Transaction
-    cards = VirtualCard.objects.filter(external_id__isnull=True)
+    cards = VirtualCard.objects.filter(external_id='')
     cart_type = ContentType.objects.get_for_model(VirtualCard)
     for txn in Transaction.objects.filter(content_type__pk=cart_type.id, object_id__in=cards,
                                           status=TransactionStatusEnum.success.value,
