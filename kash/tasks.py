@@ -30,7 +30,10 @@ def confirm_card_purchase():
                                           status=TransactionStatusEnum.success.value,
                                           transaction_type=TransactionType.payment):
         card = VirtualCard.objects.get(pk=txn.object_id)
-        card.create_external(amount=txn.amount - card.issuance_cost)
+        try:
+            card.create_external(amount=txn.amount - card.issuance_cost)
+        except:
+            txn.refund()
 
 
 @shared_task
