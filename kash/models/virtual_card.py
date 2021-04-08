@@ -229,5 +229,8 @@ def fund_card(sender, **kwargs):
         card = txn.content_object
         if card.external_id and not FundingHistory.objects.filter(txn_ref=txn.reference, card=card).exists():
             amount = convert_money(txn.amount, "USD")
-            card.fund_external(amount)
-            FundingHistory.objects.create(txn_ref=txn.reference, card=card, amount=amount)
+            try:
+                card.fund_external(amount)
+                FundingHistory.objects.create(txn_ref=txn.reference, card=card, amount=amount)
+            except:
+                txn.refund()
