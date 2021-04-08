@@ -212,7 +212,7 @@ class Transaction(models.Model):
 
     def refund(self):
         # moov doesn't have refund api.
-        if self.status != TransactionStatusEnum.success.value or self.gateway == TransactionStatusEnum.moov.value:
+        if self.status != TransactionStatusEnum.success.value or self.gateway == GatewayEnum.moov.value:
             return
 
         data = self._get_request_data()
