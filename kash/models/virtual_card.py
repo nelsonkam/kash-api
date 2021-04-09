@@ -44,7 +44,10 @@ class VirtualCard(BaseModel):
             self.external_id = secrets.token_urlsafe(20)
             self.save()
             return
-        initial_usd = convert_money(amount, 'USD')
+
+        initial_ngn = convert_money(amount, 'NGN')
+        rates = rave_request("GET", f"/rates?from=NGN&to=USD&amount={float(initial_ngn.amount)}").json()
+        initial_usd = Money(rates.get('data').get('to').get('amount'), "USD")
         resp = rave_request('POST', '/virtual-cards', {
             'currency': 'USD',
             'amount': float(initial_usd.amount),
@@ -151,14 +154,19 @@ class VirtualCard(BaseModel):
 
     def fund(self, amount, phone, gateway):
         from kash.models import Transaction
-        return Transaction.objects.request(**{
+        amount = convert_money(amount, "USD")
+        rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount={float(amount.amount)}').json()
+        amount_to_charge = Money(rates.get('data').get('to').get('amount'), "NGN")
+        txn = Transaction.objects.request(**{
             'obj': self,
             'name': self.profile.name,
-            'amount': amount,
+            'amount': amount_to_charge,
             'phone': phone,
             'gateway': gateway,
             'initiator': self.profile.user
         })
+        FundingHistory.objects.create(txn_ref=txn.reference, card=self, amount=amount, status='pending')
+        return txn
 
     def fund_external(self, amount):
         if not self.external_id:
@@ -225,9 +233,14 @@ class VirtualCard(BaseModel):
 
 
 class FundingHistory(BaseModel):
+    class FundingStatus(models.TextChoices):
+        success = 'success'
+        failed = 'failed'
+        pending = 'pending'
     txn_ref = models.CharField(max_length=255, unique=True)
     card = models.ForeignKey(VirtualCard, on_delete=models.CASCADE)
     amount = MoneyField(max_digits=17, decimal_places=2, default_currency="XOF")
+    status = models.CharField(max_length=15)
 
 
 class WithdrawalHistory(BaseModel):
@@ -243,10 +256,13 @@ def fund_card(sender, **kwargs):
 
     if txn.content_type == vcard_type and txn.status == TransactionStatusEnum.success.value:
         card = txn.content_object
-        if card.external_id and not FundingHistory.objects.filter(txn_ref=txn.reference, card=card).exists():
-            amount = convert_money(txn.amount, "USD")
+        item = FundingHistory.objects.get(txn_ref=txn.reference, card=card)
+        if card.external_id and item.status == FundingHistory.FundingStatus.pending:
             try:
-                card.fund_external(amount)
-                FundingHistory.objects.create(txn_ref=txn.reference, card=card, amount=amount)
+                card.fund_external(item.amount)
+                item.status = FundingHistory.FundingStatus.success
+                item.save()
             except:
+                item.status = FundingHistory.FundingStatus.failed
+                item.save()
                 txn.refund()

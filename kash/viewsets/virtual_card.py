@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from core.utils.payment import rave_request
 from kash.models import Transaction
 from kash.serializers.virtual_card import VirtualCardSerializer
 from kash.utils import TransactionStatusEnum
@@ -46,6 +47,8 @@ class VirtualCardViewSet(ModelViewSet):
     @action(detail=True, methods=['post'])
     def funding_details(self, request, pk=None):
         amount = Money(request.data.get('amount'), "USD")
+        rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount={float(amount.amount)}').json()
+        amount = Money(rates.get('data').get('to').get('amount'), "NGN")
         amount = convert_money(amount, "XOF")
         amount: Money = amount + (amount * 0.03)
         amount = round(amount)

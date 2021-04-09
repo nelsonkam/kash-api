@@ -23,7 +23,7 @@ def check_txn_status():
 
 @shared_task
 def confirm_card_purchase():
-    from kash.models import VirtualCard, Transaction
+    from kash.models import VirtualCard, Transaction, Notification
     cards = VirtualCard.objects.filter(external_id='')
     cart_type = ContentType.objects.get_for_model(VirtualCard)
     for txn in Transaction.objects.filter(content_type__pk=cart_type.id, object_id__in=cards,
@@ -34,6 +34,14 @@ def confirm_card_purchase():
             card.create_external(amount=txn.amount - card.issuance_cost)
         except:
             txn.refund()
+            notif = Notification.objects.create(
+                content_object=card,
+                profile=card.profile,
+                title="Création de ta carte ⚠️",
+                description="Nous n'avons pas pu créer ta carte. Réessaies avec au moins 5000 FCFA ou un peu plus tard."
+            )
+            notif.send()
+
 
 
 @shared_task
