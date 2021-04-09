@@ -1,4 +1,5 @@
 import secrets
+import re
 from datetime import timedelta, date
 from urllib import parse
 
@@ -49,7 +50,7 @@ class VirtualCard(BaseModel):
             'amount': float(initial_usd.amount),
             'billing_name': self.profile.name or "John Doe",
             'debit_currency': 'NGN',
-            'callback_url': "https://kweek-api.ngrok.io/kash/virtual-cards/txn_callback/"
+            'callback_url': "https://prod.kweek.africa/kash/virtual-cards/txn_callback/"
         }).json()
         if resp.get('data'):
             self.external_id = resp.get('data').get('id')
@@ -114,6 +115,11 @@ class VirtualCard(BaseModel):
                 },
             ]
 
+        def format_reference(ref):
+            if re.match(r'^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$', ref):
+                return self.profile.name or 'Kash'
+            return ref
+
         query = {
             'from': (self.created_at - timedelta(days=90)).date().isoformat(),
             'to': date.today().isoformat(),
@@ -121,7 +127,15 @@ class VirtualCard(BaseModel):
             'index': 1
         }
         resp = rave_request('GET', f'/virtual-cards/{self.external_id}/transactions?{parse.urlencode(query)}')
-        return resp.json().get('data')
+        data = [{
+            'status': item.get("status"),
+            'indicator': item.get('indicator'),
+            'gateway_reference_details': format_reference(item.get('gateway_reference_details')),
+            'narration': item.get('narration') or item.get('product'),
+            'amount': item.get('amount'),
+            'fees': item.get('fees')
+        } for item in resp.json().get('data')]
+        return data
         # data = {
         #     "FromDate": (self.created_at - timedelta(days=90)).date().isoformat(),
         #     "ToDate": date.today().isoformat(),
@@ -183,7 +197,7 @@ class VirtualCard(BaseModel):
             rave_request("POST", f'/virtual-cards/{self.external_id}/withdraw', {
                 'amount': int(amount.amount)
             })
-        withdraw_amount = convert_money(amount, "XOF") - Money(200, "XOF") # withdrawal fee
+        withdraw_amount = convert_money(amount, "XOF") - Money(200, "XOF")  # withdrawal fee
         payout_method = self.profile.payout_methods.first()
         txn = Transaction.objects.request(
             obj=self,
