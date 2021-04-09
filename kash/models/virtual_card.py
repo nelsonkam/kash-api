@@ -256,8 +256,8 @@ def fund_card(sender, **kwargs):
 
     if txn.content_type == vcard_type and txn.status == TransactionStatusEnum.success.value:
         card = txn.content_object
-        item = FundingHistory.objects.get(txn_ref=txn.reference, card=card)
-        if card.external_id and item.status == FundingHistory.FundingStatus.pending:
+        item = FundingHistory.objects.filter(txn_ref=txn.reference, card=card).first()
+        if card.external_id and item and item.status == FundingHistory.FundingStatus.pending:
             try:
                 card.fund_external(item.amount)
                 item.status = FundingHistory.FundingStatus.success
