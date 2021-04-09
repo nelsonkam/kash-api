@@ -116,7 +116,7 @@ class VirtualCard(BaseModel):
             ]
 
         def format_reference(ref):
-            if re.match(r'^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$', ref):
+            if re.match(r'^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$', ref.upper()):
                 return self.profile.name or 'Kash'
             return ref
 
