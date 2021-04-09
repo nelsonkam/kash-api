@@ -133,7 +133,7 @@ class VirtualCard(BaseModel):
             'gateway_reference_details': format_reference(item.get('gateway_reference_details')),
             'narration': item.get('narration') or item.get('product'),
             'amount': item.get('amount'),
-            'fees': item.get('fees')
+            'fee': item.get('fee')
         } for item in resp.json().get('data')]
         return data
         # data = {
