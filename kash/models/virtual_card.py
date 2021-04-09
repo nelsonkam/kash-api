@@ -157,6 +157,8 @@ class VirtualCard(BaseModel):
         amount = convert_money(amount, "USD")
         rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount={float(amount.amount)}').json()
         amount_to_charge = Money(rates.get('data').get('to').get('amount'), "NGN")
+        amount_to_charge = convert_money(amount_to_charge, "XOF")
+        amount_to_charge: Money = amount_to_charge + (amount_to_charge * 0.03)
         txn = Transaction.objects.request(**{
             'obj': self,
             'name': self.profile.name,
