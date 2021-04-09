@@ -134,7 +134,8 @@ class VirtualCard(BaseModel):
             'narration': item.get('narration') or item.get('product'),
             'amount': item.get('amount'),
             'fee': item.get('fee'),
-            'currency': item.get('currency')
+            'currency': item.get('currency'),
+            'created_at': item.get('created_at')
         } for item in resp.json().get('data')]
         return data
         # data = {
