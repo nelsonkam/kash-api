@@ -152,17 +152,19 @@ class VirtualCard(BaseModel):
         # resp = rave2_request("POST", '/services/virtualcards/transactions', data)
         # return resp.json().get("Statements") or []
 
-    def fund(self, amount, phone, gateway):
-        from kash.models import Transaction
-        amount = convert_money(amount, "USD")
+    def get_xof_from_usd(self, amount):
         rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount={float(amount.amount)}').json()
         amount_to_charge = Money(rates.get('data').get('to').get('amount'), "NGN")
         amount_to_charge = convert_money(amount_to_charge, "XOF")
-        amount_to_charge: Money = amount_to_charge + (amount_to_charge * 0.03)
+        return amount_to_charge + (amount_to_charge * 0.03)
+
+    def fund(self, amount, phone, gateway):
+        from kash.models import Transaction
+        amount = convert_money(amount, "USD")
         txn = Transaction.objects.request(**{
             'obj': self,
             'name': self.profile.name,
-            'amount': amount_to_charge,
+            'amount': self.get_xof_from_usd(amount),
             'phone': phone,
             'gateway': gateway,
             'initiator': self.profile.user

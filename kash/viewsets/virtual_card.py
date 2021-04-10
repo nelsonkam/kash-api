@@ -46,12 +46,9 @@ class VirtualCardViewSet(ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def funding_details(self, request, pk=None):
+        card = self.get_object()
         amount = Money(request.data.get('amount'), "USD")
-        rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount={float(amount.amount)}').json()
-        amount = Money(rates.get('data').get('to').get('amount'), "NGN")
-        amount = convert_money(amount, "XOF")
-        amount: Money = amount + (amount * 0.03)
-        amount = round(amount)
+        amount = card.get_xof_from_usd(amount)
         return Response({'amount': amount.amount, 'fees': 0})
 
     @action(detail=True, methods=['post'], url_path='purchase/confirm')

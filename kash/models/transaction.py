@@ -213,6 +213,20 @@ class Transaction(models.Model):
     def refund(self):
         # moov doesn't have refund api.
         if self.status != TransactionStatusEnum.success.value or self.gateway == GatewayEnum.moov.value:
+            txn = Transaction.objects.request(
+                obj=self,
+                name=self.name,
+                phone=self.phone,
+                gateway=self.gateway,
+                initiator=self.initiator,
+                amount=self.amount,
+                reference=f'refund-{self.reference}',
+                txn_type=TransactionType.payout
+            )
+            if txn.status == TransactionStatusEnum.success.value:
+                self.status = TransactionStatusEnum.refunded.value
+                self.save()
+                transaction_status_changed.send(sender=self.__class__, transaction=self)
             return
 
         data = self._get_request_data()
