@@ -292,14 +292,14 @@ def notify(sender, **kwargs):
 New successful payment on Kash!💪🏾
 
 Type: {txn.content_type.model}
-Reference: ${txn.reference}
+Reference: {txn.reference}
 
 {"_Ceci est un message test._" if settings.DEBUG else ""}
 """)
     elif txn.status == TransactionStatusEnum.failed.value and txn.transaction_type == TransactionType.payout:
         tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"""
 ⚠️ Payout failed!
-Reference: ${txn.reference}
+Reference: {txn.reference}
 
 {"_Ceci est un message test._" if settings.DEBUG else ""}
 """)
