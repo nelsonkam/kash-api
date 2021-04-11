@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.dispatch import receiver
 from django.utils.timezone import now
 from djmoney.contrib.exchange.models import convert_money
 from djmoney.models.fields import MoneyField
@@ -11,6 +12,7 @@ from djmoney.money import Money
 
 from requests import ReadTimeout
 
+from core.utils.notify import tg_bot
 from kash.api import QosicAPI
 from kash.signals import transaction_status_changed
 from kash.tasks import request_transaction
@@ -280,3 +282,24 @@ class Transaction(models.Model):
 
     class Meta:
         db_table = 'qosic_transaction'
+
+
+@receiver(transaction_status_changed)
+def notify(sender, **kwargs):
+    txn = kwargs.pop("transaction")
+    if txn.status == TransactionStatusEnum.success.value and txn.transaction_type == TransactionType.payment:
+        tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"""
+New successful payment on Kash!💪🏾
+
+Type: {txn.content_type.model}
+Reference: ${txn.reference}
+
+{"_Ceci est un message test._" if settings.DEBUG else ""}
+""")
+    elif txn.status == TransactionStatusEnum.failed.value and txn.transaction_type == TransactionType.payout:
+        tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"""
+⚠️ Payout failed!
+Reference: ${txn.reference}
+
+{"_Ceci est un message test._" if settings.DEBUG else ""}
+""")
