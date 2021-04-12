@@ -22,7 +22,7 @@ class KashRequestViewSet(ModelViewSet):
         return self.request.user.profile.kash_requested.all()
 
     def perform_create(self, serializer):
-        count = KashRequest.objects.filter(created_at__range=[now() - timedelta(hours=1), now()]).count()
+        count = KashRequest.objects.filter(created_at__gte=now(), created_at__lte=now() - timedelta(hours=1)).count()
         if count > 5:
             notif = Notification.objects.create(
                 title="Fait doucement oh 😩",
