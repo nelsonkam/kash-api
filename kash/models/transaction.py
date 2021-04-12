@@ -292,6 +292,7 @@ def notify(sender, **kwargs):
 New successful payment on Kash!💪🏾
 
 Type: {txn.content_type.model}
+Amount: {txn.amount}
 Reference: {txn.reference}
 
 {"_Ceci est un message test._" if settings.DEBUG else ""}
