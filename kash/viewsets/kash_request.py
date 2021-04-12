@@ -24,10 +24,13 @@ class KashRequestViewSet(ModelViewSet):
     def perform_create(self, serializer):
         count = KashRequest.objects.filter(created_at__range=[now() - timedelta(hours=1), now()]).count()
         if count > 5:
-            Notification.objects.create(
+            notif = Notification.objects.create(
                 title="Fait doucement oh 😩",
-                description="Tu as déjà trop demander de kash dans les dernières heures, réessaies dans quelques heures. "
+                description="Tu as déjà trop demander de kash dans les dernières heures, réessaies dans quelques heures. ",
+                content_object=self.request.user.profile,
+                profile=self.request.user.profile
             )
+            notif.send()
             raise Throttled
         serializer.save(initiator=self.request.user.profile)
 
