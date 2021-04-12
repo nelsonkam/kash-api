@@ -1,9 +1,10 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from kash.models import Notification, KashRequest, KashTransaction, VirtualCard
+from kash.models import Notification, KashRequest, KashTransaction, VirtualCard, UserProfile
 from kash.serializers.kash_request import KashRequestSerializer
 from kash.serializers.kash_transaction import KashTransactionSerializer
+from kash.serializers.profile import ProfileSerializer
 from kash.serializers.virtual_card import VirtualCardSerializer
 
 
@@ -20,6 +21,9 @@ class NotificationObjectSerializer(serializers.RelatedField):
         elif isinstance(value, VirtualCard):
             serializer = VirtualCardSerializer(value)
             instance_type = "virtual-card"
+        elif isinstance(value, UserProfile):
+            serializer = ProfileSerializer(value)
+            instance_type = "profile-throttle"
         else:
             raise Exception('Unexpected type of notification object')
 
