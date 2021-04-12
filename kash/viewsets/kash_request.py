@@ -45,7 +45,6 @@ class KashRequestViewSet(ModelViewSet):
         )
         return Response(KashRequestResponseSerializer(response).data)
 
-
     @action(detail=True, methods=['post'])
     def rejected(self, request, pk=None):
         kash_request = get_object_or_404(KashRequest, pk=pk)
