@@ -408,6 +408,17 @@ phonenumbers = ["phonenumbers (>=7.0.2)"]
 phonenumberslite = ["phonenumberslite (>=7.0.2)"]
 
 [[package]]
+name = "django-request-logging"
+version = "0.7.2"
+description = "Django middleware that logs http request body."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+Django = "*"
+
+[[package]]
 name = "django-storages"
 version = "1.10"
 description = "Support for many storage backends in Django"
@@ -1218,7 +1229,7 @@ testing = ["pathlib2", "contextlib2", "unittest2"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7, <3.9"
-content-hash = "cc781f40b18144d5cceefac111310de88d98b9953eaa33382f3fb9c60aa0244f"
+content-hash = "d322648a324712b355e7d8960a54bc5fd5de993419528a93aeead85cb1ec076a"
 
 [metadata.files]
 amqp = [
@@ -1379,6 +1390,10 @@ django-phone-verify = [
 django-phonenumber-field = [
     {file = "django-phonenumber-field-5.0.0.tar.gz", hash = "sha256:1eb7af3a108744665f7c3939d38aa15b3728c57d13d45d656b0a2aa11e8cdc3c"},
     {file = "django_phonenumber_field-5.0.0-py3-none-any.whl", hash = "sha256:adb46905cc4ecb19d8494424e1c4352f24946bb472340a2a17257d44bf8228e6"},
+]
+django-request-logging = [
+    {file = "django-request-logging-0.7.2.tar.gz", hash = "sha256:5ac99bc885bd30b3b59d3ea8e28ec7fa5d5343748f752cc3ef0c98c1ccf206a8"},
+    {file = "django_request_logging-0.7.2-py2.py3-none-any.whl", hash = "sha256:7c1c6e5fee02a95e4c85e3ebfcc3e0db0b436c8b2bd1f41d645b8e10ee365633"},
 ]
 django-storages = [
     {file = "django-storages-1.10.tar.gz", hash = "sha256:36ed8dab33d761954498189592ce005920095fcbc02dab4184eb51393c370991"},

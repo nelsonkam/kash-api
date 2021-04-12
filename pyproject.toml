@@ -38,6 +38,7 @@ whitenoise = "^5.2.0"
 onesignal-sdk = "^2.0.0"
 celery = "^5.0.5"
 python-telegram-bot = "^13.4.1"
+django-request-logging = "^0.7.2"
 
 [tool.poetry.dev-dependencies]
 
