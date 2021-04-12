@@ -57,7 +57,9 @@ class ProfileViewset(ModelViewSet):
     @action(detail=True, methods=['get'])
     def send_recipients(self, request, pk=None):
         profile = self.get_object()
-        serializer = self.get_serializer(UserProfile.objects.exclude(pk=profile.pk).exclude(payout_methods__isnull=True), many=True)
+        queryset = UserProfile.objects.exclude(pk=profile.pk).exclude(payout_methods__isnull=True).order_by(
+            "-created_at")
+        serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
 
