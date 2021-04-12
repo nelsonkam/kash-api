@@ -1,11 +1,15 @@
+from datetime import timedelta
+
+from django.utils.timezone import now
 from rest_framework.decorators import action
+from rest_framework.exceptions import Throttled
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from kash.models import KashRequestResponse, KashTransaction, KashRequest
+from kash.models import KashRequestResponse, KashTransaction, KashRequest, Notification
 from kash.serializers.kash_request import KashRequestSerializer, KashRequestResponseSerializer
 
 
@@ -18,6 +22,13 @@ class KashRequestViewSet(ModelViewSet):
         return self.request.user.profile.kash_requested.all()
 
     def perform_create(self, serializer):
+        count = KashRequest.objects.filter(created_at__range=[now() - timedelta(hours=1), now()]).count()
+        if count > 5:
+            Notification.objects.create(
+                title="Fait doucement oh 😩",
+                description="Tu as déjà trop demander de kash dans les dernières heures, réessaies dans quelques heures. "
+            )
+            raise Throttled
         serializer.save(initiator=self.request.user.profile)
 
     @action(detail=True, methods=['post'])
