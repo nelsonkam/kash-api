@@ -22,16 +22,16 @@ class KashRequestViewSet(ModelViewSet):
         return self.request.user.profile.kash_requested.all()
 
     def perform_create(self, serializer):
-        # count = KashRequest.objects.filter(created_at__gte=now() - timedelta(hours=1), created_at__lte=now()).count()
-        # if count > 5:
-        #     notif = Notification.objects.create(
-        #         title="Fait doucement oh 😩",
-        #         description="Tu as déjà trop demander de kash dans les dernières heures, réessaies dans quelques heures. ",
-        #         content_object=self.request.user.profile,
-        #         profile=self.request.user.profile
-        #     )
-        #     notif.send()
-        #     raise Throttled
+        count = KashRequest.objects.filter(created_at__gte=now() - timedelta(hours=1), initiator=self.request.user.profile).count()
+        if count > 5:
+            notif = Notification.objects.create(
+                title="Fait doucement oh 😩",
+                description="Tu as déjà trop demander de kash dans les dernières heures, réessaies dans quelques heures. ",
+                content_object=self.request.user.profile,
+                profile=self.request.user.profile
+            )
+            notif.send()
+            raise Throttled
         serializer.save(initiator=self.request.user.profile)
 
     @action(detail=True, methods=['post'])
