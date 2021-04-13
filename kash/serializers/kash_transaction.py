@@ -6,7 +6,6 @@ from kash.serializers.profile import ProfileSerializer, LimitedProfileSerializer
 
 
 class KashTransactionSerializer(serializers.ModelSerializer):
-    recipients = LimitedProfileSerializer(many=True, read_only=True)
     initiator = LimitedProfileSerializer(read_only=True)
     recipient_tags = serializers.ListSerializer(child=serializers.CharField(), write_only=True)
     total = serializers.SerializerMethodField()
@@ -28,5 +27,5 @@ class KashTransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = KashTransaction
-        fields = ['id', 'recipients', 'recipient_tags', 'initiator', 'note', 'group_mode', 'is_incognito', 'amount',
+        fields = ['id', 'recipient_tags', 'initiator', 'note', 'group_mode', 'is_incognito', 'amount',
                   'amount_currency', 'total', 'fees']

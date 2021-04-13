@@ -13,7 +13,6 @@ class KashRequestResponseSerializer(serializers.ModelSerializer):
 
 
 class KashRequestSerializer(serializers.ModelSerializer):
-    recipients = LimitedProfileSerializer(many=True, read_only=True)
     initiator = LimitedProfileSerializer(read_only=True)
     recipient_tags = serializers.ListSerializer(child=serializers.CharField(), write_only=True)
     responses = KashRequestResponseSerializer(many=True, read_only=True)
@@ -41,5 +40,5 @@ class KashRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = KashRequest
-        fields = ['id', 'recipients', 'recipient_tags', 'initiator', 'note', 'amount',
+        fields = ['id', 'recipient_tags', 'initiator', 'note', 'amount',
                   'amount_currency', 'responses']
