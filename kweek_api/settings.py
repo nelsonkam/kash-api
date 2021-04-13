@@ -152,7 +152,15 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
-    ]
+    ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/day',
+        'user': '300/min'
+    }
 }
 
 SMS_BACKEND = (
@@ -271,4 +279,3 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(minute='*/3'),
     },
 } if APP_NAME == "api-server" else {}
-
