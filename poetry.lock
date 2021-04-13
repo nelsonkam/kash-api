@@ -652,6 +652,18 @@ yaml = ["PyYAML (>=3.10)"]
 zookeeper = ["kazoo (>=1.3.1)"]
 
 [[package]]
+name = "messagebird"
+version = "1.5.0"
+description = "MessageBird's REST API"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+python-dateutil = ">=2.6.0"
+requests = ">=2.4.1"
+
+[[package]]
 name = "mock"
 version = "3.0.5"
 description = "Rolling backport of unittest.mock for all Pythons"
@@ -1229,7 +1241,7 @@ testing = ["pathlib2", "contextlib2", "unittest2"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7, <3.9"
-content-hash = "d322648a324712b355e7d8960a54bc5fd5de993419528a93aeead85cb1ec076a"
+content-hash = "b9b771c23a9726770de67957beee1a8c3b17987cbb228229a9e70202380361bd"
 
 [metadata.files]
 amqp = [
@@ -1454,6 +1466,10 @@ kkiapay = [
 kombu = [
     {file = "kombu-5.0.2-py2.py3-none-any.whl", hash = "sha256:6dc509178ac4269b0e66ab4881f70a2035c33d3a622e20585f965986a5182006"},
     {file = "kombu-5.0.2.tar.gz", hash = "sha256:f4965fba0a4718d47d470beeb5d6446e3357a62402b16c510b6a2f251e05ac3c"},
+]
+messagebird = [
+    {file = "messagebird-1.5.0-py2.py3-none-any.whl", hash = "sha256:4f8c87ad77c9cfd92e4c167e63ec0ac31a22756e7ca980ea08b43e1c1be0cf88"},
+    {file = "messagebird-1.5.0.tar.gz", hash = "sha256:80d6ed727cbc59fa528dc3d5d0ea27bfdd9d8254aa0ba6e27a397a2d4d1b605b"},
 ]
 mock = [
     {file = "mock-3.0.5-py2.py3-none-any.whl", hash = "sha256:d157e52d4e5b938c550f39eb2fd15610db062441a9c2747d3dbfa9298211d0f8"},

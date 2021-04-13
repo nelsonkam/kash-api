@@ -1,6 +1,7 @@
 from abc import ABC
 
 import boto3
+import messagebird
 from django.conf import settings
 from phone_verify.backends.base import BaseBackend
 from phone_verify.models import SMSVerification
@@ -46,6 +47,22 @@ class AmazonSMSBackend(BaseSMSBackend):
             region_name=settings.AWS_REGION_NAME,
         )
         client.publish(PhoneNumber=number, Message=message)
+
+    def send_bulk_sms(self, numbers, message):
+        for number in numbers:
+            self.send_sms(number, message)
+
+
+class MessageBirdSMSBackend(BaseSMSBackend):
+
+    def send_sms(self, number, message):
+        client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
+        client.message_create(
+            'Kash',
+            number,
+            message,
+            {'reference': 'none'}
+        )
 
     def send_bulk_sms(self, numbers, message):
         for number in numbers:

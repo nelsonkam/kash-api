@@ -158,7 +158,7 @@ REST_FRAMEWORK = {
 SMS_BACKEND = (
     "core.backends.sms.ConsoleSMSBackend"
     if DEBUG
-    else "core.backends.sms.AmazonSMSBackend"
+    else "core.backends.sms.MessageBirdSMSBackend"
 )
 
 PHONE_VERIFICATION = {
@@ -207,6 +207,8 @@ TG_BOT_TOKEN = env('TG_BOT_TOKEN')
 AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
 AWS_REGION_NAME = "us-east-1"
+
+MESSAGEBIRD_ACCESS_KEY = env("MESSAGEBIRD_ACCESS_KEY")
 
 FEDAPAY_API_KEY = env("FEDAPAY_API_KEY")
 
