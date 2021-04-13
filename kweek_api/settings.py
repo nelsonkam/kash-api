@@ -166,7 +166,7 @@ REST_FRAMEWORK = {
 SMS_BACKEND = (
     "core.backends.sms.ConsoleSMSBackend"
     if DEBUG
-    else "core.backends.sms.AmazonSMSBackend"
+    else "core.backends.sms.MessageBirdSMSBackend"
 )
 
 PHONE_VERIFICATION = {
