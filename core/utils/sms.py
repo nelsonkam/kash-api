@@ -32,8 +32,8 @@ def send_pending_messages():
         client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
         client.message_create(
             'Kash',
-            message.phone_number,
+            str(message.phone_number),
             f"L'envoi de code de verification est retablie. Toutes nos excuses a ceux qui n'ont pas recu leurs codes. #TeamKash",
             {'reference': 'none'}
         )
-        sleep(5)
+        sleep(1)
