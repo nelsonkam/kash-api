@@ -22,7 +22,7 @@ class KashRequestSerializer(serializers.ModelSerializer):
         initiator = validated_data.get('initiator')
         if len(tags) > 5:
             notif = Notification.objects.create(
-                title="Fait doucement oh 😩",
+                title="Fais doucement oh 😩",
                 description="Essaie de demander du kash à 3 personnes max. à la fois.",
                 content_object=initiator,
                 profile=initiator

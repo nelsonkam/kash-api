@@ -25,7 +25,7 @@ class KashRequestViewSet(ModelViewSet):
         count = KashRequest.objects.filter(created_at__gte=now() - timedelta(hours=1), initiator=self.request.user.profile).count()
         if count > 3:
             notif = Notification.objects.create(
-                title="Fait doucement oh 😩",
+                title="Fais doucement oh 😩",
                 description="Tu as déjà trop demander de kash dans les dernières heures, réessaies dans quelques heures. ",
                 content_object=self.request.user.profile,
                 profile=self.request.user.profile
