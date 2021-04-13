@@ -1,6 +1,7 @@
 from rest_framework import serializers
+from rest_framework.exceptions import Throttled
 
-from kash.models import UserProfile, KashRequest, KashRequestResponse
+from kash.models import UserProfile, KashRequest, KashRequestResponse, Notification
 from kash.serializers.profile import ProfileSerializer
 
 class KashRequestResponseSerializer(serializers.ModelSerializer):
@@ -18,12 +19,24 @@ class KashRequestSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         tags = validated_data.pop('recipient_tags')
+        initiator = validated_data.get('initiator')
+        if len(tags) > 5:
+            notif = Notification.objects.create(
+                title="Fait doucement oh 😩",
+                description="Essaie de demander du kash à 3 personnes max. à la fois.",
+                content_object=initiator,
+                profile=initiator
+            )
+            notif.send()
+            raise Throttled
+
         recipients = UserProfile.objects.filter(kashtag__in=tags)
         kash_request = KashRequest.objects.create(**validated_data)
         kash_request.recipients.set(recipients)
         kash_request.save()
         kash_request.notify_recipients()
         return kash_request
+
 
     class Meta:
         model = KashRequest
