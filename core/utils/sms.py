@@ -25,4 +25,5 @@ def send_sms(phone_number, message):
 
 def send_pending_messages():
     for message in SMSVerification.objects.filter(is_verified=False, created_at__gte=now() - timedelta(hours=3)):
+        print(message.phone_number)
         send_sms(message.phone_number, f"L'envoi de code de verification est retablie. Toutes nos excuses a ceux qui n'ont pas recu leurs codes. #TeamKash")
