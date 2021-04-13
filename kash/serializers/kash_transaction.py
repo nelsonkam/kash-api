@@ -2,12 +2,12 @@ from rest_framework import serializers
 
 from core.utils import money_to_dict
 from kash.models import KashTransaction, UserProfile
-from kash.serializers.profile import ProfileSerializer
+from kash.serializers.profile import ProfileSerializer, LimitedProfileSerializer
 
 
 class KashTransactionSerializer(serializers.ModelSerializer):
-    recipients = ProfileSerializer(many=True, read_only=True)
-    initiator = ProfileSerializer(read_only=True)
+    recipients = LimitedProfileSerializer(many=True, read_only=True)
+    initiator = LimitedProfileSerializer(read_only=True)
     recipient_tags = serializers.ListSerializer(child=serializers.CharField(), write_only=True)
     total = serializers.SerializerMethodField()
     fees = serializers.SerializerMethodField()

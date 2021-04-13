@@ -2,7 +2,8 @@ from rest_framework import serializers
 from rest_framework.exceptions import Throttled
 
 from kash.models import UserProfile, KashRequest, KashRequestResponse, Notification
-from kash.serializers.profile import ProfileSerializer
+from kash.serializers.profile import ProfileSerializer, LimitedProfileSerializer
+
 
 class KashRequestResponseSerializer(serializers.ModelSerializer):
     sender = serializers.SlugRelatedField(read_only=True, slug_field='kashtag')
@@ -12,8 +13,8 @@ class KashRequestResponseSerializer(serializers.ModelSerializer):
 
 
 class KashRequestSerializer(serializers.ModelSerializer):
-    recipients = ProfileSerializer(many=True, read_only=True)
-    initiator = ProfileSerializer(read_only=True)
+    recipients = LimitedProfileSerializer(many=True, read_only=True)
+    initiator = LimitedProfileSerializer(read_only=True)
     recipient_tags = serializers.ListSerializer(child=serializers.CharField(), write_only=True)
     responses = KashRequestResponseSerializer(many=True, read_only=True)
 
