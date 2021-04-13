@@ -23,6 +23,10 @@ class InviteCodeViewset(ModelViewSet):
     @action(detail=False, methods=['POST'])
     def verify(self, request):
         code = request.data.get('code')
+
+        if InviteCode.objects.filter(invited=self.request.user.profile).exists():
+            return Response(dict(message="Already invited"))
+
         if code in ["$$$$", "100$"]:
             InviteCode.objects.create(
                 inviter=self.request.user.profile,
