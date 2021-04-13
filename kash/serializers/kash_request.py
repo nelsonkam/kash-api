@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework.exceptions import Throttled
+from rest_framework.fields import SerializerMethodField
 
 from kash.models import UserProfile, KashRequest, KashRequestResponse, Notification
 from kash.serializers.profile import ProfileSerializer
@@ -16,6 +17,15 @@ class KashRequestSerializer(serializers.ModelSerializer):
     initiator = ProfileSerializer(read_only=True)
     recipient_tags = serializers.ListSerializer(child=serializers.CharField(), write_only=True)
     responses = KashRequestResponseSerializer(many=True, read_only=True)
+    formatted = SerializerMethodField(read_only=True)
+
+    def get_formatted(self, obj):
+        amount = obj.amount.amount
+        sender_name = f"${obj.initiator.kashtag}"
+        return {
+            'title': "Besoin de kash 💰",
+            'description': f"{sender_name} a besoin de {amount} FCFA pour \"{obj.note}\""
+        }
 
     def create(self, validated_data):
         tags = validated_data.pop('recipient_tags')
@@ -41,4 +51,4 @@ class KashRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = KashRequest
         fields = ['id', 'recipients', 'recipient_tags', 'initiator', 'note', 'amount',
-                  'amount_currency', 'responses']
+                  'amount_currency', 'responses', 'formatted']

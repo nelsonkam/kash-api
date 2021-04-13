@@ -54,3 +54,10 @@ class KashRequestViewSet(ModelViewSet):
             accepted=False,
         )
         return Response(KashRequestResponseSerializer(response).data)
+
+
+    @action(detail=False, methods=['get'])
+    def received(self, request):
+        queryset = self.request.user.profile.kash_requests.all()
+        return Response(self.get_serializer(queryset, many=True).data)
+
