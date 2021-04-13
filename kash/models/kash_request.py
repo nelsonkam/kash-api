@@ -30,4 +30,4 @@ class KashRequestResponse(BaseModel):
     sender = models.ForeignKey('kash.UserProfile', on_delete=models.CASCADE, related_name='request_responses')
     request = models.ForeignKey(KashRequest, on_delete=models.CASCADE, related_name='responses')
     accepted = models.BooleanField()
-    transaction = models.ForeignKey('kash.KashTransaction', on_delete=models.CASCADE, null=True)
+    transaction = models.ForeignKey('kash.SendKash', on_delete=models.CASCADE, null=True)

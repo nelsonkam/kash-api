@@ -4,11 +4,11 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from kash.serializers.kash_transaction import KashTransactionSerializer
+from kash.serializers.send_kash import SendKashSerializer
 
 
-class KashTransactionViewSet(ModelViewSet):
-    serializer_class = KashTransactionSerializer
+class SendKashViewSet(ModelViewSet):
+    serializer_class = SendKashSerializer
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
