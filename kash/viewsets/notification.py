@@ -11,4 +11,4 @@ class NotificationViewset(ReadOnlyModelViewSet):
     serializer_class = NotificationSerializer
 
     def get_queryset(self):
-        return self.request.user.profile.notifications.none()
+        return self.request.user.profile.notifications.all().order_by("-created_at")[:50]
