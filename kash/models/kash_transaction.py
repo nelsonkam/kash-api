@@ -6,6 +6,7 @@ from djmoney.models.fields import MoneyField
 from core.models.base import BaseModel
 
 
+
 class KashTransaction(BaseModel):
     class TxnType(models.TextChoices):
         credit = "credit"
@@ -20,3 +21,8 @@ class KashTransaction(BaseModel):
     narration = models.TextField(blank=True)
     txn_type = models.CharField(max_length=20, choices=TxnType.choices)
     timestamp = models.DateTimeField(null=True)
+
+    @property
+    def status(self):
+        from kash.models import Transaction
+        return Transaction.objects.get(reference=self.txn_ref).status
