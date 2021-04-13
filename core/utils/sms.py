@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+import messagebird
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
@@ -26,4 +27,11 @@ def send_sms(phone_number, message):
 def send_pending_messages():
     for message in SMSVerification.objects.filter(is_verified=False, created_at__gte=now() - timedelta(hours=3)):
         print(message.phone_number)
-        send_sms(message.phone_number, f"L'envoi de code de verification est retablie. Toutes nos excuses a ceux qui n'ont pas recu leurs codes. #TeamKash")
+
+        client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
+        client.message_create(
+            'Kash',
+            message.phone_number,
+            f"L'envoi de code de verification est retablie. Toutes nos excuses a ceux qui n'ont pas recu leurs codes. #TeamKash",
+            {'reference': 'none'}
+        )

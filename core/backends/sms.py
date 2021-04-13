@@ -67,3 +67,4 @@ class MessageBirdSMSBackend(BaseSMSBackend):
     def send_bulk_sms(self, numbers, message):
         for number in numbers:
             self.send_sms(number, message)
+
