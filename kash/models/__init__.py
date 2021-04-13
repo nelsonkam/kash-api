@@ -2,8 +2,9 @@ from .session import CheckoutSession
 from .transaction import Transaction
 from .user_profile import UserProfile
 from .virtual_card import VirtualCard, FundingHistory
-from .kash_transaction import KashTransaction
+from .send_kash import SendKash
 from .payout_method import PayoutMethod
 from .notifications import Notification
 from .kash_request import KashRequest, KashRequestResponse
 from .invite_code import InviteCode
+from .kash_transaction import KashTransaction

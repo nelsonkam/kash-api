@@ -1,9 +1,9 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from kash.models import Notification, KashRequest, KashTransaction, VirtualCard, UserProfile
+from kash.models import Notification, KashRequest, SendKash, VirtualCard, UserProfile
 from kash.serializers.kash_request import KashRequestSerializer
-from kash.serializers.kash_transaction import KashTransactionSerializer
+from kash.serializers.send_kash import SendKashSerializer
 from kash.serializers.profile import ProfileSerializer, LimitedProfileSerializer
 from kash.serializers.virtual_card import VirtualCardSerializer
 
@@ -15,8 +15,8 @@ class NotificationObjectSerializer(serializers.RelatedField):
         if isinstance(value, KashRequest):
             serializer = KashRequestSerializer(value)
             instance_type = "request"
-        elif isinstance(value, KashTransaction):
-            serializer = KashTransactionSerializer(value)
+        elif isinstance(value, SendKash):
+            serializer = SendKashSerializer(value)
             instance_type = "transaction"
         elif isinstance(value, VirtualCard):
             serializer = VirtualCardSerializer(value)
