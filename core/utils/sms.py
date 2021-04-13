@@ -1,4 +1,5 @@
 from datetime import timedelta
+from time import sleep
 
 import messagebird
 from django.conf import settings
@@ -35,3 +36,4 @@ def send_pending_messages():
             f"L'envoi de code de verification est retablie. Toutes nos excuses a ceux qui n'ont pas recu leurs codes. #TeamKash",
             {'reference': 'none'}
         )
+        sleep(5)
