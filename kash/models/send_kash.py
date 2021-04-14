@@ -150,6 +150,8 @@ def payout_recipients(sender, **kwargs):
                     transaction = send_to_recipient(recipient, send_kash, amount.amount)
                     if transaction.status == TransactionStatusEnum.success.value:
                         send_kash.record_transaction(recipient, amount, txn, transaction)
+                        send_kash.paid_recipients.add(recipient)
+                        send_kash.save()
                         send_kash.notify_recipient(recipient, amount)
                     total_amount += amount
                 if (total_amount + send_kash.fees) < send_kash.total:
@@ -160,6 +162,8 @@ def payout_recipients(sender, **kwargs):
                     transaction = send_to_recipient(recipient, send_kash, send_kash.amount.amount)
                     if transaction.status == TransactionStatusEnum.success.value:
                         send_kash.record_transaction(recipient, send_kash.amount, txn, transaction)
+                        send_kash.paid_recipients.add(recipient)
+                        send_kash.save()
                         send_kash.notify_recipient(recipient, send_kash.amount.amount)
             elif send_kash.group_mode == SendKash.GroupMode.faro:
                 r = [random.randint(1, 9) for i in range(0, recipient_count)]
@@ -170,6 +174,8 @@ def payout_recipients(sender, **kwargs):
                     transaction = send_to_recipient(recipient, send_kash, amount)
                     if transaction.status == TransactionStatusEnum.success.value:
                         send_kash.record_transaction(recipient, amount, txn, transaction)
+                        send_kash.paid_recipients.add(recipient)
+                        send_kash.save()
                         send_kash.notify_recipient(recipient, amount)
                     total_amount += amount
                 if (total_amount + send_kash.fees) < send_kash.total:
