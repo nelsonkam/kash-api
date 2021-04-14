@@ -29,8 +29,9 @@ def fill_transactions(apps, schema_editor):
                 kash_txn.receiver_id = payout_method.profile_id
                 kash_txn.receiver_type_id = content_type.id
                 kash_txn.profile = payout_method.profile
-            kash_txn.narration = "Demande de kash 💰"
-            kash_txn.txn_type = "credit"
+                kash_txn.narration = "Demande de kash 💰"
+                kash_txn.txn_type = "credit"
+                kash_txn.save()
         elif txn.transaction_type == "payment":
             kash_txn.txn_type = "debit"
             kash_txn.profile = txn.initiator.profile
@@ -44,11 +45,12 @@ def fill_transactions(apps, schema_editor):
                 kash_txn.narration = "Achat/recharge d'une carte virtuelle 💳"
                 kash_txn.receiver_id = content_object.id
                 kash_txn.receiver_type_id = content_type.id
+                kash_txn.save()
             elif content_type == sendkash_type:
                 kash_txn.narration = content_object.note
                 kash_txn.receiver_id = content_object.id
                 kash_txn.receiver_type_id = content_type.id
-        kash_txn.save()
+                kash_txn.save()
 
 
 def remove_transactions(apps, schema_editor):
