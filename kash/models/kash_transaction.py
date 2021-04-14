@@ -113,20 +113,25 @@ def payout_recipients(sender, **kwargs):
                 for recipient in kash_txn.recipients.all():
                     transaction = send_to_recipient(recipient, kash_txn, amount.amount)
                     if transaction.status == TransactionStatusEnum.success.value:
+                        kash_txn.paid_recipients.add(recipient)
+                        kash_txn.save()
                         kash_txn.notify_recipient(recipient, amount)
             elif kash_txn.group_mode == KashTransaction.GroupMode.pacha:
                 for recipient in kash_txn.recipients.all():
                     transaction = send_to_recipient(recipient, kash_txn, kash_txn.amount.amount)
                     if transaction.status == TransactionStatusEnum.success.value:
+                        kash_txn.paid_recipients.add(recipient)
+                        kash_txn.save()
                         kash_txn.notify_recipient(recipient, kash_txn.amount.amount)
             elif kash_txn.group_mode == KashTransaction.GroupMode.faro:
                 r = [random.randint(1, 9) for i in range(0, recipient_count)]
                 weights = [i/sum(r) for i in r]
                 for index, recipient in enumerate(kash_txn.recipients.all()):
                     amount = round(kash_txn.amount * weights[index]) - Money(1, "XOF")
-                    print(amount)
                     transaction = send_to_recipient(recipient, kash_txn, amount)
                     if transaction.status == TransactionStatusEnum.success.value:
+                        kash_txn.paid_recipients.add(recipient)
+                        kash_txn.save()
                         kash_txn.notify_recipient(recipient, amount)
             else:
                 raise NotImplemented()
