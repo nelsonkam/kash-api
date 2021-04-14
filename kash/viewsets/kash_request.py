@@ -10,6 +10,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from kash.models import KashRequestResponse, SendKash, KashRequest, Notification
+from kash.pagination import KashPagination
 from kash.serializers.kash_request import KashRequestSerializer, KashRequestResponseSerializer
 
 
@@ -17,6 +18,7 @@ class KashRequestViewSet(ModelViewSet):
     serializer_class = KashRequestSerializer
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
+    pagination_class = KashPagination
 
     def get_queryset(self):
         return self.request.user.profile.kash_requested.all()
@@ -59,5 +61,6 @@ class KashRequestViewSet(ModelViewSet):
     @action(detail=False, methods=['get'])
     def received(self, request):
         queryset = self.request.user.profile.kash_requests.all()
-        return Response(self.get_serializer(queryset, many=True).data)
+        queryset = self.paginate_queryset(queryset)
+        return self.get_paginated_response(self.get_serializer(queryset, many=True).data)
 
