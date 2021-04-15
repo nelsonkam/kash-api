@@ -40,7 +40,7 @@ class VirtualCard(BaseModel):
         })
         KashTransaction.objects.create(
             amount=txn.amount,
-            sender=txn.initiator.profile,
+            sender=self.profile,
             txn_ref=txn.reference,
             timestamp=txn.created,
             narration="Achat d'une carte virtuelle 💳",
@@ -180,7 +180,7 @@ class VirtualCard(BaseModel):
         })
         KashTransaction.objects.create(
             amount=txn.amount,
-            sender=txn.initiator.profile,
+            sender=self.profile,
             txn_ref=txn.reference,
             timestamp=txn.created,
             narration="Recharge d'une carte virtuelle 💳",
