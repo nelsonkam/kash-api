@@ -43,8 +43,10 @@ class VirtualCard(BaseModel):
             sender=self.profile,
             txn_ref=txn.reference,
             timestamp=txn.created,
+            profile=self.profile,
             narration="Achat d'une carte virtuelle 💳",
-            receiver=self
+            receiver=self,
+            txn_type=KashTransaction.TxnType.debit,
         )
         return txn
 
@@ -183,8 +185,10 @@ class VirtualCard(BaseModel):
             sender=self.profile,
             txn_ref=txn.reference,
             timestamp=txn.created,
+            profile=self.profile,
             narration="Recharge d'une carte virtuelle 💳",
-            receiver=self
+            receiver=self,
+            txn_type=KashTransaction.TxnType.debit,
         )
         FundingHistory.objects.create(txn_ref=txn.reference, card=self, amount=amount, status='pending')
         return txn
