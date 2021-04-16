@@ -10,7 +10,7 @@ from core.models.base import BaseModel
 
 class Notification(BaseModel):
     object_id = models.IntegerField()
-    content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     content_object = GenericForeignKey('content_type', 'object_id')
     profile = models.ForeignKey('kash.UserProfile', on_delete=models.CASCADE, related_name='notifications')
     title = models.CharField(max_length=255)

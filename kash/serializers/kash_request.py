@@ -13,10 +13,9 @@ class KashRequestResponseSerializer(serializers.ModelSerializer):
 
 
 class KashRequestSerializer(serializers.ModelSerializer):
-    recipients = ProfileSerializer(many=True, read_only=True)
+    recipient = ProfileSerializer(read_only=True)
     initiator = ProfileSerializer(read_only=True)
-    recipient_tags = serializers.ListSerializer(child=serializers.CharField(), write_only=True)
-    responses = KashRequestResponseSerializer(many=True, read_only=True)
+    recipient_tag = serializers.CharField(write_only=True)
     formatted = SerializerMethodField(read_only=True)
 
     def get_formatted(self, obj):
@@ -50,5 +49,5 @@ class KashRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = KashRequest
-        fields = ['id', 'recipients', 'recipient_tags', 'initiator', 'note', 'amount',
-                  'amount_currency', 'responses', 'formatted']
+        fields = ['id', 'recipient', 'recipient_tag', 'initiator', 'note', 'amount',
+                  'amount_currency',  'formatted', 'created_at']

@@ -21,10 +21,11 @@ class KashRequestViewSet(ModelViewSet):
     pagination_class = KashPagination
 
     def get_queryset(self):
-        return self.request.user.profile.kash_requested.all()
+        return self.request.user.profile.kash_requested.all().order_by("-created_at")
 
     def perform_create(self, serializer):
-        count = KashRequest.objects.filter(created_at__gte=now() - timedelta(hours=1), initiator=self.request.user.profile).count()
+        count = KashRequest.objects.filter(created_at__gte=now() - timedelta(hours=1),
+                                           initiator=self.request.user.profile).count()
         if count > 3:
             notif = Notification.objects.create(
                 title="Fais doucement oh 😩",
@@ -37,8 +38,15 @@ class KashRequestViewSet(ModelViewSet):
         serializer.save(initiator=self.request.user.profile)
 
     @action(detail=True, methods=['post'])
+    def accept(self, request, pk=None):
+        kash_request = get_object_or_404(KashRequest.objects.all(), pk=pk)
+        txn = kash_request.accept(amount=request.data.get('amount'), phone=request.data.get('phone'),
+                         gateway=request.data.get('gateway'))
+        return Response({'txn_ref': txn.reference})
+
+    @action(detail=True, methods=['post'])
     def accepted(self, request, pk=None):
-        kash_request = get_object_or_404(KashRequest, pk=pk)
+        kash_request = get_object_or_404(KashRequest.objects.all(), pk=pk)
         response = KashRequestResponse.objects.create(
             sender=request.user.profile,
             request=kash_request,
@@ -49,7 +57,7 @@ class KashRequestViewSet(ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def rejected(self, request, pk=None):
-        kash_request = get_object_or_404(KashRequest, pk=pk)
+        kash_request = get_object_or_404(KashRequest.objects.all(), pk=pk)
         response = KashRequestResponse.objects.create(
             sender=request.user.profile,
             request=kash_request,
@@ -57,10 +65,8 @@ class KashRequestViewSet(ModelViewSet):
         )
         return Response(KashRequestResponseSerializer(response).data)
 
-
     @action(detail=False, methods=['get'])
     def received(self, request):
-        queryset = self.request.user.profile.kash_requests.all()
+        queryset = self.request.user.profile.kash_requests.all().order_by("-created_at")
         queryset = self.paginate_queryset(queryset)
         return self.get_paginated_response(self.get_serializer(queryset, many=True).data)
-

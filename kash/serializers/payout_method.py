@@ -1,10 +1,10 @@
 from rest_framework.serializers import BaseSerializer, ModelSerializer
 
-from kash.models import PayoutMethod
+from kash.models import MomoAccount
 
 
-class PayoutMethodSerializer(ModelSerializer):
+class MomoAccountSerializer(ModelSerializer):
 
     class Meta:
-        model = PayoutMethod
+        model = MomoAccount
         fields = ['phone', 'gateway', 'id']

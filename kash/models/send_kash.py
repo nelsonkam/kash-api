@@ -41,7 +41,7 @@ class SendKash(BaseModel):
         return self.amount + self.fees
 
     def pay(self, phone, gateway):
-        from kash.models import Transaction
+        from kash.models import Transaction, MomoAccount
 
         return Transaction.objects.request(
             obj=self,
@@ -108,9 +108,9 @@ def payout_recipients(sender, **kwargs):
     def send_to_recipient(recipient, kash_txn, amount):
         if kash_txn.paid_recipients.filter(pk=recipient.id).exists():
             return
-        payment_method = recipient.payout_methods.filter(gateway=txn.gateway).first()
+        payment_method = recipient.momo_accounts.filter(gateway=txn.gateway).first()
         if not payment_method:
-            payment_method = recipient.payout_methods.first()
+            payment_method = recipient.momo_accounts.first()
         return Transaction.objects.request(
             obj=kash_txn,
             name=recipient.name,
@@ -176,5 +176,5 @@ def payout_recipients(sender, **kwargs):
                     fee_txn.amount += (send_kash.total - (total_amount + send_kash.fees))
             else:
                 raise NotImplemented()
-        if fee_txn.amount.amount > 0:
-            fee_txn.save()
+        # if fee_txn.amount.amount > 0:
+        #     fee_txn.save()

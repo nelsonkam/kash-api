@@ -46,7 +46,7 @@ class AmazonSMSBackend(BaseSMSBackend):
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
             region_name=settings.AWS_REGION_NAME,
         )
-        client.publish(PhoneNumber=number, Message=message)
+        return client.publish(PhoneNumber=number, Message=message)
 
     def send_bulk_sms(self, numbers, message):
         for number in numbers:
@@ -57,7 +57,7 @@ class MessageBirdSMSBackend(BaseSMSBackend):
 
     def send_sms(self, number, message):
         client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
-        client.message_create(
+        return client.message_create(
             'Kash',
             number,
             message,

@@ -35,6 +35,15 @@ class UserProfile(BaseModel):
     def name(self):
         return self.user.name
 
+    @property
+    def limits(self):
+        return {
+            'sendkash': {
+                'min': 25,
+                'max': 100000
+            }
+        }
+
 
 @receiver(post_save, sender=UserProfile)
 def notify_tg(sender, instance, created, **kwargs):

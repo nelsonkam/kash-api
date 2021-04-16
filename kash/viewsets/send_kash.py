@@ -20,6 +20,6 @@ class SendKashViewSet(ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def pay(self, request, pk=None):
-        kash_txn = self.get_object()
-        txn = kash_txn.pay(phone=request.data.get("phone"), gateway=request.data.get('gateway'))
+        send_kash = self.get_object()
+        txn = send_kash.pay(phone=request.data.get("phone"), gateway=request.data.get('gateway'))
         return Response({'txn_ref': txn.reference})

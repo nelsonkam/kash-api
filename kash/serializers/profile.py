@@ -4,17 +4,24 @@ from rest_framework.serializers import ModelSerializer
 from core.serializers import UserSerializer
 from kash.models import UserProfile
 from kash.serializers.invite_code import InviteCodeSerializer
-from kash.serializers.payout_method import PayoutMethodSerializer
+from kash.serializers.payout_method import MomoAccountSerializer
 
 
 class ProfileSerializer(ModelSerializer):
     user = UserSerializer(read_only=True)
     name = serializers.CharField()
     payout_methods = serializers.SerializerMethodField()
+    momo_accounts = serializers.SerializerMethodField()
     invite = InviteCodeSerializer(read_only=True)
 
     def get_payout_methods(self, obj):
-        serializer = PayoutMethodSerializer(obj.payout_methods.all(), many=True)
+        serializer = MomoAccountSerializer(obj.momo_accounts.all(), many=True)
+        if len(serializer.data) == 0:
+            return None
+        return serializer.data
+
+    def get_momo_accounts(self, obj):
+        serializer = MomoAccountSerializer(obj.momo_accounts.all(), many=True)
         if len(serializer.data) == 0:
             return None
         return serializer.data
@@ -29,4 +36,4 @@ class ProfileSerializer(ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ['kashtag', 'avatar_url', 'device_ids', 'user', 'name', 'payout_methods', 'invite']
+        fields = ['kashtag', 'avatar_url', 'device_ids', 'user', 'name', 'payout_methods', 'momo_accounts', 'invite']

@@ -160,7 +160,8 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '100/day',
         'user': '300/min'
-    }
+    },
+    "PAGE_SIZE": 20
 }
 
 SMS_BACKEND = (

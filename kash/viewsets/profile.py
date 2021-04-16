@@ -57,7 +57,7 @@ class ProfileViewset(ModelViewSet):
     @action(detail=True, methods=['get'])
     def send_recipients(self, request, pk=None):
         profile = self.get_object()
-        queryset = UserProfile.objects.exclude(pk=profile.pk).exclude(payout_methods__isnull=True).order_by(
+        queryset = UserProfile.objects.exclude(pk=profile.pk).exclude(momo_accounts__isnull=True).order_by(
             "-created_at")
         serializer = self.get_serializer(queryset, many=True)
 
@@ -67,7 +67,7 @@ class ProfileViewset(ModelViewSet):
     def request_recipients(self, request, pk=None):
         profile = self.get_object()
         serializer = self.get_serializer(
-            UserProfile.objects.exclude(pk=profile.pk).exclude(payout_methods__isnull=True), many=True)
+            UserProfile.objects.exclude(pk=profile.pk).exclude(momo_accounts__isnull=True), many=True)
 
         return Response(serializer.data)
 

@@ -8,7 +8,7 @@ from kash.viewsets.kash_request import KashRequestViewSet
 from kash.viewsets.kash_transaction import KashTransactionViewSet
 from kash.viewsets.send_kash import SendKashViewSet
 from kash.viewsets.notification import NotificationViewset
-from kash.viewsets.payout_method import PayoutMethodViewset
+from kash.viewsets.payout_method import MomoAccountViewset
 from kash.viewsets.profile import ProfileViewset
 from kash.viewsets.session import CheckoutSessionViewset
 from kash.viewsets.transaction import TransactionViewSet
@@ -23,7 +23,8 @@ router.register("virtual-cards", VirtualCardViewSet, "virtual-cards")
 router.register("transactions", TransactionViewSet, "transaction")
 router.register("txn_history", KashTransactionViewSet, "txn-history")
 router.register("send", SendKashViewSet, "send-kash")
-router.register("payout-methods", PayoutMethodViewset, "payout-methods")
+router.register("payout-methods", MomoAccountViewset, "payout-methods")
+router.register("momo-accounts", MomoAccountViewset, "momo-accounts")
 router.register("requests", KashRequestViewSet, "request-kash")
 router.register("notifications", NotificationViewset, "notifications")
 router.register("invites", InviteCodeViewset, "invites")

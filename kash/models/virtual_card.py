@@ -29,8 +29,8 @@ class VirtualCard(BaseModel):
         return Money(1000, 'XOF')
 
     def purchase(self, initial_amount, phone, gateway):
-        from kash.models import Transaction
-        return Transaction.objects.request(**{
+        from kash.models import Transaction, KashTransaction
+        txn = Transaction.objects.request(**{
             'obj': self,
             'name': self.profile.name,
             'amount': int(initial_amount) + self.issuance_cost.amount,
@@ -38,6 +38,17 @@ class VirtualCard(BaseModel):
             'gateway': gateway,
             'initiator': self.profile.user
         })
+        KashTransaction.objects.create(
+            amount=txn.amount,
+            sender=self.profile,
+            txn_ref=txn.reference,
+            timestamp=txn.created,
+            profile=self.profile,
+            narration="Achat d'une carte virtuelle 💳",
+            receiver=self,
+            txn_type=KashTransaction.TxnType.debit,
+        )
+        return txn
 
     def create_external(self, amount, **kwargs):
         if settings.DEBUG:
@@ -159,7 +170,7 @@ class VirtualCard(BaseModel):
         return amount_to_charge + (amount_to_charge * 0.03)
 
     def fund(self, amount, phone, gateway):
-        from kash.models import Transaction
+        from kash.models import Transaction, KashTransaction
         amount = convert_money(amount, "USD")
         txn = Transaction.objects.request(**{
             'obj': self,
@@ -169,6 +180,16 @@ class VirtualCard(BaseModel):
             'gateway': gateway,
             'initiator': self.profile.user
         })
+        KashTransaction.objects.create(
+            amount=txn.amount,
+            sender=self.profile,
+            txn_ref=txn.reference,
+            timestamp=txn.created,
+            profile=self.profile,
+            narration="Recharge d'une carte virtuelle 💳",
+            receiver=self,
+            txn_type=KashTransaction.TxnType.debit,
+        )
         FundingHistory.objects.create(txn_ref=txn.reference, card=self, amount=amount, status='pending')
         return txn
 
@@ -212,7 +233,7 @@ class VirtualCard(BaseModel):
                 'amount': int(amount.amount)
             })
         withdraw_amount = convert_money(amount, "XOF") - Money(200, "XOF")  # withdrawal fee
-        payout_method = self.profile.payout_methods.first()
+        payout_method = self.profile.momo_accounts.first()
         txn = Transaction.objects.request(
             obj=self,
             name=self.profile.name,
