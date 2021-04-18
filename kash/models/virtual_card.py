@@ -47,12 +47,17 @@ class VirtualCard(BaseModel):
 
         initial_ngn = convert_money(amount, 'NGN')
         rates = rave_request("GET", f"/rates?from=NGN&to=USD&amount={float(initial_ngn.amount)}").json()
+        usd_balance = rave_request("GET", "/balances/USD").json().get('data').get('available_balance')
         initial_usd = Money(rates.get('data').get('to').get('amount'), "USD")
+        debit_currency = 'NGN'
+        if initial_usd.amount <= usd_balance - 5:
+            debit_currency = 'USD'
+
         resp = rave_request('POST', '/virtual-cards', {
             'currency': 'USD',
             'amount': float(initial_usd.amount),
             'billing_name': self.profile.name or "John Doe",
-            'debit_currency': 'NGN',
+            'debit_currency': debit_currency,
             'callback_url': "https://prod.kweek.africa/kash/virtual-cards/txn_callback/"
         }).json()
         if resp.get('data'):
@@ -141,16 +146,6 @@ class VirtualCard(BaseModel):
             'created_at': item.get('created_at')
         } for item in resp.json().get('data')]
         return data
-        # data = {
-        #     "FromDate": (self.created_at - timedelta(days=90)).date().isoformat(),
-        #     "ToDate": date.today().isoformat(),
-        #     "PageIndex": 0,
-        #     "PageSize": 20,
-        #     "CardId": self.external_id,
-        #     "secret_key": settings.RAVE_SECRET_KEY
-        # }
-        # resp = rave2_request("POST", '/services/virtualcards/transactions', data)
-        # return resp.json().get("Statements") or []
 
     def get_xof_from_usd(self, amount):
         rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount={float(amount.amount)}').json()
@@ -178,9 +173,14 @@ class VirtualCard(BaseModel):
         if settings.DEBUG:
             return
 
+        usd_balance = rave_request("GET", "/balances/USD").json().get('data').get('available_balance')
+        debit_currency = 'NGN'
+        if amount.amount <= usd_balance - 5:
+            debit_currency = 'USD'
+
         data = {
             'amount': float(amount.amount),
-            'debit_currency': "NGN"
+            'debit_currency': debit_currency
         }
 
         return rave_request("POST", f'/virtual-cards/{self.external_id}/fund', data)
