@@ -46,7 +46,7 @@ class KashRequest(BaseModel):
 
     def accept(self, phone, gateway):
         from kash.models import Transaction
-        return Transaction.objects.create(
+        return Transaction.objects.request(
             obj=self,
             name=self.recipient.name,
             amount=self.total,
@@ -72,12 +72,14 @@ def payout_recipient(sender, **kwargs):
 
     if txn.content_type == kash_request_type and txn.status == TransactionStatusEnum.success.value:
         kash_request = txn.content_object
+        if kash_request.accepted_at or kash_request.rejected_at:
+            return
         request_initiator = kash_request.initiator
         KashTransaction.objects.create(
             amount=txn.amount,
-            sender=txn.initiator,
+            sender=txn.initiator.profile,
             receiver=request_initiator,
-            profile=txn.initiator,
+            profile=txn.initiator.profile,
             txn_ref=txn.reference,
             narration="Demande de kash 💰",
             txn_type=KashTransaction.TxnType.debit,
@@ -92,7 +94,7 @@ def payout_recipient(sender, **kwargs):
             phone=payment_method.phone,
             gateway=payment_method.gateway,
             amount=kash_request.amount,
-            initiator=request_initiator,
+            initiator=txn.initiator,
             txn_type=TransactionType.payout
         )
         if payout_txn.status == TransactionStatusEnum.success.value:
@@ -101,10 +103,10 @@ def payout_recipient(sender, **kwargs):
 
             KashTransaction.objects.create(
                 amount=kash_request.amount,
-                sender=txn.initiator,
+                sender=payout_txn.initiator.profile,
                 receiver=request_initiator,
                 profile=request_initiator,
-                txn_ref=txn.reference,
+                txn_ref=payout_txn.reference,
                 narration="Demande de kash 💰",
                 txn_type=KashTransaction.TxnType.credit,
                 timestamp=now()

@@ -13,7 +13,7 @@ class SendKashViewSet(ModelViewSet):
     authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
-        return self.request.user.profile.kash_transactions.all()
+        return self.request.user.profile.kash_sent.all()
 
     def perform_create(self, serializer):
         serializer.save(initiator=self.request.user.profile)

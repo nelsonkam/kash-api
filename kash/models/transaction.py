@@ -186,12 +186,8 @@ class Transaction(models.Model):
             self.service_reference = response_data['serviceref']
 
         self.last_status_checked = now()
+        self.status = status
         self.save()
-
-        if Transaction.objects.get(pk=self.pk).status != status:
-            self.status = status
-            self.save()
-            transaction_status_changed.send(sender=self.__class__, transaction=self)
 
     def _request_mtn_mobile_money(self):
         data = self._get_request_data()
@@ -209,8 +205,6 @@ class Transaction(models.Model):
             self.service_message = response_data['responsemsg']
             self.service_reference = response_data['serviceref']
             self.save()
-        # to automatically handle case when consumer amount is not enough
-        self.check_status()
 
     def refund(self):
         # moov doesn't have refund api.

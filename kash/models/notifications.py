@@ -18,6 +18,10 @@ class Notification(BaseModel):
     sent_at = models.DateTimeField(null=True)
 
     def send(self):
+        if settings.DEBUG:
+            self.sent_at = now()
+            self.save()
+
         client = Client(app_id=settings.ONESIGNAL_APP_ID, rest_api_key=settings.ONESIGNAL_REST_API_KEY)
 
         notification_body = {

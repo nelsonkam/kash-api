@@ -40,7 +40,7 @@ class KashRequestViewSet(ModelViewSet):
     @action(detail=True, methods=['post'])
     def accept(self, request, pk=None):
         kash_request = get_object_or_404(KashRequest.objects.all(), pk=pk)
-        txn = kash_request.accept(amount=request.data.get('amount'), phone=request.data.get('phone'),
+        txn = kash_request.accept(phone=request.data.get('phone'),
                          gateway=request.data.get('gateway'))
         return Response({'txn_ref': txn.reference})
 

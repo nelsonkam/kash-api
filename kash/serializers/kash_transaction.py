@@ -12,19 +12,28 @@ class KashTransactionSerializer(ModelSerializer):
     def get_formatted(self, obj):
         title = None
         if isinstance(obj.receiver, UserProfile):
-            title = f"Envoi à ${obj.receiver.kashtag}"
+            if obj.sender == obj.profile:
+                title = f"${obj.receiver.kashtag}"
+            else:
+                title = f"${obj.sender.kashtag}"
         elif isinstance(obj.receiver, VirtualCard):
             title = obj.receiver.nickname
         elif isinstance(obj.receiver, SendKash):
-            if obj.receiver.recipients.count() == 1:
-                title = f"Envoi à ${obj.receiver.recipients.first().kashtag}"
+            if obj.sender == obj.profile:
+                if obj.receiver.recipients.count() == 1:
+                    title = f"${obj.receiver.recipients.first().kashtag}"
+                else:
+                    title = f"Envoi à {obj.receiver.recipients.count()} personnes"
             else:
-                title = f"Envoi à {obj.receiver.recipients.count()} personnes"
+                if obj.receiver.is_incognito:
+                    title = "Anonyme"
+                else:
+                    title = f"${obj.sender.kashtag}"
         else:
             raise NotImplementedError
         return {
             'title': title,
-            'description': obj.narration
+            'description': f"Pour: {obj.narration}"
         }
 
     class Meta:

@@ -13,5 +13,5 @@ class KashTransactionViewSet(ReadOnlyModelViewSet):
     pagination_class = KashPagination
 
     def get_queryset(self):
-        return self.request.user.profile.kashtransaction_set.all().order_by("-timestamp")
+        return self.request.user.profile.kash_transactions.all().order_by("-timestamp")
 

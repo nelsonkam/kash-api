@@ -20,7 +20,7 @@ class SendKash(BaseModel):
         faro = 'faro'
 
     recipients = models.ManyToManyField('kash.UserProfile', related_name='kash_received')
-    initiator = models.ForeignKey('kash.UserProfile', on_delete=models.CASCADE, related_name='kash_transactions')
+    initiator = models.ForeignKey('kash.UserProfile', on_delete=models.CASCADE, related_name='kash_sent')
     note = models.TextField()
     group_mode = models.CharField(max_length=10, blank=True, choices=GroupMode.choices)
     is_incognito = models.BooleanField(default=False)
@@ -136,7 +136,7 @@ def payout_recipients(sender, **kwargs):
         if send_kash.recipients.count() == 1:
             recipient = send_kash.recipients.first()
             transaction = send_to_recipient(recipient, send_kash, send_kash.amount.amount)
-            if transaction.status == TransactionStatusEnum.success.value:
+            if transaction and transaction.status == TransactionStatusEnum.success.value:
                 send_kash.record_transaction(recipient, send_kash.amount, txn, transaction)
                 send_kash.paid_recipients.add(recipient)
                 send_kash.save()

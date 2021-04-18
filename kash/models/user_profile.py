@@ -1,4 +1,5 @@
 import re
+from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -6,9 +7,11 @@ from django.contrib.postgres.fields import ArrayField
 from django.core import validators
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models import Sum, Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.deconstruct import deconstructible
+from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
 from core.models.base import BaseModel
@@ -34,6 +37,15 @@ class UserProfile(BaseModel):
     @property
     def name(self):
         return self.user.name
+
+    @property
+    def txn_summary(self):
+        from kash.models import KashTransaction
+        received = Sum('amount', filter=Q(txn_type=KashTransaction.TxnType.credit, timestamp__gte=now() - timedelta(days=30)))
+        sent = Sum('amount', filter=Q(txn_type=KashTransaction.TxnType.debit, timestamp__gte=now() - timedelta(days=30)))
+        return {
+            '30-days': self.kash_transactions.aggregate(received=received, sent=sent)
+        }
 
     @property
     def limits(self):

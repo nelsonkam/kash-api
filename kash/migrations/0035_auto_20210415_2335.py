@@ -17,6 +17,7 @@ def forward(apps, schema_editor):
                     request.accepted_at = response.created_at
                 else:
                     request.rejected_at = response.created_at
+            request.created_at = response.created_at
             request.save()
         else:
             for recipient in request.recipients.all():
@@ -36,8 +37,10 @@ def forward(apps, schema_editor):
                         new_request.accepted_at = response.created_at
                     else:
                         new_request.rejected_at = response.created_at
+                new_request.created_at = response.created_at
                 new_request.save()
             request.delete()
+
 
 class Migration(migrations.Migration):
 
