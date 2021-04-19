@@ -16,6 +16,7 @@ from django.utils.translation import gettext_lazy as _
 
 from core.models.base import BaseModel
 from core.utils.notify import tg_bot
+from kash.utils import TransactionStatusEnum
 
 
 @deconstructible
@@ -41,8 +42,12 @@ class UserProfile(BaseModel):
     @property
     def txn_summary(self):
         from kash.models import KashTransaction
-        received = Sum('amount', filter=Q(txn_type=KashTransaction.TxnType.credit, timestamp__gte=now() - timedelta(days=30)))
-        sent = Sum('amount', filter=Q(txn_type=KashTransaction.TxnType.debit, timestamp__gte=now() - timedelta(days=30)))
+        received = Sum('amount', filter=Q(txn_type=KashTransaction.TxnType.credit,
+                                          txn__status=TransactionStatusEnum.success.value,
+                                          timestamp__gte=now() - timedelta(days=30)))
+        sent = Sum('amount', filter=Q(txn_type=KashTransaction.TxnType.debit,
+                                      txn__status=TransactionStatusEnum.success.value,
+                                      timestamp__gte=now() - timedelta(days=30)))
         return {
             '30-days': self.kash_transactions.aggregate(received=received, sent=sent)
         }
@@ -53,6 +58,14 @@ class UserProfile(BaseModel):
             'sendkash': {
                 'min': 25,
                 'max': 100000
+            },
+            'purchase-card': {
+                'min': 5,
+                'max': 1000,
+            },
+            'fund-card': {
+                'min': 5,
+                'max': 1000
             }
         }
 

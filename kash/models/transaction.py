@@ -216,7 +216,7 @@ class Transaction(models.Model):
                 gateway=self.gateway,
                 initiator=self.initiator,
                 amount=self.amount,
-                reference=f'refund-{self.reference}',
+                reference=f'R-{self.reference}',
                 txn_type=TransactionType.payout
             )
             if txn.status == TransactionStatusEnum.success.value:

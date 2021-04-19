@@ -18,6 +18,7 @@ class KashTransaction(BaseModel):
     receiver = GenericForeignKey('receiver_type', 'receiver_id')
     profile = models.ForeignKey('kash.UserProfile', on_delete=models.CASCADE, related_name='kash_transactions')
     txn_ref = models.CharField(max_length=20, unique=True)
+    txn = models.ForeignKey('kash.Transaction', on_delete=models.CASCADE)
     narration = models.TextField(blank=True)
     txn_type = models.CharField(max_length=20, choices=TxnType.choices)
     timestamp = models.DateTimeField(null=True)

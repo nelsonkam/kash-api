@@ -81,6 +81,7 @@ def payout_recipient(sender, **kwargs):
             receiver=request_initiator,
             profile=txn.initiator.profile,
             txn_ref=txn.reference,
+            txn=txn,
             narration="Demande de kash 💰",
             txn_type=KashTransaction.TxnType.debit,
             timestamp=now()
@@ -107,6 +108,7 @@ def payout_recipient(sender, **kwargs):
                 receiver=request_initiator,
                 profile=request_initiator,
                 txn_ref=payout_txn.reference,
+                txn=txn,
                 narration="Demande de kash 💰",
                 txn_type=KashTransaction.TxnType.credit,
                 timestamp=now()

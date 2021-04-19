@@ -271,10 +271,6 @@ CELERY_BEAT_SCHEDULE = {
         "task": "kash.tasks.check_txn_status",
         "schedule": 15.0
     },
-    "confirm_card_purchase": {
-        "task": "kash.tasks.confirm_card_purchase",
-        "schedule": crontab(minute='*/5'),
-    },
     "send_pending_notifications": {
         "task": "kash.tasks.send_pending_notifications",
         "schedule": crontab(minute='*/3'),

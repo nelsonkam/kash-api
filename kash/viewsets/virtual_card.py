@@ -18,7 +18,7 @@ class VirtualCardViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return self.request.user.profile.virtualcard_set.all()
+        return self.request.user.profile.virtualcard_set.all().order_by("-created_at")
 
     def perform_create(self, serializer):
         serializer.save(profile=self.request.user.profile)
@@ -26,11 +26,19 @@ class VirtualCardViewSet(ModelViewSet):
     @action(detail=True, methods=['post'])
     def purchase(self, request, pk=None):
         card = self.get_object()
+        if request.data.get('amount'):
+            amount = request.data.get('amount')
+        elif request.data.get('initial_amount'):
+            amount = card.get_usd_from_xof(request.data.get('initial_amount'))
+        else:
+            raise NotImplemented
+
         txn = card.purchase(
-            initial_amount=request.data.get('initial_amount'),
+            amount=Money(amount, "USD"),
             phone=request.data.get('phone'),
             gateway=request.data.get('gateway')
         )
+
         return Response({'txn_ref': txn.reference})
 
     @action(detail=True, methods=['post'])
@@ -45,22 +53,11 @@ class VirtualCardViewSet(ModelViewSet):
         return Response({'txn_ref': txn.reference})
 
     @action(detail=True, methods=['post'])
-    def funding_details(self, request, pk=None):
+    def convert(self, request, pk=None):
         card = self.get_object()
         amount = Money(request.data.get('amount'), "USD")
         amount = card.get_xof_from_usd(amount)
-        return Response({'amount': amount.amount, 'fees': 0})
-
-    @action(detail=True, methods=['post'], url_path='purchase/confirm')
-    def purchase_confirm(self, request, pk=None):
-        card = self.get_object()
-        reference = request.data.get('txn_ref')
-        txn = Transaction.objects.get(reference=reference)
-        if txn.content_object == card and txn.status == TransactionStatusEnum.success.value:
-            card.create_external(amount=txn.amount - card.issuance_cost)
-            return Response(status=201)
-
-        return Response(status=400)
+        return Response({'amount': round(amount.amount), 'fees': 0})
 
     @action(detail=True, methods=['get'])
     def transactions(self, request, pk=None):
@@ -96,5 +93,20 @@ class VirtualCardViewSet(ModelViewSet):
     def txn_callback(self, request):
         print(request.data)
         return Response(status=200)
+
+    # Deprecated: Only available for legacy reasons
+    @action(detail=True, methods=['post'], url_path='purchase/confirm')
+    def purchase_confirm(self, request, pk=None):
+        card = self.get_object()
+        reference = request.data.get('txn_ref')
+        txn = Transaction.objects.get(reference=reference)
+        if txn.content_object == card and txn.status == TransactionStatusEnum.success.value:
+            return Response(status=201)
+        return Response(status=400)
+
+    # Deprecated: Only available for legacy reasons, use /convert/ instead
+    @action(detail=True, methods=['post'])
+    def funding_details(self, request, pk=None):
+        return self.convert(request, pk=pk)
 
 

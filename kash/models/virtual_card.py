@@ -28,12 +28,12 @@ class VirtualCard(BaseModel):
     def issuance_cost(self):
         return Money(1000, 'XOF')
 
-    def purchase(self, initial_amount, phone, gateway):
+    def purchase(self, amount, phone, gateway):
         from kash.models import Transaction, KashTransaction
         txn = Transaction.objects.request(**{
             'obj': self,
             'name': self.profile.name,
-            'amount': int(initial_amount) + self.issuance_cost.amount,
+            'amount': self.get_xof_from_usd(amount) + self.issuance_cost,
             'phone': phone,
             'gateway': gateway,
             'initiator': self.profile.user
@@ -41,6 +41,7 @@ class VirtualCard(BaseModel):
         KashTransaction.objects.create(
             amount=txn.amount,
             sender=self.profile,
+            txn=txn,
             txn_ref=txn.reference,
             timestamp=txn.created,
             profile=self.profile,
@@ -48,20 +49,21 @@ class VirtualCard(BaseModel):
             receiver=self,
             txn_type=KashTransaction.TxnType.debit,
         )
+        FundingHistory.objects.create(txn_ref=txn.reference, card=self, amount=amount, status='pending')
         return txn
 
-    def create_external(self, amount, **kwargs):
+    def create_external(self, usd_amount, **kwargs):
+        if self.external_id:
+            return
+
         if settings.DEBUG:
             self.external_id = secrets.token_urlsafe(20)
             self.save()
             return
 
-        initial_ngn = convert_money(amount, 'NGN')
-        rates = rave_request("GET", f"/rates?from=NGN&to=USD&amount={float(initial_ngn.amount)}").json()
-        initial_usd = Money(rates.get('data').get('to').get('amount'), "USD")
         resp = rave_request('POST', '/virtual-cards', {
             'currency': 'USD',
-            'amount': float(initial_usd.amount),
+            'amount': float(usd_amount.amount),
             'billing_name': self.profile.name or "John Doe",
             'debit_currency': 'NGN',
             'callback_url': "https://prod.kweek.africa/kash/virtual-cards/txn_callback/"
@@ -152,22 +154,18 @@ class VirtualCard(BaseModel):
             'created_at': item.get('created_at')
         } for item in resp.json().get('data')]
         return data
-        # data = {
-        #     "FromDate": (self.created_at - timedelta(days=90)).date().isoformat(),
-        #     "ToDate": date.today().isoformat(),
-        #     "PageIndex": 0,
-        #     "PageSize": 20,
-        #     "CardId": self.external_id,
-        #     "secret_key": settings.RAVE_SECRET_KEY
-        # }
-        # resp = rave2_request("POST", '/services/virtualcards/transactions', data)
-        # return resp.json().get("Statements") or []
 
     def get_xof_from_usd(self, amount):
         rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount={float(amount.amount)}').json()
         amount_to_charge = Money(rates.get('data').get('to').get('amount'), "NGN")
         amount_to_charge = convert_money(amount_to_charge, "XOF")
         return amount_to_charge + (amount_to_charge * 0.03)
+
+    def get_usd_from_xof(self, amount):
+        initial_ngn = convert_money(amount, 'NGN')
+        rates = rave_request("GET", f"/rates?from=NGN&to=USD&amount={float(initial_ngn.amount)}").json()
+        initial_usd = Money(rates.get('data').get('to').get('amount'), "USD")
+        return initial_usd
 
     def fund(self, amount, phone, gateway):
         from kash.models import Transaction, KashTransaction
@@ -184,6 +182,7 @@ class VirtualCard(BaseModel):
             amount=txn.amount,
             sender=self.profile,
             txn_ref=txn.reference,
+            txn=txn,
             timestamp=txn.created,
             profile=self.profile,
             narration="Recharge d'une carte virtuelle 💳",
@@ -196,6 +195,7 @@ class VirtualCard(BaseModel):
     def fund_external(self, amount):
         if not self.external_id:
             return None
+
         if settings.DEBUG:
             return
 
@@ -262,6 +262,7 @@ class FundingHistory(BaseModel):
         success = 'success'
         failed = 'failed'
         pending = 'pending'
+
     txn_ref = models.CharField(max_length=255, unique=True)
     card = models.ForeignKey(VirtualCard, on_delete=models.CASCADE)
     amount = MoneyField(max_digits=17, decimal_places=2, default_currency="XOF")
@@ -276,18 +277,40 @@ class WithdrawalHistory(BaseModel):
 
 @receiver(transaction_status_changed)
 def fund_card(sender, **kwargs):
+    from kash.models import Notification
     txn = kwargs.pop("transaction")
     vcard_type = ContentType.objects.get_for_model(VirtualCard)
+
+    if txn.content_type == vcard_type and txn.status == TransactionStatusEnum.failed.value:
+        item = FundingHistory.objects.filter(txn_ref=txn.reference, card=txn.content_object).first()
+        if item:
+            item.status = FundingHistory.FundingStatus.failed
+            item.save()
 
     if txn.content_type == vcard_type and txn.status == TransactionStatusEnum.success.value:
         card = txn.content_object
         item = FundingHistory.objects.filter(txn_ref=txn.reference, card=card).first()
-        if card.external_id and item and item.status == FundingHistory.FundingStatus.pending:
+        if item and item.status == FundingHistory.FundingStatus.pending:
             try:
-                card.fund_external(item.amount)
+                if card.external_id:
+                    card.fund_external(item.amount)
+                else:
+                    card.create_external(item.amount)
                 item.status = FundingHistory.FundingStatus.success
                 item.save()
             except:
                 item.status = FundingHistory.FundingStatus.failed
                 item.save()
                 txn.refund()
+                description = "Nous n'avons pas pu créer ta carte. " \
+                              "Réessaies avec au moins 5000 FCFA ou un peu plus tard." \
+                    if not card.external_id \
+                    else "Nous n'avons pas pu recharger ta carte. Réessaies un peu plus tard."
+                notif = Notification.objects.create(
+                    content_object=card,
+                    profile=card.profile,
+                    title="Création de ta carte ⚠️" if not card.external_id else "Recharge de ta carte ⚠️",
+                    description=description
+                )
+                notif.send()
+

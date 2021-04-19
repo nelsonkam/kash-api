@@ -82,6 +82,7 @@ class SendKash(BaseModel):
             receiver=recipient,
             profile=self.initiator,
             txn_ref=payment_txn.reference,
+            txn=payment_txn,
             narration=self.note,
             txn_type=KashTransaction.TxnType.debit,
             timestamp=now()
@@ -92,6 +93,7 @@ class SendKash(BaseModel):
             receiver=recipient,
             profile=recipient,
             txn_ref=payout_txn.reference,
+            txn=payout_txn,
             narration=self.note,
             txn_type=KashTransaction.TxnType.credit,
             timestamp=now()
