@@ -225,6 +225,8 @@ class Transaction(models.Model):
                 reference=f'R-{self.reference}',
                 txn_type=TransactionType.payout
             )
+            if txn.status == TransactionStatusEnum.failed.value:
+                txn.delete()
             if txn.status == TransactionStatusEnum.success.value:
                 self.status = TransactionStatusEnum.refunded.value
                 self.save()
