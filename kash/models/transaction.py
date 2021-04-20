@@ -52,7 +52,7 @@ class Transaction(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
     content_object = GenericForeignKey('content_type', 'object_id')
     gateway = models.CharField(max_length=20, choices=GatewayEnum.items())
-    reference = models.CharField(max_length=20, default=generate_reference_10, unique=True)
+    reference = models.CharField(max_length=50, default=generate_reference_10, unique=True)
     service_reference = models.CharField(max_length=40, null=True)
     status = models.CharField(max_length=40, default=TransactionStatusEnum.pending.value,
                               choices=TransactionStatusEnum.items())
