@@ -153,7 +153,7 @@ class Transaction(models.Model):
 
     def _get_request_data(self):
         data = {
-            "amount": str(self.amount.amount),
+            "amount": str(int(round(self.amount.amount))),
             "msisdn": self.get_phone(),
             'transref': self.reference
         }
@@ -211,6 +211,7 @@ class Transaction(models.Model):
             self.save()
         # to automatically handle case when consumer amount is not enough
         self.check_status()
+
 
     def refund(self):
         # moov doesn't have refund api.
