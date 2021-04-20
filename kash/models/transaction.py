@@ -228,14 +228,11 @@ class Transaction(models.Model):
                 txn_type=TransactionType.payout
             )
 
-            print(txn.status)
-            if txn.status == TransactionStatusEnum.failed.value:
-                txn.delete()
-
             if txn.status == TransactionStatusEnum.success.value:
                 self.status = TransactionStatusEnum.refunded.value
                 self.save()
                 transaction_status_changed.send(sender=self.__class__, transaction=self)
+            txn.delete()
             return
 
         data = self._get_request_data()
