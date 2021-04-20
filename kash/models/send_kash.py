@@ -77,16 +77,6 @@ class SendKash(BaseModel):
     def record_transaction(self, recipient, amount, payment_txn, payout_txn):
         from kash.models import KashTransaction
         KashTransaction.objects.create(
-            amount=amount,
-            sender=self.initiator,
-            receiver=recipient,
-            profile=self.initiator,
-            txn_ref=payment_txn.reference,
-            narration=self.note,
-            txn_type=KashTransaction.TxnType.debit,
-            timestamp=now()
-        )
-        KashTransaction.objects.create(
             amount=payout_txn.amount,
             sender=self.initiator,
             receiver=recipient,
@@ -123,13 +113,13 @@ def payout_recipients(sender, **kwargs):
 
     if txn.content_type == kash_txn_type and txn.status == TransactionStatusEnum.success.value:
         send_kash = txn.content_object
-        fee_txn = KashTransaction(
-            amount=send_kash.fees,
+        KashTransaction.objects.create(
+            amount=txn.amount,
             sender=send_kash.initiator,
             receiver=send_kash,
             profile=send_kash.initiator,
             txn_ref=txn.reference,
-            narration="Frais de transaction",
+            narration=send_kash.note,
             txn_type=KashTransaction.TxnType.debit,
             timestamp=now()
         )
@@ -154,8 +144,6 @@ def payout_recipients(sender, **kwargs):
                         send_kash.save()
                         send_kash.notify_recipient(recipient, amount)
                     total_amount += amount
-                if (total_amount + send_kash.fees) < send_kash.total:
-                    fee_txn.amount += (send_kash.total - (total_amount + send_kash.fees))
 
             elif send_kash.group_mode == SendKash.GroupMode.pacha:
                 for recipient in send_kash.recipients.all():
@@ -178,9 +166,6 @@ def payout_recipients(sender, **kwargs):
                         send_kash.save()
                         send_kash.notify_recipient(recipient, amount)
                     total_amount += amount
-                if (total_amount + send_kash.fees) < send_kash.total:
-                    fee_txn.amount += (send_kash.total - (total_amount + send_kash.fees))
             else:
                 raise NotImplemented()
-        if fee_txn.amount.amount > 0:
-            fee_txn.save()
+
