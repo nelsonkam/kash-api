@@ -37,3 +37,9 @@ class ProfileSerializer(ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['kashtag', 'txn_summary', 'limits', 'avatar_url', 'device_ids', 'user', 'name', 'payout_methods', 'momo_accounts', 'invite']
+
+
+class LimitedProfileSerializer(ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['kashtag', 'avatar_url', 'name']

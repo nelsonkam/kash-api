@@ -52,7 +52,7 @@ class Transaction(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
     content_object = GenericForeignKey('content_type', 'object_id')
     gateway = models.CharField(max_length=20, choices=GatewayEnum.items())
-    reference = models.CharField(max_length=20, default=generate_reference_10, unique=True)
+    reference = models.CharField(max_length=50, default=generate_reference_10, unique=True)
     service_reference = models.CharField(max_length=40, null=True)
     status = models.CharField(max_length=40, default=TransactionStatusEnum.pending.value,
                               choices=TransactionStatusEnum.items())
@@ -153,7 +153,7 @@ class Transaction(models.Model):
 
     def _get_request_data(self):
         data = {
-            "amount": str(self.amount.amount),
+            "amount": str(int(round(self.amount.amount))),
             "msisdn": self.get_phone(),
             'transref': self.reference
         }
@@ -208,7 +208,10 @@ class Transaction(models.Model):
 
     def refund(self):
         # moov doesn't have refund api.
-        if self.status != TransactionStatusEnum.success.value or self.gateway == GatewayEnum.moov.value:
+        if self.status != TransactionStatusEnum.success.value:
+            return
+
+        if self.gateway == GatewayEnum.moov.value:
             txn = Transaction.objects.request(
                 obj=self,
                 name=self.name,
@@ -216,13 +219,14 @@ class Transaction(models.Model):
                 gateway=self.gateway,
                 initiator=self.initiator,
                 amount=self.amount,
-                reference=f'R-{self.reference}',
                 txn_type=TransactionType.payout
             )
+
             if txn.status == TransactionStatusEnum.success.value:
                 self.status = TransactionStatusEnum.refunded.value
                 self.save()
                 transaction_status_changed.send(sender=self.__class__, transaction=self)
+            txn.delete()
             return
 
         data = self._get_request_data()

@@ -4,7 +4,8 @@ from rest_framework.fields import SerializerMethodField
 
 from core.utils import money_to_dict
 from kash.models import UserProfile, KashRequest, KashRequestResponse, Notification
-from kash.serializers.profile import ProfileSerializer
+from kash.serializers.profile import ProfileSerializer, LimitedProfileSerializer
+
 
 
 class KashRequestResponseSerializer(serializers.ModelSerializer):
@@ -16,8 +17,8 @@ class KashRequestResponseSerializer(serializers.ModelSerializer):
 
 
 class KashRequestSerializer(serializers.ModelSerializer):
-    recipient = ProfileSerializer(read_only=True)
-    initiator = ProfileSerializer(read_only=True)
+    recipient = LimitedProfileSerializer(read_only=True)
+    initiator = LimitedProfileSerializer(read_only=True)
     recipient_tag = serializers.CharField(write_only=True)
     formatted = SerializerMethodField(read_only=True)
     fees = SerializerMethodField(read_only=True)
@@ -56,6 +57,7 @@ class KashRequestSerializer(serializers.ModelSerializer):
         kash_request.save()
         kash_request.notify_recipients()
         return kash_request
+
 
     class Meta:
         model = KashRequest
