@@ -34,6 +34,7 @@ class UserProfile(BaseModel):
     kashtag = models.CharField(max_length=30, unique=True, validators=[KashtagValidator, MinLengthValidator(3)])
     device_ids = ArrayField(models.CharField(max_length=255), default=list)
     avatar_url = models.URLField(blank=True)
+    contacts = models.ManyToManyField('kash.UserProfile')
 
     @property
     def name(self):

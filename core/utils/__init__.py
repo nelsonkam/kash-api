@@ -6,7 +6,7 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 
 
-def upload_content_file(content_file, filename):
+def upload_content_file(content_file, filename, acl="public-read"):
     session = boto3.session.Session()
     client = session.client(
         "s3",
@@ -19,7 +19,7 @@ def upload_content_file(content_file, filename):
     path = default_storage.save(f"static/uploads/{filename}", content_file)
     client.upload_file(path, settings.DO_SPACES_BUCKET, filename)
     client.put_object_acl(
-        ACL="public-read", Bucket=settings.DO_SPACES_BUCKET, Key=filename
+        ACL=acl, Bucket=settings.DO_SPACES_BUCKET, Key=filename
     )
 
     return f"{settings.DO_SPACES_ENDPOINT_URL}/{settings.DO_SPACES_BUCKET}/{filename}"

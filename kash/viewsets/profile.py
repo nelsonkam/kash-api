@@ -1,7 +1,10 @@
 from uuid import uuid4
 
+import phonenumbers
+from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.http import Http404
+from phonenumbers import NumberParseException
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import get_object_or_404
@@ -77,4 +80,25 @@ class ProfileViewset(ModelViewSet):
         image = request.data['avatar']
         profile.avatar_url = upload_content_file(image, f"{uuid4()}-{image.name}")
         profile.save()
+        return Response(self.get_serializer(instance=profile).data)
+
+    @action(detail=True, methods=['post'])
+    def contacts(self, request, pk=None):
+        profile = self.get_object()
+        contacts = request.data['contacts']
+        phones = []
+        for contact in contacts:
+            phone = contact.get('phone')
+            try:
+                phone = phonenumbers.parse(phone, None)
+                phone = phonenumbers.format_number(phone, phonenumbers.PhoneNumberFormat.E164)
+                phones.append(phone)
+            except NumberParseException:
+                pass
+
+        profiles = UserProfile.objects.filter(user__username__in=phones)
+        contacts_pk = [contact.pk for contact in profile.contacts.all()]
+        new_contacts = profiles.filter(~Q(pk__in=contacts_pk))
+        profile.contacts.add(*new_contacts)
+
         return Response(self.get_serializer(instance=profile).data)
