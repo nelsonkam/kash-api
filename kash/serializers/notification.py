@@ -25,7 +25,7 @@ class NotificationObjectSerializer(serializers.RelatedField):
             serializer = LimitedProfileSerializer(value)
             instance_type = "profile-throttle"
         else:
-            raise Exception('Unexpected type of notification object')
+            return {type: "unknown"}
 
         return {**serializer.data, 'type': instance_type}
 
