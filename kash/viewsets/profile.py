@@ -15,7 +15,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from core.utils import upload_content_file
 from kash.models import UserProfile
-from kash.serializers.profile import ProfileSerializer
+from kash.serializers.profile import ProfileSerializer, LimitedProfileSerializer
 
 
 class ProfileViewset(ModelViewSet):
@@ -101,4 +101,4 @@ class ProfileViewset(ModelViewSet):
         new_contacts = profiles.filter(~Q(pk__in=contacts_pk))
         profile.contacts.add(*new_contacts)
 
-        return Response(self.get_serializer(instance=profile).data)
+        return Response(LimitedProfileSerializer(profile.contacts.all(), many=True).data)
