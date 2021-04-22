@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 import phonenumbers
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.http import Http404
@@ -57,6 +58,7 @@ class ProfileViewset(ModelViewSet):
             profile.save()
         return Response(self.get_serializer(profile).data)
 
+    # Deprecated. v1 legacy
     @action(detail=True, methods=['get'])
     def send_recipients(self, request, pk=None):
         profile = self.get_object()
@@ -66,10 +68,11 @@ class ProfileViewset(ModelViewSet):
 
         return Response(serializer.data)
 
+    # Deprecated. v1 legacy
     @action(detail=True, methods=['get'])
     def request_recipients(self, request, pk=None):
         profile = self.get_object()
-        serializer = self.get_serializer(
+        serializer = LimitedProfileSerializer(
             UserProfile.objects.exclude(pk=profile.pk).exclude(momo_accounts__isnull=True), many=True)
 
         return Response(serializer.data)
@@ -80,23 +83,30 @@ class ProfileViewset(ModelViewSet):
         image = request.data['avatar']
         profile.avatar_url = upload_content_file(image, f"{uuid4()}-{image.name}")
         profile.save()
-        return Response(self.get_serializer(instance=profile).data)
+        return Response(LimitedProfileSerializer(instance=profile).data)
+
+    @action(detail=True, methods=['post'], url_path="search/contacts")
+    def search_contacts(self, request, pk=None):
+        profile = self.get_object()
+        kashtag_vector = SearchVector('kashtag')
+        name_vector = SearchVector('user__name')
+        search = request.data['search']
+        vectors = kashtag_vector + name_vector
+        qs = UserProfile.objects.annotate(search=vectors)\
+            .filter(search=search)\
+            .exclude(pk=profile.pk)\
+            .exclude(momo_accounts__isnull=True)
+        return Response(LimitedProfileSerializer(qs, many=True).data)
 
     @action(detail=True, methods=['post'])
     def contacts(self, request, pk=None):
         profile = self.get_object()
         contacts = request.data['contacts']
-        phones = []
-        for contact in contacts:
-            phone = contact.get('phone')
-            try:
-                phone = phonenumbers.parse(phone, None)
-                phone = phonenumbers.format_number(phone, phonenumbers.PhoneNumberFormat.E164)
-                phones.append(phone)
-            except NumberParseException:
-                pass
+        query = Q()
+        for phone in contacts:
+            query |= Q(user__phone_number__icontains=phone)
 
-        profiles = UserProfile.objects.filter(user__username__in=phones)
+        profiles = UserProfile.objects.filter(query)
         contacts_pk = [contact.pk for contact in profile.contacts.all()]
         new_contacts = profiles.filter(~Q(pk__in=contacts_pk))
         profile.contacts.add(*new_contacts)
