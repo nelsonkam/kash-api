@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.utils.timezone import now
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import Throttled
 from rest_framework.generics import get_object_or_404
@@ -20,6 +21,28 @@ class KashRequestViewSet(ModelViewSet):
     authentication_classes = [JWTAuthentication]
     pagination_class = KashPagination
 
+    def create(self, request, *args, **kwargs):
+        tags = request.data.pop('recipient_tags')
+        if tags:
+            initiator = request.data.get('initiator')
+            if len(tags) > 5:
+                notif = Notification.objects.create(
+                    title="Fais doucement oh 😩",
+                    description="Essaie de demander du kash à 3 personnes max. à la fois.",
+                    content_object=initiator,
+                    profile=initiator
+                )
+                notif.send()
+                raise Throttled
+            serializer = self.get_serializer(data=[{**request.data, 'recipient_tag': tag} for tag in tags], many=True)
+        else:
+            serializer = self.get_serializer(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
     def get_queryset(self):
         return self.request.user.profile.kash_requested.all().order_by("-created_at")
 
@@ -34,7 +57,8 @@ class KashRequestViewSet(ModelViewSet):
                 profile=self.request.user.profile
             )
             notif.send()
-            raise Throttled
+            # raise Throttled
+
         serializer.save(initiator=self.request.user.profile)
 
     @action(detail=True, methods=['post'])

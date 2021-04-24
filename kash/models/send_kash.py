@@ -31,7 +31,7 @@ class SendKash(BaseModel):
     def fees(self):
         amount = (
                 self.amount * self.recipients.count()) if self.group_mode == SendKash.GroupMode.pacha else self.amount
-        fee = amount * 0.03
+        fee = round(amount * 0.03)
         return fee if fee >= Money(100, "XOF") else Money(0, "XOF")
 
     @property
@@ -42,6 +42,12 @@ class SendKash(BaseModel):
 
     def pay(self, phone, gateway):
         from kash.models import Transaction
+
+        contacts = self.initiator.contacts.all()
+        recipients = self.recipients.all()
+        new_contacts = [recipient for recipient in recipients if recipient not in contacts]
+        if len(new_contacts) > 0:
+            self.initiator.contacts.add(*new_contacts)
 
         return Transaction.objects.request(
             obj=self,
@@ -91,10 +97,10 @@ class SendKash(BaseModel):
 
 @receiver(transaction_status_changed)
 def payout_recipients(sender, **kwargs):
-    from kash.models import Transaction, KashTransaction
+    from kash.models import Transaction, KashTransaction, MomoAccount
 
     txn = kwargs.pop("transaction")
-    kash_txn_type = ContentType.objects.get_for_model(SendKash)
+    send_kash_type = ContentType.objects.get_for_model(SendKash)
 
     def send_to_recipient(recipient, kash_txn, amount):
         if kash_txn.paid_recipients.filter(pk=recipient.id).exists():
@@ -112,7 +118,7 @@ def payout_recipients(sender, **kwargs):
             txn_type=TransactionType.payout
         )
 
-    if txn.content_type == kash_txn_type and txn.status == TransactionStatusEnum.success.value:
+    if txn.content_type == send_kash_type and txn.status == TransactionStatusEnum.success.value:
         send_kash = txn.content_object
         KashTransaction.objects.create(
             amount=txn.amount,
@@ -125,6 +131,10 @@ def payout_recipients(sender, **kwargs):
             txn_type=KashTransaction.TxnType.debit,
             timestamp=now()
         )
+
+        if not MomoAccount.objects.filter(phone=txn.phone, gateway=txn.gateway, profile=send_kash.initiator).exists():
+            MomoAccount.objects.create(phone=txn.phone, gateway=txn.gateway, profile=send_kash.initiator)
+
         if send_kash.recipients.count() == 1:
             recipient = send_kash.recipients.first()
             transaction = send_to_recipient(recipient, send_kash, send_kash.amount.amount)

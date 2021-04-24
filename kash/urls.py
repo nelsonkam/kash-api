@@ -24,13 +24,14 @@ router.register("virtual-cards", VirtualCardViewSet, "virtual-cards")
 router.register("transactions", TransactionViewSet, "transaction")
 router.register("txn_history", KashTransactionViewSet, "txn-history")
 router.register("send", SendKashViewSet, "send-kash")
-# Deprecated. Kept for legacy reasons.
-router.register("payout-methods", MomoAccountViewset, "payout-methods")
 router.register("momo-accounts", MomoAccountViewset, "momo-accounts")
 router.register("requests", KashRequestViewSet, "request-kash")
 router.register("notifications", NotificationViewset, "notifications")
 router.register("invites", InviteCodeViewset, "invites")
 router.register("kyc", KYCDocumentViewSet, "kyc")
+
+# Deprecated. Kept for legacy reasons.
+router.register("payout-methods", MomoAccountViewset, "payout-methods")
 
 urlpatterns = router.urls + [
     path('version/', views.version, name='kash-version')

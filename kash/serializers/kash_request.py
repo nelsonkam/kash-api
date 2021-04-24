@@ -7,7 +7,6 @@ from kash.models import UserProfile, KashRequest, KashRequestResponse, Notificat
 from kash.serializers.profile import ProfileSerializer, LimitedProfileSerializer
 
 
-
 class KashRequestResponseSerializer(serializers.ModelSerializer):
     sender = serializers.SlugRelatedField(read_only=True, slug_field='kashtag')
 
@@ -23,6 +22,11 @@ class KashRequestSerializer(serializers.ModelSerializer):
     formatted = SerializerMethodField(read_only=True)
     fees = SerializerMethodField(read_only=True)
     total = SerializerMethodField(read_only=True)
+    responses = SerializerMethodField(read_only=True)
+
+    # Depreacted. v1 Legacy
+    def get_responses(self, obj):
+        return [{'sender': obj.recipient.kashtag, 'accepted': bool(obj.accepted_at)}]
 
     def get_fees(self, obj):
         return money_to_dict(obj.fees)
@@ -39,28 +43,14 @@ class KashRequestSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        tags = validated_data.pop('recipient_tags')
-        initiator = validated_data.get('initiator')
-        if len(tags) > 5:
-            notif = Notification.objects.create(
-                title="Fais doucement oh 😩",
-                description="Essaie de demander du kash à 3 personnes max. à la fois.",
-                content_object=initiator,
-                profile=initiator
-            )
-            notif.send()
-            raise Throttled
-
-        recipients = UserProfile.objects.filter(kashtag__in=tags)
-        kash_request = KashRequest.objects.create(**validated_data)
-        kash_request.recipients.set(recipients)
-        kash_request.save()
-        kash_request.notify_recipients()
+        tag = validated_data.pop('recipient_tag')
+        recipient = UserProfile.objects.get(kashtag=tag)
+        kash_request = KashRequest.objects.create(**validated_data, recipient=recipient)
+        kash_request.notify_recipient()
         return kash_request
-
 
     class Meta:
         model = KashRequest
-        responses = KashRequestResponseSerializer(many=True, read_only=True)
         fields = ['id', 'recipient', 'recipient_tag', 'initiator', 'note', 'amount',
-                  'amount_currency', 'responses', 'fees', 'total', 'formatted', 'created_at', 'accepted_at', 'rejected_at']
+                  'amount_currency', 'responses', 'fees', 'total', 'formatted', 'created_at', 'accepted_at',
+                  'rejected_at']

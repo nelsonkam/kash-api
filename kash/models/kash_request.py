@@ -29,20 +29,19 @@ class KashRequest(BaseModel):
     def total(self):
         return self.amount + self.fees
 
-    def notify_recipients(self):
+    def notify_recipient(self):
         from kash.models import Notification
 
         amount = self.amount.amount
         # sender_name = "Quelqu'un" if self.is_incognito else f"${self.initiator.kashtag}"
         sender_name = f"${self.initiator.kashtag}"
-        for recipient in self.recipients.all():
-            notif = Notification.objects.create(
-                title="Besoin de kash 💰",
-                description=f"{sender_name} a besoin de {amount} FCFA pour \"{self.note}\"",
-                content_object=self,
-                profile=recipient
-            )
-            notif.send()
+        notif = Notification.objects.create(
+            title="Besoin de kash 💰",
+            description=f"{sender_name} a besoin de {amount} FCFA pour \"{self.note}\"",
+            content_object=self,
+            profile=self.recipient
+        )
+        notif.send()
 
     def accept(self, phone, gateway):
         from kash.models import Transaction

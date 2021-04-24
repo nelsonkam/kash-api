@@ -21,7 +21,7 @@ class KashTransactionSerializer(ModelSerializer):
         elif isinstance(obj.receiver, SendKash):
             if obj.sender == obj.profile:
                 if obj.receiver.recipients.count() == 1:
-                    title = f"${obj.receiver.recipients.first().kashtag}"
+                    title = f"Envoi à ${obj.receiver.recipients.first().kashtag}"
                 else:
                     title = f"Envoi à {obj.receiver.recipients.count()} personnes"
             else:
@@ -38,4 +38,5 @@ class KashTransactionSerializer(ModelSerializer):
 
     class Meta:
         model = KashTransaction
-        fields = ['id', 'amount', 'amount_currency', 'sender', 'txn_ref', 'narration', 'formatted', 'txn_type','status', 'timestamp']
+        fields = ['id', 'amount', 'amount_currency', 'sender', 'txn_ref', 'narration', 'formatted', 'txn_type',
+                  'status', 'timestamp']
