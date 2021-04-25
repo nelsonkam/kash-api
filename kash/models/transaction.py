@@ -210,7 +210,6 @@ class Transaction(models.Model):
             transaction_status_changed.send(sender=self.__class__, transaction=self)
 
     def refund(self):
-        # moov doesn't have refund api.
         if self.status != TransactionStatusEnum.success.value:
             return
 
@@ -248,10 +247,12 @@ class Transaction(models.Model):
         response = self.api.Transaction.status(data={'transref': self.reference})
 
         status = self.status
+        print("status", status)
+        print(response.text)
 
         if response.status_code == 200:
             response_data = response.json()
-
+            print(response_data)
             if response_data['responsecode'] and int(response_data['responsecode']) == 0:
                 status = TransactionStatusEnum.success.value
             elif response_data['responsemsg'] and 'success' in response_data['responsemsg'].lower():
@@ -260,8 +261,8 @@ class Transaction(models.Model):
                 status = TransactionStatusEnum.pending.value
             elif response_data['responsecode'] == '529':
                 status = TransactionStatusEnum.failed.value
-            elif response_data['responsecode'] in ['8', '92', '94', '95', '10', '91', '98', '99', '-1']:
-                status = TransactionStatusEnum.failed.value
+            # elif self.gateway == GatewayEnum.moov.value and response_data['responsecode'] in ['8', '92', '94', '95', '10', '91', '98', '99']:
+            #     status = TransactionStatusEnum.failed.value
             elif response_data['responsemsg'] == 'FAILED' and response_data['responsecode'] == '-1':
                 status = TransactionStatusEnum.failed.value
 

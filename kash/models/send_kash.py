@@ -120,6 +120,7 @@ def payout_recipients(sender, **kwargs):
         )
 
     if txn.content_type == send_kash_type and txn.status == TransactionStatusEnum.success.value:
+        print("payout-recipients")
         send_kash = txn.content_object
         KashTransaction.objects.create(
             amount=txn.amount,
@@ -139,7 +140,7 @@ def payout_recipients(sender, **kwargs):
         if send_kash.recipients.count() == 1:
             recipient = send_kash.recipients.first()
             transaction = send_to_recipient(recipient, send_kash, send_kash.amount.amount)
-            if transaction.status == TransactionStatusEnum.success.value:
+            if transaction and transaction.status == TransactionStatusEnum.success.value:
                 send_kash.record_transaction(recipient, send_kash.amount, txn, transaction)
                 send_kash.paid_recipients.add(recipient)
                 send_kash.save()
@@ -151,7 +152,7 @@ def payout_recipients(sender, **kwargs):
                 total_amount = Money(0, "XOF")
                 for recipient in send_kash.recipients.all():
                     transaction = send_to_recipient(recipient, send_kash, amount.amount)
-                    if transaction.status == TransactionStatusEnum.success.value:
+                    if transaction and transaction.status == TransactionStatusEnum.success.value:
                         send_kash.record_transaction(recipient, amount, txn, transaction)
                         send_kash.paid_recipients.add(recipient)
                         send_kash.save()
@@ -161,7 +162,7 @@ def payout_recipients(sender, **kwargs):
             elif send_kash.group_mode == SendKash.GroupMode.pacha:
                 for recipient in send_kash.recipients.all():
                     transaction = send_to_recipient(recipient, send_kash, send_kash.amount.amount)
-                    if transaction.status == TransactionStatusEnum.success.value:
+                    if transaction and transaction.status == TransactionStatusEnum.success.value:
                         send_kash.record_transaction(recipient, send_kash.amount, txn, transaction)
                         send_kash.paid_recipients.add(recipient)
                         send_kash.save()

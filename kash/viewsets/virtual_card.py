@@ -29,7 +29,7 @@ class VirtualCardViewSet(ModelViewSet):
         if request.data.get('amount'):
             amount = Money(request.data.get('amount'), "USD")
         elif request.data.get('initial_amount'):
-            amount = card.get_usd_from_xof(Money(request.data.get('initial_amount'), "XOF"))
+            amount = Money(request.data.get('initial_amount'), "XOF")
         else:
             raise NotImplemented
 

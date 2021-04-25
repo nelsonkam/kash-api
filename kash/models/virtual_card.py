@@ -10,6 +10,7 @@ from django.dispatch import receiver
 from djmoney.contrib.exchange.models import convert_money
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money
+from moneyed import Currency
 
 from core.models.base import BaseModel
 from core.utils.payment import rave_request, rave2_request
@@ -30,10 +31,13 @@ class VirtualCard(BaseModel):
 
     def purchase(self, amount, phone, gateway):
         from kash.models import Transaction, KashTransaction
+        xof_amount = amount if amount.currency == Currency('XOF') else self.get_xof_from_usd(amount)
+        usd_amount = amount if amount.currency == Currency('USD') else self.get_usd_from_xof(amount)
+
         txn = Transaction.objects.request(**{
             'obj': self,
             'name': self.profile.name,
-            'amount': self.get_xof_from_usd(amount) + self.issuance_cost,
+            'amount': xof_amount + self.issuance_cost,
             'phone': phone,
             'gateway': gateway,
             'initiator': self.profile.user
@@ -49,7 +53,7 @@ class VirtualCard(BaseModel):
             receiver=self,
             txn_type=KashTransaction.TxnType.debit,
         )
-        FundingHistory.objects.create(txn_ref=txn.reference, card=self, amount=amount, status='pending')
+        FundingHistory.objects.create(txn_ref=txn.reference, card=self, amount=usd_amount, status='pending')
         return txn
 
     def create_external(self, usd_amount, **kwargs):
@@ -280,6 +284,7 @@ def fund_card(sender, **kwargs):
     from kash.models import Notification
     txn = kwargs.pop("transaction")
     vcard_type = ContentType.objects.get_for_model(VirtualCard)
+    print("fund_card", txn.reference, txn.status)
 
     if txn.content_type == vcard_type and txn.status == TransactionStatusEnum.failed.value:
         item = FundingHistory.objects.filter(txn_ref=txn.reference, card=txn.content_object).first()

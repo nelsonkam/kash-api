@@ -15,7 +15,6 @@ def request_transaction(txn_id=None):
 @shared_task
 def check_txn_status():
     from kash.models import Transaction
-
     for txn in Transaction.objects.filter(status=TransactionStatusEnum.pending.value,
                                           transaction_type=TransactionType.payment):
         txn.check_status()
