@@ -91,7 +91,8 @@ class SendKash(BaseModel):
             txn=payout_txn,
             narration=self.note,
             txn_type=KashTransaction.TxnType.credit,
-            timestamp=now()
+            timestamp=now(),
+            is_anonymous=self.is_incognito
         )
 
 

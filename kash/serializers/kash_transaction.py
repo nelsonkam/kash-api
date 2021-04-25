@@ -13,9 +13,12 @@ class KashTransactionSerializer(ModelSerializer):
         title = None
         if isinstance(obj.receiver, UserProfile):
             if obj.sender == obj.profile:
-                title = f"${obj.receiver.kashtag}"
+                title = f"Envoi à ${obj.receiver.kashtag}"
             else:
-                title = f"${obj.sender.kashtag}"
+                if obj.is_anonymous:
+                    title = f"Anonyme 🤑"
+                else:
+                    title = f"${obj.sender.kashtag}"
         elif isinstance(obj.receiver, VirtualCard):
             title = obj.receiver.nickname
         elif isinstance(obj.receiver, SendKash):
