@@ -26,7 +26,9 @@ class KashRequestSerializer(serializers.ModelSerializer):
 
     # Depreacted. v1 Legacy
     def get_responses(self, obj):
-        return [{'sender': obj.recipient.kashtag, 'accepted': bool(obj.accepted_at)}]
+        if obj.accepted_at or obj.rejected_at:
+            return [{'sender': obj.recipient.kashtag, 'accepted': bool(obj.accepted_at)}]
+        return []
 
     def get_fees(self, obj):
         return money_to_dict(obj.fees)

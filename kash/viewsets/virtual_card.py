@@ -27,14 +27,14 @@ class VirtualCardViewSet(ModelViewSet):
     def purchase(self, request, pk=None):
         card = self.get_object()
         if request.data.get('amount'):
-            amount = request.data.get('amount')
+            amount = Money(request.data.get('amount'), "USD")
         elif request.data.get('initial_amount'):
-            amount = card.get_usd_from_xof(request.data.get('initial_amount'))
+            amount = card.get_usd_from_xof(Money(request.data.get('initial_amount'), "XOF"))
         else:
             raise NotImplemented
 
         txn = card.purchase(
-            amount=Money(amount, "USD"),
+            amount=amount,
             phone=request.data.get('phone'),
             gateway=request.data.get('gateway')
         )

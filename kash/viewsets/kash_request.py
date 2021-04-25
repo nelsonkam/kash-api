@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import Throttled
+from rest_framework.exceptions import Throttled, ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -71,23 +71,20 @@ class KashRequestViewSet(ModelViewSet):
     @action(detail=True, methods=['post'])
     def accepted(self, request, pk=None):
         kash_request = get_object_or_404(KashRequest.objects.all(), pk=pk)
-        response = KashRequestResponse.objects.create(
-            sender=request.user.profile,
-            request=kash_request,
-            accepted=True,
-            transaction=SendKash.objects.get(pk=request.data.get("transaction_id"))
-        )
-        return Response(KashRequestResponseSerializer(response).data)
+        if kash_request.rejected_at:
+            raise ValidationError('This request has already been rejected.')
+        kash_request.accepted_at = now()
+        kash_request.save()
+        return Response([{'sender': kash_request.recipient.kashtag, 'accepted': bool(kash_request.accepted_at)}])
 
     @action(detail=True, methods=['post'])
     def rejected(self, request, pk=None):
         kash_request = get_object_or_404(KashRequest.objects.all(), pk=pk)
-        response = KashRequestResponse.objects.create(
-            sender=request.user.profile,
-            request=kash_request,
-            accepted=False,
-        )
-        return Response(KashRequestResponseSerializer(response).data)
+        if kash_request.accepted_at:
+            raise ValidationError('This request has already been accepted.')
+        kash_request.rejected_at = now()
+        kash_request.save()
+        return Response([{'sender': kash_request.recipient.kashtag, 'accepted': bool(kash_request.accepted_at)}])
 
     @action(detail=False, methods=['get'])
     def received(self, request):
