@@ -5,6 +5,8 @@ from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.http import Http404
+from phone_verify.serializers import PhoneSerializer, SMSVerificationSerializer
+from phone_verify.services import send_security_code_and_generate_session_token
 from phonenumbers import NumberParseException
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
@@ -112,3 +114,23 @@ class ProfileViewset(ModelViewSet):
         profile.contacts.add(*new_contacts)
 
         return Response(LimitedProfileSerializer(profile.contacts.all(), many=True).data)
+
+    @action(detail=True, methods=['post'], url_path='otp/phone')
+    def otp_phone(self, request, pk=None):
+        serializer = PhoneSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        session_token = send_security_code_and_generate_session_token(
+            str(serializer.validated_data["phone_number"])
+        )
+        return Response({"session_token": session_token})
+
+    @action(detail=True, methods=['post'], url_path='otp/verify/phone')
+    def verify_phone(self, request, pk=None):
+        profile = self.get_object()
+        serializer = SMSVerificationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        phone = serializer.validated_data.get('phone_number')
+        user = profile.user
+        user.phone_number = phone
+        user.save()
+        return Response({"message": "Security code is valid."})

@@ -3,6 +3,7 @@ from rest_framework.routers import SimpleRouter
 
 from kash import views
 from kash.models import KashRequest
+from kash.viewsets.auth import AuthViewSet
 from kash.viewsets.invite_code import InviteCodeViewset
 from kash.viewsets.kash_request import KashRequestViewSet
 from kash.viewsets.kash_transaction import KashTransactionViewSet
@@ -29,6 +30,7 @@ router.register("requests", KashRequestViewSet, "request-kash")
 router.register("notifications", NotificationViewset, "notifications")
 router.register("invites", InviteCodeViewset, "invites")
 router.register("kyc", KYCDocumentViewSet, "kyc")
+router.register("auth", AuthViewSet, "auth")
 
 # Deprecated. Kept for legacy reasons.
 router.register("payout-methods", MomoAccountViewset, "payout-methods")
