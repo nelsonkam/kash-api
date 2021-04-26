@@ -50,7 +50,7 @@ class NotificationSerializer(ModelSerializer):
             serializer = LimitedProfileSerializer(value)
             instance_type = "profile-throttle"
         else:
-            return {type: "unknown", 'responses': []}
+            return {'type': "unknown", 'responses': []}
 
         return {**serializer.data, 'type': instance_type}
 
