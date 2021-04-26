@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.fields import SerializerMethodField
 from rest_framework.serializers import ModelSerializer
 
 from kash.models import Notification, KashRequest, SendKash, VirtualCard, UserProfile
@@ -25,13 +26,33 @@ class NotificationObjectSerializer(serializers.RelatedField):
             serializer = LimitedProfileSerializer(value)
             instance_type = "profile-throttle"
         else:
-            return {type: "unknown"}
+            return {type: "unknown", 'responses': []}
 
         return {**serializer.data, 'type': instance_type}
 
 
 class NotificationSerializer(ModelSerializer):
-    content_object = NotificationObjectSerializer(read_only=True)
+    content_object = SerializerMethodField(read_only=True)
+
+    def get_content_object(self, obj):
+        value = obj.content_object
+
+        if isinstance(value, KashRequest):
+            serializer = KashRequestSerializer(value)
+            instance_type = "request"
+        elif isinstance(value, SendKash):
+            serializer = SendKashSerializer(value)
+            instance_type = "transaction"
+        elif isinstance(value, VirtualCard):
+            serializer = VirtualCardSerializer(value)
+            instance_type = "virtual-card"
+        elif isinstance(value, UserProfile):
+            serializer = LimitedProfileSerializer(value)
+            instance_type = "profile-throttle"
+        else:
+            return {type: "unknown", 'responses': []}
+
+        return {**serializer.data, 'type': instance_type}
 
     class Meta:
         model = Notification
