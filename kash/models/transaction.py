@@ -101,7 +101,7 @@ class Transaction(models.Model):
                 self._request_moov_mobile_money()
             else:
                 raise NotImplementedError()
-        elif self.transaction_type == TransactionType.payout:
+        elif self.transaction_type == TransactionType.payout or self.transaction_type == TransactionType.refund:
             if self.gateway == GatewayEnum.mtn.value:
                 self._payout_mtn_mobile_money()
             elif self.gateway == GatewayEnum.moov.value:
@@ -213,32 +213,20 @@ class Transaction(models.Model):
         if self.status != TransactionStatusEnum.success.value:
             return
 
-        if self.gateway == GatewayEnum.moov.value:
-            txn = Transaction.objects.request(
-                obj=self,
-                name=self.name,
-                phone=self.phone,
-                gateway=self.gateway,
-                initiator=self.initiator,
-                amount=self.amount,
-                txn_type=TransactionType.payout
-            )
+        txn = Transaction.objects.request(
+            obj=self,
+            name=self.name,
+            phone=self.phone,
+            gateway=self.gateway,
+            initiator=self.initiator,
+            amount=self.amount,
+            txn_type=TransactionType.refund
+        )
 
-            if txn.status == TransactionStatusEnum.success.value:
-                self.status = TransactionStatusEnum.refunded.value
-                self.save()
-                transaction_status_changed.send(sender=self.__class__, transaction=self)
-            txn.delete()
-            return
-
-        data = self._get_request_data()
-        response = self.api.Transaction.refund(data)
-        assert response.status_code == 200, "%s: status_code: %s content: %s" % (
-            self, response.status_code, response.text)
-        self.status = TransactionStatusEnum.refunded.value
-        self.save()
-
-        transaction_status_changed.send(sender=self.__class__, transaction=self)
+        if txn.status == TransactionStatusEnum.success.value:
+            self.status = TransactionStatusEnum.refunded.value
+            self.save()
+            transaction_status_changed.send(sender=self.__class__, transaction=self)
 
     def check_status(self):
         if self.status != TransactionStatusEnum.pending.value:

@@ -46,3 +46,4 @@ def generate_reference_10():
 class TransactionType(models.TextChoices):
     payment = 'payment'
     payout = 'payout'
+    refund = 'refund'
