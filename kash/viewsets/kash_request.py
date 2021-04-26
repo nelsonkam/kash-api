@@ -24,13 +24,12 @@ class KashRequestViewSet(ModelViewSet):
     def create(self, request, *args, **kwargs):
         tags = request.data.pop('recipient_tags')
         if tags:
-            initiator = request.data.get('initiator')
             if len(tags) > 5:
                 notif = Notification.objects.create(
                     title="Fais doucement oh 😩",
                     description="Essaie de demander du kash à 3 personnes max. à la fois.",
-                    content_object=initiator,
-                    profile=initiator
+                    content_object=self.request.user.profile,
+                    profile=self.request.user.profile
                 )
                 notif.send()
                 raise Throttled
@@ -57,7 +56,7 @@ class KashRequestViewSet(ModelViewSet):
                 profile=self.request.user.profile
             )
             notif.send()
-            # raise Throttled
+            raise Throttled
 
         serializer.save(initiator=self.request.user.profile)
 
