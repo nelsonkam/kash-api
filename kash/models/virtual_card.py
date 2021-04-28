@@ -270,7 +270,7 @@ class VirtualCard(BaseModel):
             return None
         if not settings.DEBUG:
             rave_request("PUT", f'/virtual-cards/{self.external_id}/terminate')
-        self.external_id = None
+        self.external_id = ''
         self.is_active = False
         self.save()
         return
