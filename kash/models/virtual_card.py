@@ -140,13 +140,6 @@ class VirtualCard(BaseModel):
                 return self.profile.name or 'Kash'
             return ref
 
-        query = {
-            'from': (self.created_at - timedelta(days=90)).date().isoformat(),
-            'to': date.today().isoformat(),
-            'size': 10,
-            'index': 1
-        }
-        resp = rave_request('GET', f'/virtual-cards/{self.external_id}/transactions?{parse.urlencode(query)}')
         data = [{
             'status': item.get("status"),
             'indicator': item.get('indicator'),
@@ -156,8 +149,30 @@ class VirtualCard(BaseModel):
             'fee': item.get('fee'),
             'currency': item.get('currency'),
             'created_at': item.get('created_at')
-        } for item in resp.json().get('data')]
+        } for item in self.rave_transactions()]
         return data
+
+    def rave_transactions(self):
+        query = {
+            'from': (date.today() - timedelta(days=90)).isoformat(),
+            'to': (date.today() + timedelta(days=1)),
+            'size': 20,
+            'index': 1
+        }
+        resp = rave_request('GET', f'/virtual-cards/{self.external_id}/transactions?{parse.urlencode(query)}')
+        return resp.json().get('data')
+
+    def rave2_transactions(self):
+        data = {
+            "FromDate": (self.created_at - timedelta(days=90)).date().isoformat(),
+            "ToDate": (date.today() + timedelta(days=1)).isoformat(),
+            "PageIndex": 0,
+            "PageSize": 20,
+            "CardId": self.external_id,
+            "secret_key": settings.RAVE_SECRET_KEY
+        }
+        resp = rave2_request("POST", '/services/virtualcards/transactions', data)
+        return resp.json().get("Statements")
 
     def get_xof_from_usd(self, amount):
         rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount={float(amount.amount)}').json()
