@@ -108,12 +108,12 @@ class ProfileViewset(ModelViewSet):
         for phone in contacts:
             query |= Q(user__phone_number__icontains=phone)
 
-        profiles = UserProfile.objects.filter(query)
+        profiles = UserProfile.objects.filter(query).exclude(pk=profile.pk)
         contacts_pk = [contact.pk for contact in profile.contacts.all()]
         new_contacts = profiles.filter(~Q(pk__in=contacts_pk))
         profile.contacts.add(*new_contacts)
 
-        return Response(LimitedProfileSerializer(profile.contacts.all(), many=True).data)
+        return Response(LimitedProfileSerializer(profile.contacts.all().exclude(pk=profile.pk), many=True).data)
 
     @action(detail=True, methods=['post'], url_path='otp/phone')
     def otp_phone(self, request, pk=None):

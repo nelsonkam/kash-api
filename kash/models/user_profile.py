@@ -54,6 +54,10 @@ class UserProfile(BaseModel):
         }
 
     @property
+    def kyc_level(self):
+        return 2 if self.kycdocument_set.filter(status="approved") else 1
+
+    @property
     def limits(self):
         return {
             'sendkash': {

@@ -175,7 +175,7 @@ PHONE_VERIFICATION = {
     "TOKEN_LENGTH": 6,
     "MESSAGE": _("Your verification code for {app} is: {security_code}"),
     "APP_NAME": "Kash",
-    "SECURITY_CODE_EXPIRATION_TIME": 3600 * 6,
+    "SECURITY_CODE_EXPIRATION_TIME": 3600 * 0.5,
     "VERIFY_SECURITY_CODE_ONLY_ONCE": False,
     "TEST_PHONE_NUMBERS": ["+22921000000", "+22921000001"]
 }
