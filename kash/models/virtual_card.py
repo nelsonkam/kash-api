@@ -65,11 +65,16 @@ class VirtualCard(BaseModel):
             self.save()
             return
 
+        usd_balance = rave_request("GET", "/balances/USD").json().get('data').get('available_balance')
+        debit_currency = 'NGN'
+        if usd_amount.amount <= usd_balance - 5:
+            debit_currency = 'USD'
+
         resp = rave_request('POST', '/virtual-cards', {
             'currency': 'USD',
             'amount': float(usd_amount.amount),
             'billing_name': self.profile.name or "John Doe",
-            'debit_currency': 'NGN',
+            'debit_currency': debit_currency,
             'callback_url': "https://prod.kweek.africa/kash/virtual-cards/txn_callback/"
         }).json()
         if resp.get('data'):
@@ -218,9 +223,14 @@ class VirtualCard(BaseModel):
         if settings.DEBUG:
             return
 
+        usd_balance = rave_request("GET", "/balances/USD").json().get('data').get('available_balance')
+        debit_currency = 'NGN'
+        if amount.amount <= usd_balance - 5:
+            debit_currency = 'USD'
+
         data = {
             'amount': float(amount.amount),
-            'debit_currency': "NGN"
+            'debit_currency': debit_currency
         }
 
         return rave_request("POST", f'/virtual-cards/{self.external_id}/fund', data)
