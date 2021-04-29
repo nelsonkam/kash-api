@@ -61,8 +61,8 @@ class Conversions:
         amount_to_charge = Money(rates.get('data').get('to').get('amount'), "NGN")
         amount_to_charge = amount_to_charge * settings.CONVERSION_RATES['NGN_XOF']
         amount_to_charge = Money(amount_to_charge.amount, "XOF")
-        margin = Money(amount.amount * 50, "XOF")
-        return amount_to_charge + margin if not is_withdrawal else amount_to_charge - Money(amount.amount * 25, "XOF")
+        margin = Money(amount.amount * 25, "XOF") if not is_withdrawal else Money(amount.amount * -25, "XOF")
+        return amount_to_charge + margin
 
     @staticmethod
     def get_usd_from_xof(amount):
