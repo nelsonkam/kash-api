@@ -9,8 +9,7 @@ from django.db import models
 from django.dispatch import receiver
 from djmoney.contrib.exchange.models import convert_money
 from djmoney.models.fields import MoneyField
-from djmoney.money import Money
-from moneyed import Currency
+from djmoney.money import Money, Currency
 
 from core.models.base import BaseModel
 from core.utils.payment import rave_request, rave2_request

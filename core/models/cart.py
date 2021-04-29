@@ -1,6 +1,6 @@
 from django.db import models
 from djmoney.models.fields import MoneyField
-from moneyed import Money
+from djmoney.money import Money
 
 from core.models.base import BaseModel, generate_uid
 
