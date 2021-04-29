@@ -9,13 +9,14 @@ from phone_verify.serializers import PhoneSerializer, SMSVerificationSerializer
 from phone_verify.services import send_security_code_and_generate_session_token
 from phonenumbers import NumberParseException
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError, PermissionDenied
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from core.models import User
 from core.utils import upload_content_file
 from kash.models import UserProfile
 from kash.serializers.profile import ProfileSerializer, LimitedProfileSerializer
@@ -119,6 +120,9 @@ class ProfileViewset(ModelViewSet):
     def otp_phone(self, request, pk=None):
         serializer = PhoneSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        user = User.objects.filter(username=serializer.validated_data['phone_number'])
+        if user:
+            raise PermissionDenied
         session_token = send_security_code_and_generate_session_token(
             str(serializer.validated_data["phone_number"])
         )

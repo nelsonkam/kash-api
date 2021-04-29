@@ -41,6 +41,10 @@ class UserProfile(BaseModel):
         return self.user.name
 
     @property
+    def phone_number(self):
+        return self.user.phone_number
+
+    @property
     def txn_summary(self):
         from kash.models import KashTransaction
         received = Sum('amount', filter=Q(txn_type=KashTransaction.TxnType.credit,

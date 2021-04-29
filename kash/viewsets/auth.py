@@ -21,7 +21,8 @@ class AuthViewSet(GenericViewSet):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        user = User.objects.create_user(username=data.get('kashtag'), name=data.get('name'), password=data.get('name'))
+        user = User.objects.create_user(username=data.get('kashtag'), name=data.get('name'),
+                                        password=data.get('password'))
         UserProfile.objects.create(
             user=user,
             kashtag=data.get('kashtag')
@@ -43,6 +44,8 @@ class AuthViewSet(GenericViewSet):
             username=username,
             password=password
         )
+        print(user, username, password, User.objects.get_by_natural_key(username),
+              User.objects.get_by_natural_key(username).check_password(password))
         if not user:
             raise AuthenticationFailed
         refresh = RefreshToken.for_user(user)
