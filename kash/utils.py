@@ -2,8 +2,13 @@ from _blake2 import blake2b
 from enum import Enum as BaseEnum
 from uuid import uuid4
 
+from django.conf import settings
 from django.db import models
 from django.utils.timezone import now
+from djmoney.contrib.exchange.models import convert_money
+from moneyed import Money
+
+from core.utils.payment import rave_request
 
 
 class Enum(BaseEnum):
@@ -47,3 +52,20 @@ class TransactionType(models.TextChoices):
     payment = 'payment'
     payout = 'payout'
     refund = 'refund'
+
+
+class Conversions:
+    @staticmethod
+    def get_xof_from_usd(amount, is_withdrawal=False):
+        rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount={float(amount.amount)}').json()
+        amount_to_charge = Money(rates.get('data').get('to').get('amount'), "NGN")
+        amount_to_charge = amount_to_charge * settings.CONVERSION_RATES['NGN_XOF']
+        amount_to_charge = Money(amount_to_charge.amount, "XOF")
+        margin = Money(amount.amount * 50, "XOF")
+        return amount_to_charge + margin if not is_withdrawal else amount_to_charge - Money(amount.amount * 25, "XOF")
+
+    @staticmethod
+    def get_usd_from_xof(amount):
+        rate = Conversions.get_xof_from_usd(Money(1, "USD"))
+
+        return Money(amount.amount / rate.amount, "USD")

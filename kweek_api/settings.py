@@ -275,3 +275,8 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(minute='*/3'),
     },
 } if APP_NAME == "api-server" else {}
+
+CONVERSION_RATES = {
+    'NGN_XOF': 1.162,
+    'MARGIN': .1
+}

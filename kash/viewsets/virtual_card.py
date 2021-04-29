@@ -9,7 +9,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from core.utils.payment import rave_request
 from kash.models import Transaction
 from kash.serializers.virtual_card import VirtualCardSerializer
-from kash.utils import TransactionStatusEnum
+from kash.utils import TransactionStatusEnum, Conversions
 
 
 class VirtualCardViewSet(ModelViewSet):
@@ -56,7 +56,7 @@ class VirtualCardViewSet(ModelViewSet):
     def convert(self, request, pk=None):
         card = self.get_object()
         amount = Money(request.data.get('amount'), "USD")
-        amount = card.get_xof_from_usd(amount)
+        amount = Conversions.get_xof_from_usd(amount)
         return Response({'amount': round(amount.amount), 'fees': 0})
 
     @action(detail=True, methods=['get'])

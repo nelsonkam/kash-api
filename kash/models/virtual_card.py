@@ -15,7 +15,7 @@ from moneyed import Currency
 from core.models.base import BaseModel
 from core.utils.payment import rave_request, rave2_request
 from kash.signals import transaction_status_changed
-from kash.utils import TransactionStatusEnum, TransactionType
+from kash.utils import TransactionStatusEnum, TransactionType, Conversions
 
 
 class VirtualCard(BaseModel):
@@ -31,8 +31,8 @@ class VirtualCard(BaseModel):
 
     def purchase(self, amount, phone, gateway):
         from kash.models import Transaction, KashTransaction
-        xof_amount = amount if amount.currency == Currency('XOF') else self.get_xof_from_usd(amount)
-        usd_amount = amount if amount.currency == Currency('USD') else self.get_usd_from_xof(amount)
+        xof_amount = amount if amount.currency == Currency('XOF') else Conversions.get_xof_from_usd(amount)
+        usd_amount = amount if amount.currency == Currency('USD') else Conversions.get_usd_from_xof(amount)
 
         txn = Transaction.objects.request(**{
             'obj': self,
@@ -179,25 +179,13 @@ class VirtualCard(BaseModel):
         resp = rave2_request("POST", '/services/virtualcards/transactions', data)
         return resp.json().get("Statements")
 
-    def get_xof_from_usd(self, amount):
-        rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount={float(amount.amount)}').json()
-        amount_to_charge = Money(rates.get('data').get('to').get('amount'), "NGN")
-        amount_to_charge = convert_money(amount_to_charge, "XOF")
-        return amount_to_charge + (amount_to_charge * 0.03)
-
-    def get_usd_from_xof(self, amount):
-        initial_ngn = convert_money(amount, 'NGN')
-        rates = rave_request("GET", f"/rates?from=NGN&to=USD&amount={float(initial_ngn.amount)}").json()
-        initial_usd = Money(rates.get('data').get('to').get('amount'), "USD")
-        return initial_usd
-
     def fund(self, amount, phone, gateway):
         from kash.models import Transaction, KashTransaction
         amount = convert_money(amount, "USD")
         txn = Transaction.objects.request(**{
             'obj': self,
             'name': self.profile.name,
-            'amount': self.get_xof_from_usd(amount),
+            'amount': Conversions.get_xof_from_usd(amount),
             'phone': phone,
             'gateway': gateway,
             'initiator': self.profile.user
