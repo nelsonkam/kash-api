@@ -181,6 +181,8 @@ class VirtualCard(BaseModel):
 
     def fund(self, amount, phone, gateway):
         from kash.models import Transaction, KashTransaction
+        xof_amount = Conversions.get_xof_from_usd(amount)
+        print(xof_amount.__class__, isinstance(xof_amount, Money))
         txn = Transaction.objects.request(**{
             'obj': self,
             'name': self.profile.name,

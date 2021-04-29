@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.timezone import now
 from djmoney.contrib.exchange.models import convert_money
-from moneyed import Money
+from djmoney.money import Money
 
 from core.utils.payment import rave_request
 
