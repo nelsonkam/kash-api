@@ -134,9 +134,6 @@ def payout_recipients(sender, **kwargs):
             timestamp=now()
         )
 
-        if not MomoAccount.objects.filter(phone=txn.phone, gateway=txn.gateway, profile=send_kash.initiator).exists():
-            MomoAccount.objects.create(phone=txn.phone, gateway=txn.gateway, profile=send_kash.initiator)
-
         if send_kash.recipients.count() == 1:
             recipient = send_kash.recipients.first()
             transaction = send_to_recipient(recipient, send_kash, send_kash.amount.amount)

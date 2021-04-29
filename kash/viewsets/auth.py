@@ -58,7 +58,7 @@ class AuthViewSet(GenericViewSet):
         serializer = PhoneSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         phone = str(serializer.validated_data.get('phone_number'))
-        user = User.objects.filter(phone_number=phone).first()
+        user = User.objects.filter(username=phone).first()
         if not user:
             raise NotFound
 
@@ -72,7 +72,7 @@ class AuthViewSet(GenericViewSet):
         serializer = SMSVerificationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         phone = str(serializer.validated_data.get('phone_number'))
-        user = User.objects.filter(phone_number=phone).first()
+        user = User.objects.filter(username=phone).first()
         user.set_password(request.data.get('password'))
         user.save()
 
