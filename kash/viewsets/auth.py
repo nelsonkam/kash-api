@@ -44,8 +44,6 @@ class AuthViewSet(GenericViewSet):
             username=username,
             password=password
         )
-        print(user, username, password, User.objects.get_by_natural_key(username),
-              User.objects.get_by_natural_key(username).check_password(password))
         if not user:
             raise AuthenticationFailed
         refresh = RefreshToken.for_user(user)

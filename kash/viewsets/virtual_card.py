@@ -1,3 +1,5 @@
+import logging
+
 from djmoney.contrib.exchange.models import convert_money
 from djmoney.money import Money
 from rest_framework.decorators import action
@@ -10,7 +12,7 @@ from core.utils.payment import rave_request
 from kash.models import Transaction
 from kash.serializers.virtual_card import VirtualCardSerializer
 from kash.utils import TransactionStatusEnum, Conversions
-
+logger = logging.getLogger(__name__)
 
 class VirtualCardViewSet(ModelViewSet):
     serializer_class = VirtualCardSerializer
@@ -91,7 +93,7 @@ class VirtualCardViewSet(ModelViewSet):
 
     @action(detail=False, methods=['post'], permission_classes=[])
     def txn_callback(self, request):
-        print(request.data)
+        logger.info(request.data)
         return Response(status=200)
 
     # Deprecated: Only available for legacy reasons
