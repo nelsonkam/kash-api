@@ -38,8 +38,8 @@ def user_current(request):
 @api_view(http_method_names=['GET'])
 def setup_fee(request):
     session = stripe.checkout.Session.create(
-        success_url="https://kweek.shop/success",
-        cancel_url="https://kweek.shop/cancel",
+        success_url="https://kweek.africa/success",
+        cancel_url="https://kweek.africa/concierge",
         payment_method_types=["card"],
         line_items=[
             {
