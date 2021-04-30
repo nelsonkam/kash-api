@@ -12,4 +12,5 @@ urlpatterns = router.urls + [
     path("token/refresh", TokenRefreshView.as_view(), name="token_refresh"),
     path("upload/", views.upload, name="upload"),
     path("user/current/", views.user_current, name="user_current"),
+    path("setup_fee/", views.setup_fee, name="setup_fee"),
 ]
