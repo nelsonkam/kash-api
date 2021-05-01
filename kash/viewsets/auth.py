@@ -74,6 +74,7 @@ class AuthViewSet(GenericViewSet):
         serializer.is_valid(raise_exception=True)
         phone = str(serializer.validated_data.get('phone_number'))
         user = User.objects.filter(username=phone).first()
+        user.username = user.profile.kashtag
         user.set_password(request.data.get('password'))
         user.save()
 
