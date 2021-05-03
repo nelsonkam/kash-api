@@ -24,15 +24,9 @@ class KYCDocumentViewSet(ModelViewSet):
     @action(detail=True, methods=['post'])
     def document(self, request, pk=None):
         kyc_doc = self.get_object()
-        image = request.data['document']
-        kyc_doc.doc_url = upload_content_file(image, f"{uuid4()}-{image.get('name', 'doc.jpg')}", "private")
-        kyc_doc.save()
-        return Response(self.get_serializer(instance=kyc_doc).data)
-
-    @action(detail=True, methods=['post'])
-    def selfie(self, request, pk=None):
-        kyc_doc = self.get_object()
-        image = request.data['selfie']
-        kyc_doc.selfie_url = upload_content_file(image, f"{uuid4()}-{image.get('name', 'selfie.jpg')}", "private")
+        doc_image = request.data['document']
+        selfie = request.data['selfie']
+        kyc_doc.doc_url = upload_content_file(doc_image, f"{uuid4()}-{doc_image.name or 'doc.jpg'}", "private")
+        kyc_doc.selfie_url = upload_content_file(selfie, f"{uuid4()}-{selfie.name or 'selfie.jpg'}", "private")
         kyc_doc.save()
         return Response(self.get_serializer(instance=kyc_doc).data)

@@ -14,12 +14,12 @@ class KYCDocumentSerializer(ModelSerializer):
         }
         color_map = {
             'pending': '#F7AF22',
-            'accepted': '#1ACE4C',
+            'approved': '#1ACE4C',
             'rejected': "red"
         }
         text_map = {
             'pending': "En cours",
-            'accepted': 'Validée',
+            'approved': 'Validée',
             'rejected': "Rejétée"
         }
         return {

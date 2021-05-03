@@ -21,7 +21,9 @@ class Notification(BaseModel):
         if settings.DEBUG:
             self.sent_at = now()
             self.save()
-
+            print(
+                f"New push notification: \nRecipient: {self.profile}\nTitle: {self.title}\nDescription: {self.description}")
+            return
         client = Client(app_id=settings.ONESIGNAL_APP_ID, rest_api_key=settings.ONESIGNAL_REST_API_KEY)
 
         notification_body = {

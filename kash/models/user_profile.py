@@ -36,6 +36,16 @@ class UserProfile(BaseModel):
     avatar_url = models.URLField(blank=True)
     contacts = models.ManyToManyField('kash.UserProfile')
 
+    def push_notify(self, title, description, obj=None):
+        from kash.models import Notification
+        notify = Notification.objects.create(
+            title=title,
+            description=description,
+            content_object=obj,
+            profile=self,
+        )
+        notify.send()
+
     @property
     def name(self):
         return self.user.name
@@ -77,6 +87,9 @@ class UserProfile(BaseModel):
                 'max': 1000
             }
         }
+
+    def __str__(self):
+        return f'{self.name} (${self.kashtag})'
 
 
 @receiver(post_save, sender=UserProfile)

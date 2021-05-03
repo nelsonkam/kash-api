@@ -1,6 +1,10 @@
+import logging
+
 import boto3
 import uuid
 import base64
+
+from botocore.exceptions import ClientError
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
@@ -38,3 +42,24 @@ def money_to_dict(price):
         'amount': price.amount,
         'currency': str(price.currency)
     }
+
+
+def create_presigned_url(object_url, bucket_name=settings.DO_SPACES_BUCKET, expiration=3600):
+    session = boto3.session.Session()
+    client = session.client(
+        "s3",
+        region_name=settings.DO_SPACES_REGION,
+        endpoint_url=settings.DO_SPACES_ENDPOINT_URL,
+        aws_access_key_id=settings.DO_SPACES_KEY,
+        aws_secret_access_key=settings.DO_SPACES_SECRET,
+    )
+    try:
+        response = client.generate_presigned_url('get_object',
+                                                 Params={'Bucket': bucket_name,
+                                                         'Key': object_url.split("/")[-1]},
+                                                 ExpiresIn=expiration)
+    except ClientError as e:
+        logging.error(e)
+        return None
+
+    return response
