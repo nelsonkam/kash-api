@@ -34,6 +34,14 @@ class ProfileSerializer(ModelSerializer):
         profile.user.save()
         return profile
 
+    def update(self, instance, validated_data):
+        name = validated_data.pop('name', None)
+        instance = super(ProfileSerializer, self).update(instance, validated_data)
+        instance.user.name = name
+        instance.user.username = instance.kashtag
+        instance.user.save()
+        return instance
+
     class Meta:
         model = UserProfile
         fields = ['kashtag', 'txn_summary', 'limits', 'avatar_url', 'device_ids', 'user', 'name', 'payout_methods',

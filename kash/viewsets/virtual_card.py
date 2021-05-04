@@ -12,7 +12,9 @@ from core.utils.payment import rave_request
 from kash.models import Transaction
 from kash.serializers.virtual_card import VirtualCardSerializer
 from kash.utils import TransactionStatusEnum, Conversions
+
 logger = logging.getLogger(__name__)
+
 
 class VirtualCardViewSet(ModelViewSet):
     serializer_class = VirtualCardSerializer
@@ -56,9 +58,16 @@ class VirtualCardViewSet(ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def convert(self, request, pk=None):
-        card = self.get_object()
-        amount = Money(request.data.get('amount'), "USD")
-        amount = Conversions.get_xof_from_usd(amount)
+        currency = request.data.get('currency', 'USD')
+        is_withdrawal = request.data.get('is_withdrawal', False)
+        if currency.upper() == 'USD':
+            amount = Money(request.data.get('amount'), "USD")
+            amount = Conversions.get_xof_from_usd(amount, is_withdrawal=is_withdrawal)
+        elif currency.upper() == 'XOF':
+            amount = Money(request.data.get('amount'), 'XOF')
+            amount = Conversions.get_usd_from_xof(amount)
+        else:
+            raise NotImplemented
         return Response({'amount': round(amount.amount), 'fees': 0})
 
     @action(detail=True, methods=['get'])
@@ -110,5 +119,3 @@ class VirtualCardViewSet(ModelViewSet):
     @action(detail=True, methods=['post'])
     def funding_details(self, request, pk=None):
         return self.convert(request, pk=pk)
-
-

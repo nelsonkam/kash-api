@@ -249,7 +249,7 @@ class VirtualCard(BaseModel):
             rave_request("POST", f'/virtual-cards/{self.external_id}/withdraw', {
                 'amount': int(amount.amount)
             })
-        withdraw_amount = convert_money(amount, "XOF") - Money(200, "XOF")  # withdrawal fee
+        withdraw_amount = Conversions.get_xof_from_usd(amount, is_withdrawal=True)
         payout_method = self.profile.momo_accounts.first()
         txn = Transaction.objects.request(
             obj=self,
