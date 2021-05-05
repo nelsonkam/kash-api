@@ -13,13 +13,13 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='kycdocument',
             name='doc_url',
-            field=models.URLField(blank=True, default=''),
+            field=models.URLField(blank=True, null=True),
             preserve_default=False,
         ),
         migrations.AlterField(
             model_name='kycdocument',
             name='selfie_url',
-            field=models.URLField(blank=True, default=''),
+            field=models.URLField(blank=True, null=True),
             preserve_default=False,
         ),
     ]

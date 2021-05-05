@@ -23,9 +23,9 @@ class KYCDocument(BaseModel):
         approved = "approved"
         rejected = "rejected"
 
-    doc_url = models.URLField(blank=True)
+    doc_url = models.URLField(blank=True, null=True)
     document_type = models.CharField(max_length=25)
-    selfie_url = models.URLField(blank=True)
+    selfie_url = models.URLField(blank=True, null=True)
     profile = models.ForeignKey('kash.UserProfile', on_delete=models.CASCADE)
     status = models.CharField(max_length=30, choices=Status.choices, default=Status.pending)
     rejection_reason = models.TextField(blank=True)
