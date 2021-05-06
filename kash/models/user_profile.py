@@ -69,7 +69,7 @@ class UserProfile(BaseModel):
 
     @property
     def kyc_level(self):
-        return 2 if self.kycdocument_set.filter(status="approved") else 1
+        return 2 if self.kycdocument_set.filter(status="approved").exists() else 1
 
     @property
     def limits(self):
@@ -91,15 +91,3 @@ class UserProfile(BaseModel):
     def __str__(self):
         return f'{self.name} (${self.kashtag})'
 
-
-@receiver(post_save, sender=UserProfile)
-def notify_tg(sender, instance, created, **kwargs):
-    if created:
-        tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"""
-        New user of Kash!💪🏾
-
-        Nom: {instance.name}
-        Kashtag: ${instance.kashtag}
-
-        {"_Ceci est un message test._" if settings.DEBUG else ""}
-        """)

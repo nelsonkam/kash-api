@@ -41,13 +41,12 @@ class KYCDocument(BaseModel):
     @property
     def document_img(self):
         img_url = '' if not self.doc_url else create_presigned_url(self.doc_url)
-        return format_html('<img src="{}">', img_url)
+        return format_html('<img style="height: 500px; width: auto" src="{}">', img_url)
 
     @property
     def selfie_img(self):
         img_url = '' if not self.selfie_url else create_presigned_url(self.selfie_url)
-        print(img_url)
-        return format_html('<img src="{}">', img_url)
+        return format_html('<img style="height: 500px; width: auto" src="{}">', img_url)
 
 
 @receiver(post_save, sender=KYCDocument)
