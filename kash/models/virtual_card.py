@@ -111,6 +111,7 @@ class VirtualCard(BaseModel):
                 "is_active": True,
                 "callback_url": "https://your-callback-url.com/"
             }
+        rave2_request("POST", f'/cardservice/balance/{self.external_id}?seckey={settings.RAVE_SECRET_KEY}')
         resp = rave_request('GET', f'/virtual-cards/{self.external_id}')
 
         return resp.json().get("data")
