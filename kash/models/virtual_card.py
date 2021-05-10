@@ -116,6 +116,20 @@ class VirtualCard(BaseModel):
 
         return resp.json().get("data")
 
+    def get_statement(self):
+        if settings.DEBUG:
+            data = [{
+                "date": "2021-05-08",
+                "amount": "150.00",
+                "type": "Credit",
+                "balance_before": "30.00",
+                "balance_after": "180.00",
+                "merchant": "Funding"
+            }]
+        else:
+            data = self.rave2_transactions()
+        return [{**i, 'type': i.get('type').lower(), 'created_at': i.get('date'), 'status': "success",} for i in data]
+
     def get_transactions(self):
         if not self.external_id:
             return None
@@ -331,4 +345,3 @@ def fund_card(sender, **kwargs):
                     description=description
                 )
                 notif.send()
-

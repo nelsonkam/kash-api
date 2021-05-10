@@ -76,6 +76,12 @@ class VirtualCardViewSet(ModelViewSet):
 
         return Response(card.get_transactions())
 
+    @action(detail=True, methods=['get'])
+    def statement(self, request, pk=None):
+        card = self.get_object()
+
+        return Response(card.get_statement())
+
     @action(detail=True, methods=['post'])
     def freeze(self, request, pk=None):
         card = self.get_object()
