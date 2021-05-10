@@ -27,7 +27,7 @@ class KYCDocumentViewSet(ModelViewSet):
         kyc_doc = self.get_object()
         doc_image = request.data.get('document')
         selfie = request.data.get('selfie')
-        if not (doc_image or selfie):
+        if not doc_image or not selfie:
             raise ValidationError("A document image and selfie is required.")
         kyc_doc.doc_url = upload_content_file(doc_image, f"{uuid4()}-{doc_image.name or 'doc.jpg'}", "private")
         kyc_doc.selfie_url = upload_content_file(selfie, f"{uuid4()}-{selfie.name or 'selfie.jpg'}", "private")
