@@ -119,6 +119,13 @@ class VirtualCard(BaseModel):
     def get_statement(self):
         if settings.DEBUG:
             data = [{
+                "date": "2021-05-09",
+                "amount": "150.00",
+                "type": "Debit",
+                "balance_before": "30.00",
+                "balance_after": "180.00",
+                "merchant": "Funding"
+            },{
                 "date": "2021-05-08",
                 "amount": "150.00",
                 "type": "Credit",
@@ -128,7 +135,7 @@ class VirtualCard(BaseModel):
             }]
         else:
             data = self.rave2_transactions()
-        return [{**i, 'type': i.get('type').lower(), 'created_at': i.get('date'), 'status': "success",} for i in data]
+        return [{**i, 'type': i.get('type').lower(), 'created_at': i.get('date'), 'status': "success", } for i in data]
 
     def get_transactions(self):
         if not self.external_id:
