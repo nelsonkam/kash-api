@@ -203,10 +203,11 @@ class VirtualCard(BaseModel):
     def fund(self, amount, phone, gateway):
         from kash.models import Transaction, KashTransaction
         xof_amount = Conversions.get_xof_from_usd(amount)
+        total_amount = xof_amount + self.issuance_cost if not self.external_id else xof_amount
         txn = Transaction.objects.request(**{
             'obj': self,
             'name': self.profile.name,
-            'amount': Conversions.get_xof_from_usd(amount),
+            'amount': total_amount,
             'phone': phone,
             'gateway': gateway,
             'initiator': self.profile.user
