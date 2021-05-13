@@ -3,13 +3,13 @@ import logging
 from djmoney.contrib.exchange.models import convert_money
 from djmoney.money import Money
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from core.utils.payment import rave_request
-from kash.models import Transaction
+from kash.models import Transaction, VirtualCard
 from kash.serializers.virtual_card import VirtualCardSerializer
 from kash.utils import TransactionStatusEnum, Conversions
 
@@ -106,9 +106,23 @@ class VirtualCardViewSet(ModelViewSet):
         card.withdraw(Money(request.data.get('amount'), 'USD'))
         return Response(self.get_serializer(card).data)
 
-    @action(detail=False, methods=['post'], permission_classes=[])
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
     def txn_callback(self, request):
         logger.info(request.data)
+        card_id = request.data.get("CardId")
+        card = VirtualCard.objects.get(external_id=card_id)
+        amount = request.data.get("Amount")
+        merchant_name = request.data.get("MerchantName")
+        description = request.data.get("Description")
+
+        if request.data.get("Status").lower() == "failed":
+            card.profile.push_notify("⚠️ Échec de transaction",
+                                     f"Ta carte {card.nickname} n'a pas pu être débitée de ${amount} par {merchant_name}. Raison: {description}",
+                                     card)
+        else:
+            card.profile.push_notify("Nouvelle transaction 💳",
+                                     f"Ta carte {card.nickname} vient d'être débitée de ${amount} par {merchant_name}. {'Description: ' + description if description else ''}",
+                                     card)
         return Response(status=200)
 
     # Deprecated: Only available for legacy reasons
