@@ -318,7 +318,6 @@ def fund_card(sender, **kwargs):
     from kash.models import Notification
     txn = kwargs.pop("transaction")
     vcard_type = ContentType.objects.get_for_model(VirtualCard)
-    print("fund_card", txn.reference, txn.status)
 
     if txn.content_type == vcard_type and txn.status == TransactionStatusEnum.failed.value:
         item = FundingHistory.objects.filter(txn_ref=txn.reference, card=txn.content_object).first()

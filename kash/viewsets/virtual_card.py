@@ -3,7 +3,7 @@ import logging
 from djmoney.contrib.exchange.models import convert_money
 from djmoney.money import Money
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -106,7 +106,7 @@ class VirtualCardViewSet(ModelViewSet):
         card.withdraw(Money(request.data.get('amount'), 'USD'))
         return Response(self.get_serializer(card).data)
 
-    @action(detail=False, methods=['post'], permission_classes=[])
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
     def txn_callback(self, request):
         logger.info(request.data)
         return Response(status=200)

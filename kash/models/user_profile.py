@@ -78,6 +78,14 @@ class UserProfile(BaseModel):
                 'min': 25,
                 'max': 100000
             },
+            'deposit': {
+                'min': 25,
+                'max': 500000
+            },
+            'withdraw': {
+                'min': 1,
+                'max': self.wallets.get(balance_currency="USD").balance.amount
+            },
             'purchase-card': {
                 'min': 5,
                 'max': 1000,

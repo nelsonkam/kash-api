@@ -15,6 +15,7 @@ from kash.viewsets.profile import ProfileViewset
 from kash.viewsets.session import CheckoutSessionViewset
 from kash.viewsets.transaction import TransactionViewSet
 from kash.viewsets.virtual_card import VirtualCardViewSet
+from kash.viewsets.wallet import WalletViewSet
 from storefront.viewsets import ShopViewSet
 
 router = SimpleRouter()
@@ -30,11 +31,13 @@ router.register("requests", KashRequestViewSet, "request-kash")
 router.register("notifications", NotificationViewset, "notifications")
 router.register("invites", InviteCodeViewset, "invites")
 router.register("kyc", KYCDocumentViewSet, "kyc")
+router.register("wallets", WalletViewSet, "wallets")
 router.register("auth", AuthViewSet, "auth")
 
 # Deprecated. Kept for legacy reasons.
 router.register("payout-methods", MomoAccountViewset, "payout-methods")
 
 urlpatterns = router.urls + [
-    path('version/', views.version, name='kash-version')
+    path('version/', views.version, name='kash-version'),
+    path('rates/', views.rates, name='kash-rates'),
 ]

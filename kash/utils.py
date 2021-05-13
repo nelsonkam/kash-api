@@ -1,4 +1,5 @@
 from _blake2 import blake2b
+from decimal import Decimal
 from enum import Enum as BaseEnum
 from uuid import uuid4
 
@@ -55,6 +56,16 @@ class TransactionType(models.TextChoices):
 
 
 class Conversions:
+    @staticmethod
+    def get_xof_usd_deposit_rate():
+        return convert_money(Money(1, "USD"), "XOF").amount + (
+                    Decimal(0.1) * convert_money(Money(1, "USD"), "XOF").amount)
+
+    @staticmethod
+    def get_xof_usd_withdrawal_rate():
+        return convert_money(Money(1, "USD"), "XOF").amount - (
+                    Decimal(0.01) * convert_money(Money(1, "USD"), "XOF").amount)
+
     @staticmethod
     def get_xof_from_usd(amount, is_withdrawal=False):
         rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount={float(amount.amount)}').json()
