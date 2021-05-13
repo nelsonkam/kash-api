@@ -134,7 +134,8 @@ class VirtualCard(BaseModel):
                 "merchant": "Funding"
             }]
         else:
-            data = self.rave2_transactions()
+            data = self.rave2_transactions() or []
+
         return [{**i, 'type': i.get('type').lower(), 'created_at': i.get('date'), 'status': "success", } for i in data]
 
     def get_transactions(self):
