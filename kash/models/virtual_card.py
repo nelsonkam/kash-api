@@ -134,7 +134,8 @@ class VirtualCard(BaseModel):
                 "merchant": "Funding"
             }]
         else:
-            data = self.rave2_transactions()
+            data = self.rave2_transactions() or []
+
         return [{**i, 'type': i.get('type').lower(), 'created_at': i.get('date'), 'status': "success", } for i in data]
 
     def get_transactions(self):
@@ -203,10 +204,11 @@ class VirtualCard(BaseModel):
     def fund(self, amount, phone, gateway):
         from kash.models import Transaction, KashTransaction
         xof_amount = Conversions.get_xof_from_usd(amount)
+        total_amount = xof_amount + self.issuance_cost if not self.external_id else xof_amount
         txn = Transaction.objects.request(**{
             'obj': self,
             'name': self.profile.name,
-            'amount': Conversions.get_xof_from_usd(amount),
+            'amount': total_amount,
             'phone': phone,
             'gateway': gateway,
             'initiator': self.profile.user

@@ -24,6 +24,7 @@ class TransactionManager(models.Manager):
         assert gateway in GatewayEnum.values(), f"The gateway `{gateway}` is not supported."
         amount = amount if isinstance(amount, Money) else Money(amount, 'XOF')
         amount = round(convert_money(amount, "XOF"))
+        print(amount)
         transaction = self.model(
             content_object=obj,
             name=name or '',
