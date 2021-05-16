@@ -2,7 +2,7 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 
 from core.utils import money_to_dict
-from kash.models import Wallet, WalletTransaction
+from kash.models import Wallet
 
 
 class WalletSerializer(ModelSerializer):
@@ -13,15 +13,7 @@ class WalletSerializer(ModelSerializer):
 
     class Meta:
         model = Wallet
-        fields = ["balance", "balance_currency", "xof_amount"]
+        fields = ["external_id", "xof_amount", "balance"]
 
 
-class WalletTransactionSerializer(ModelSerializer):
-    class Meta:
-        model = WalletTransaction
-        fields = ["amount",
-                  "amount_currency",
-                  "running_balance",
-                  "running_balance_currency",
-                  "merchant", "narration",
-                  "timestamp", "is_anonymous"]
+

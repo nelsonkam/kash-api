@@ -5,6 +5,7 @@ from core.serializers import UserSerializer
 from kash.models import UserProfile
 from kash.serializers.invite_code import InviteCodeSerializer
 from kash.serializers.payout_method import MomoAccountSerializer
+from kash.serializers.wallet import WalletSerializer
 
 
 class ProfileSerializer(ModelSerializer):
@@ -13,6 +14,7 @@ class ProfileSerializer(ModelSerializer):
     payout_methods = serializers.SerializerMethodField()
     momo_accounts = serializers.SerializerMethodField()
     invite = InviteCodeSerializer(read_only=True)
+    wallet = WalletSerializer(read_only=True)
 
     def get_payout_methods(self, obj):
         serializer = MomoAccountSerializer(obj.momo_accounts.all(), many=True)
@@ -45,7 +47,7 @@ class ProfileSerializer(ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['kashtag', 'txn_summary', 'limits', 'avatar_url', 'device_ids', 'user', 'name', 'payout_methods',
-                  'momo_accounts', 'invite', 'kyc_level', 'phone_number']
+                  'momo_accounts', 'invite', 'kyc_level', 'phone_number', 'wallet']
 
 
 class LimitedProfileSerializer(ModelSerializer):

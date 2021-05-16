@@ -9,4 +9,4 @@ from .kash_request import KashRequest, KashRequestResponse
 from .invite_code import InviteCode
 from .kash_transaction import KashTransaction
 from .kyc_document import KYCDocument
-from .wallet import Wallet, WalletTransaction
+from .wallet import Wallet

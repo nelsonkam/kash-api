@@ -1,7 +1,6 @@
 import requests
 import stripe
 from django.conf import settings
-from kkiapay import Kkiapay
 
 FEDAPAY_URL = (
     "https://sandbox-api.fedapay.com" if settings.DEBUG else "https://api.fedapay.com"
@@ -63,14 +62,15 @@ class KKiaPayment:
 
     @classmethod
     def verify_transaction(cls, transaction_id=None, **kwargs):
-        k = Kkiapay(
-            settings.KKIAPAY_PUBLIC_KEY,
-            settings.KKIAPAY_PRIVATE_KEY,
-            settings.KKIAPAY_SECRET_KEY,
-            sandbox=settings.DEBUG,
-        )
-        transaction = k.verify_transaction(transaction_id)
-        return transaction.status == "SUCCESS"
+        # k = Kkiapay(
+        #     settings.KKIAPAY_PUBLIC_KEY,
+        #     settings.KKIAPAY_PRIVATE_KEY,
+        #     settings.KKIAPAY_SECRET_KEY,
+        #     sandbox=settings.DEBUG,
+        # )
+        # transaction = k.verify_transaction(transaction_id)
+        # return transaction.status == "SUCCESS"
+        pass
 
 
 class RavePayment:

@@ -18,6 +18,7 @@ import stripe
 from celery.schedules import crontab
 from django.utils.translation import gettext_lazy as _
 from sentry_sdk.integrations.django import DjangoIntegration
+from stellar_sdk import Asset, Network
 
 env = environ.Env(DEBUG=(bool, False))
 
@@ -159,6 +160,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': '100/day',
+        'deposit': "1/minute"
     },
     "PAGE_SIZE": 20
 }
@@ -261,6 +263,11 @@ ONESIGNAL_REST_API_KEY = env('ONESIGNAL_REST_API_KEY')
 BINANCE_API_KEY = env('BINANCE_API_KEY')
 BINANCE_SECRET_KEY = env('BINANCE_SECRET_KEY')
 BINANCE_API_URL = env('BINANCE_API_URL')
+
+USDC_ASSET = Asset(issuer=env("STELLAR_USDC_ISSUER"), code=env("STELLAR_USDC_CODE"))
+STELLAR_MASTER_WALLET_SK = env("STELLAR_MASTER_WALLET_SK")
+STELLAR_HORIZON_URL = env("STELLAR_HORIZON_URL")
+STELLAR_NETWORK_PASSPHRASE = Network.PUBLIC_NETWORK_PASSPHRASE if not DEBUG else Network.TESTNET_NETWORK_PASSPHRASE
 
 CELERY_BROKER_URL = env('REDIS_URL')
 CELERY_RESULT_BACKEND = env('REDIS_URL')
