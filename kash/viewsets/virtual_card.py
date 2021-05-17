@@ -120,9 +120,14 @@ class VirtualCardViewSet(ModelViewSet):
                                      f"Ta carte {card.nickname} n'a pas pu être débitée de ${amount} par {merchant_name}. Raison: {description}",
                                      card)
         else:
-            card.profile.push_notify("Nouvelle transaction 💳",
-                                     f"Ta carte {card.nickname} vient d'être débitée de ${amount} par {merchant_name}. {'Description: ' + description if description else ''}",
-                                     card)
+            if request.data.get("Type").lower() == "debit":
+                card.profile.push_notify("Nouvelle transaction 💳",
+                                         f"Ta carte {card.nickname} vient d'être débitée de ${amount} par {merchant_name}. {'Description: ' + description if description else ''}",
+                                         card)
+            else:
+                card.profile.push_notify("Nouvelle transaction 💳",
+                                         f"Ta carte {card.nickname} vient d'être créditée de ${amount} par {merchant_name}. {'Description: ' + description if description else ''}",
+                                         card)
         return Response(status=200)
 
     # Deprecated: Only available for legacy reasons
