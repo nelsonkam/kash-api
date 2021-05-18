@@ -1,5 +1,6 @@
 import re
 from datetime import timedelta
+from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -13,6 +14,8 @@ from django.dispatch import receiver
 from django.utils.deconstruct import deconstructible
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
+from djmoney.contrib.exchange.models import convert_money
+from djmoney.money import Money
 
 from core.models.base import BaseModel
 from core.utils.notify import tg_bot
@@ -76,7 +79,7 @@ class UserProfile(BaseModel):
         return {
             'sendkash': {
                 'min': 25,
-                'max': 100000
+                'max': round(convert_money(Money(Decimal(self.wallet.balance), "USD"), "XOF").amount) - 50
             },
             'deposit': {
                 'min': 25,
@@ -84,7 +87,7 @@ class UserProfile(BaseModel):
             },
             'withdraw': {
                 'min': 1,
-                'max': self.wallets.get(balance_currency="USD").balance.amount
+                'max': Decimal(self.wallet.balance)
             },
             'purchase-card': {
                 'min': 5,

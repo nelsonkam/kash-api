@@ -115,20 +115,20 @@ class StellarHelpers:
         return StellarHelpers.horizon_server.submit_transaction(fee_bump)
 
     @staticmethod
-    def claim_pending_balances(claimant):
+    def claim_pending_balances(keypair: Keypair):
         resp = StellarHelpers.horizon_server \
             .claimable_balances() \
-            .for_claimant(claimant) \
+            .for_claimant(keypair.public_key) \
             .order(True).call()
         records = resp.get("_embedded").get("records")
         if len(records) > 0:
             transaction = TransactionBuilder(
-                source_account=StellarHelpers.get_account(claimant),
+                source_account=StellarHelpers.get_account(keypair.public_key),
                 network_passphrase=settings.STELLAR_NETWORK_PASSPHRASE,
                 base_fee=1000
             )
             for balance in records:
                 transaction = transaction.append_claim_claimable_balance_op(balance_id=balance.get('id'))
             transaction = transaction.build()
-            transaction.sign(StellarHelpers.master_keypair)
+            transaction.sign(keypair)
             StellarHelpers.submit_fee_bump_transaction(transaction)

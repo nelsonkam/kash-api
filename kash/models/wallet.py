@@ -55,13 +55,7 @@ class WalletManager(models.Manager):
             source=keypair.public_key
         ).append_end_sponsoring_future_reserves_op(
             source=keypair.public_key
-        ).append_begin_sponsoring_future_reserves_op(
-            sponsored_id=keypair.public_key
-        ).append_ed25519_public_key_signer(
-            account_id=StellarHelpers.get_master_account().account_id,
-            weight=1,
-            source=keypair.public_key
-        ).append_end_sponsoring_future_reserves_op(source=keypair.public_key).build()
+        ).build()
         transaction.sign(keypair)
         transaction.sign(master_keypair)
         StellarHelpers.submit_transaction(transaction)
@@ -90,6 +84,10 @@ class Wallet(BaseModel):
         )
 
     @property
+    def keypair(self):
+        return Keypair.from_secret(str(self.secret_key))
+
+    @property
     def xof_amount(self):
         return convert_money(Money(self.balance, "USD"), "XOF")
 
@@ -100,23 +98,41 @@ class Wallet(BaseModel):
         balance = [balance for balance in balances if balance.get('asset_code') == settings.USDC_ASSET.code][0]
         return balance.get("balance")
 
-    def transfer(self, wallet, amount: Money, narration: str = None):
-        transaction = self.get_transaction_builder(
-        ).append_payment_op(
-            destination=wallet.external_id,
-            amount=amount.amount,
+    def bulk_transfer(self, wallets, amount: Money, narration: str = None):
+        if len(wallets) == 0:
+            return
+
+        transaction = self.get_transaction_builder()
+        xof_amount = convert_money(amount, "XOF")
+
+        for wallet in wallets:
+            transaction.append_payment_op(
+                destination=wallet.external_id,
+                amount=amount.amount,
+                asset_code=settings.USDC_ASSET.code,
+                asset_issuer=settings.USDC_ASSET.issuer
+            )
+        transaction.append_payment_op(
+            destination=StellarHelpers.get_master_account().account_id,
+            amount=round(convert_money(Money(50, "XOF"), "USD").amount, 2),
             asset_code=settings.USDC_ASSET.code,
             asset_issuer=settings.USDC_ASSET.issuer
         )
         if narration:
             transaction = transaction.add_text_memo(narration)
         transaction = transaction.build()
-        transaction.sign(StellarHelpers.master_keypair)
+        transaction.sign(self.keypair)
         StellarHelpers.submit_fee_bump_transaction(transaction)
-        wallet.profile.push_notify(
-            title="Le goût de ça 🤑",
-            description=f"${wallet.profile.kashtag} vient de t'envoyer ${amount}",
-        )
+
+        for wallet in wallets:
+            wallet.profile.push_notify(
+                obj=wallet,
+                title="Le goût de ça 🤑",
+                description=f"${self.profile.kashtag} vient de t'envoyer {amount} ({xof_amount})",
+            )
+
+    def transfer(self, wallet, amount: Money, narration: str = None):
+        return self.bulk_transfer([wallet], amount, narration)
 
     def withdraw(self, amount: Money):
         from kash.models import Transaction
@@ -127,7 +143,7 @@ class Wallet(BaseModel):
             asset_issuer=settings.USDC_ASSET.issuer,
             asset_code=settings.USDC_ASSET.code,
         ).add_text_memo("Retrait").build()
-        transaction.sign(StellarHelpers.master_keypair)
+        transaction.sign(self.keypair)
         StellarHelpers.submit_fee_bump_transaction(transaction)
 
         xof_amount = amount.amount * Conversions.get_xof_usd_withdrawal_rate()
@@ -160,15 +176,7 @@ class Wallet(BaseModel):
         StellarHelpers.submit_transaction(transaction)
 
     def deposit(self):
-        resp = StellarHelpers.horizon_server.claimable_balances().for_claimant(self.external_id).order(True).call()
-        records = resp.get("_embedded").get("records")
-        transaction = self.get_transaction_builder()
-        if len(records) > 0:
-            for balance in records:
-                transaction = transaction.append_claim_claimable_balance_op(balance_id=balance.get('id'))
-            transaction = transaction.build()
-            transaction.sign(StellarHelpers.master_keypair)
-            StellarHelpers.submit_fee_bump_transaction(transaction)
+        StellarHelpers.claim_pending_balances(self.keypair)
 
 
 @receiver(transaction_status_changed)
@@ -179,22 +187,7 @@ def deposit_wallet(sender, **kwargs):
     if txn.content_type == wallet_type \
             and txn.transaction_type == TransactionType.payment \
             and txn.status == TransactionStatusEnum.failed.value:
-        resp = StellarHelpers.horizon_server \
-            .claimable_balances() \
-            .for_claimant(StellarHelpers.master_keypair.public_key) \
-            .order(True).call()
-        records = resp.get("_embedded").get("records")
-        if len(records) > 0:
-            transaction = TransactionBuilder(
-                source_account=StellarHelpers.get_master_account(),
-                network_passphrase=settings.STELLAR_NETWORK_PASSPHRASE,
-                base_fee=1000
-            )
-            for balance in records:
-                transaction = transaction.append_claim_claimable_balance_op(balance_id=balance.get('id'))
-            transaction = transaction.build()
-            transaction.sign(StellarHelpers.master_keypair)
-            StellarHelpers.submit_fee_bump_transaction(transaction)
+        StellarHelpers.claim_pending_balances(StellarHelpers.master_keypair)
 
     if txn.content_type == wallet_type \
             and txn.transaction_type == TransactionType.payment \

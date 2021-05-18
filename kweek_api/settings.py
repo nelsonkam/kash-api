@@ -159,7 +159,7 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.AnonRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/day',
+        'anon': '200/day',
         'deposit': "1/minute"
     },
     "PAGE_SIZE": 20

@@ -32,7 +32,7 @@ class NotificationObjectSerializer(serializers.RelatedField):
 
 
 class NotificationSerializer(ModelSerializer):
-    content_object = SerializerMethodField(read_only=True)
+    # content_object = SerializerMethodField(read_only=True)
 
     def get_content_object(self, obj):
         value = obj.content_object
@@ -56,4 +56,4 @@ class NotificationSerializer(ModelSerializer):
 
     class Meta:
         model = Notification
-        fields = ['id', 'title', 'description', 'created_at', 'content_object']
+        fields = ['id', 'title', 'description', 'created_at']

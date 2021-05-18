@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from kash.models import Transaction, Wallet
+from kash.models import Transaction, Wallet, UserProfile
 from kash.pagination import KashPagination
 from kash.serializers.wallet import WalletSerializer
 from kash.throttles import DepositRateThrottle
@@ -53,9 +53,10 @@ class WalletViewSet(ReadOnlyModelViewSet):
             wallet.external_id
         ).include_failed(True).cursor(cursor).order(True).limit(50).call()
         transactions = transactions.get("_embedded").get("records")
+
         source_accts = Wallet.objects.filter(
-            external_id__in=[txn.get('source_account') for txn in transactions]
-        ).distinct('external_id').values('profile__kashtag', 'external_id')
+            external_id__in=[txn.get('to') for txn in transactions] + [txn.get('from') for txn in transactions]
+        ).distinct('external_id').values_list('profile__kashtag', 'external_id')
         source_accts = list(source_accts)
 
         def get_kashtag(txn):
@@ -64,7 +65,7 @@ class WalletViewSet(ReadOnlyModelViewSet):
                 return "Kash"
             else:
                 kashtags = [kashtag for kashtag, external_id in source_accts if external_id == source_account]
-                return kashtags[0] if len(kashtags) > 0 else "Anonyme"
+                return f"${kashtags[0]}" if len(kashtags) > 0 else "Anonyme"
 
         def get_memo(txn):
             data = StellarHelpers.horizon_server.transactions().transaction(txn.get('transaction_hash')).call()
@@ -123,3 +124,16 @@ class WalletViewSet(ReadOnlyModelViewSet):
         amount = Money(request.data.get('amount'), request.data.get('currency', "USD"))
         wallet.withdraw(amount)
         return Response(status=200)
+
+    @action(detail=True, methods=["POST"])
+    def transfer(self, request, external_id=None):
+        wallet = self.get_object()
+        tags = request.data.get("recipient_tags")
+        profiles = UserProfile.objects.filter(kashtag__in=tags)
+        nowallet_profiles = profiles.filter(wallet__isnull=True)
+        for profile in nowallet_profiles:
+            Wallet.objects.create(profile=profile)
+        wallets = Wallet.objects.filter(profile__kashtag__in=tags)
+        wallet.bulk_transfer(wallets, Money(request.data.get("amount"), "USD"), request.data.get("note"))
+        return Response(status=200)
+
