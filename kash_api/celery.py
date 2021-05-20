@@ -3,9 +3,9 @@ import os
 from celery import Celery
 
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kweek_api.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kash_api.settings")
 
-app = Celery("kweek_api")
+app = Celery("kash_api")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 

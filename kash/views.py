@@ -5,7 +5,7 @@ from djmoney.money import Money
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from kash.utils import Conversions
+from kash.utils import Conversions, StellarHelpers
 
 
 @api_view(http_method_names=['GET'])
@@ -32,3 +32,4 @@ def rates(request):
             "XOF": round(convert_money(Money(1, "USD"), "XOF").amount)
         }
     })
+

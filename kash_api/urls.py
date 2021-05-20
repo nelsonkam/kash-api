@@ -1,4 +1,4 @@
-"""kweek_api URL Configuration
+"""kash_api URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.1/topics/http/urls/
@@ -20,6 +20,4 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("core.urls")),
     path("kash/", include("kash.urls")),
-    path("shop_admin/", include("shop_admin.urls")),
-    path("affiliate/", include("affiliates.urls")),
 ]

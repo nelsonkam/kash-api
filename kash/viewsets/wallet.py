@@ -45,45 +45,6 @@ class WalletViewSet(ReadOnlyModelViewSet):
         self.check_object_permissions(self.request, obj)
         return obj
 
-    @action(detail=True, methods=["GET"])
-    def transactions(self, request: Request, external_id=None):
-        wallet = self.get_object()
-        cursor = request.query_params.get("cursor")
-        transactions = StellarHelpers.horizon_server.payments().for_account(
-            wallet.external_id
-        ).include_failed(True).cursor(cursor).order(True).limit(50).call()
-        transactions = transactions.get("_embedded").get("records")
-
-        source_accts = Wallet.objects.filter(
-            external_id__in=[txn.get('to') for txn in transactions] + [txn.get('from') for txn in transactions]
-        ).distinct('external_id').values_list('profile__kashtag', 'external_id')
-        source_accts = list(source_accts)
-
-        def get_kashtag(txn):
-            source_account = txn.get('to') if txn.get('from') == wallet.external_id else txn.get('from')
-            if source_account == StellarHelpers.master_keypair.public_key:
-                return "Kash"
-            else:
-                kashtags = [kashtag for kashtag, external_id in source_accts if external_id == source_account]
-                return f"${kashtags[0]}" if len(kashtags) > 0 else "Anonyme"
-
-        def get_memo(txn):
-            data = StellarHelpers.horizon_server.transactions().transaction(txn.get('transaction_hash')).call()
-            if data.get('memo_type') == 'text':
-                return data.get('memo')
-            return None
-
-        return Response([{
-            'id': txn.get('id'),
-            'cursor': txn.get('paging_token'),
-            'successful': txn.get('transaction_successful'),
-            'created_at': txn.get('created_at'),
-            'type': 'debit' if txn.get('from') == wallet.external_id else 'credit',
-            'amount': txn.get('amount'),
-            'source': get_kashtag(txn),
-            'memo': get_memo(txn)
-        } for txn in transactions if txn.get('type') == 'payment'])
-
     @action(detail=True, methods=["POST"])
     def deposit(self, request, external_id=None):
         wallet = self.get_object()

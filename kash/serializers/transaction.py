@@ -3,7 +3,7 @@ from rest_framework.serializers import ModelSerializer
 from kash.models import Transaction
 
 
-class TransactionSerializer(ModelSerializer):
+class QosicTransactionSerializer(ModelSerializer):
 
     class Meta:
         model = Transaction

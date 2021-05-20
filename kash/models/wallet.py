@@ -108,13 +108,13 @@ class Wallet(BaseModel):
         for wallet in wallets:
             transaction.append_payment_op(
                 destination=wallet.external_id,
-                amount=amount.amount,
+                amount=round(amount.amount, 7),
                 asset_code=settings.USDC_ASSET.code,
                 asset_issuer=settings.USDC_ASSET.issuer
             )
         transaction.append_payment_op(
             destination=StellarHelpers.get_master_account().account_id,
-            amount=round(convert_money(Money(50, "XOF"), "USD").amount, 2),
+            amount=round(convert_money(Money(50, "XOF"), "USD").amount, 7),
             asset_code=settings.USDC_ASSET.code,
             asset_issuer=settings.USDC_ASSET.issuer
         )

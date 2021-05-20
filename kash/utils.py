@@ -132,3 +132,41 @@ class StellarHelpers:
             transaction = transaction.build()
             transaction.sign(keypair)
             StellarHelpers.submit_fee_bump_transaction(transaction)
+
+    @staticmethod
+    def format_payment_transactions(wallet, payments):
+        from kash.models import Wallet
+
+        source_accts = Wallet.objects.filter(
+            external_id__in=[payment.get('to') for payment in payments] + [payment.get('from') for payment in payments]
+        ).distinct('external_id').values_list('profile__kashtag', 'external_id')
+        source_accts = list(source_accts)
+
+        def get_kashtag(txn):
+            source_account = txn.get('to') if txn.get('from') == wallet.external_id else txn.get('from')
+            if source_account == StellarHelpers.master_keypair.public_key:
+                return "Kash"
+            else:
+                kashtags = [kashtag for kashtag, external_id in source_accts if external_id == source_account]
+                return f"${kashtags[0]}" if len(kashtags) > 0 else "Anonyme"
+
+        def get_memo(txn):
+            data = StellarHelpers.horizon_server.transactions().transaction(txn.get('transaction_hash')).call()
+            if data.get('memo_type') == 'text':
+                return data.get('memo')
+            return None
+
+        return [{
+            'id': payment.get('id'),
+            'cursor': payment.get('paging_token'),
+            'successful': payment.get('transaction_successful'),
+            'created_at': payment.get('created_at'),
+            'type': 'debit' if payment.get('from') == wallet.external_id else 'credit',
+            'amount': payment.get('amount'),
+            'source': get_kashtag(payment),
+            'memo': get_memo(payment)
+        } for payment in payments if payment.get("type") == "payment"]
+
+    @staticmethod
+    def format_payment_transaction(wallet, payment):
+        return StellarHelpers.format_payment_transactions(wallet, [payment])

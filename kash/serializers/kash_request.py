@@ -6,22 +6,11 @@ from core.utils import money_to_dict
 from kash.models import UserProfile, KashRequest, KashRequestResponse, Notification
 from kash.serializers.profile import ProfileSerializer, LimitedProfileSerializer
 
-
-class KashRequestResponseSerializer(serializers.ModelSerializer):
-    sender = serializers.SlugRelatedField(read_only=True, slug_field='kashtag')
-
-    class Meta:
-        model = KashRequestResponse
-        fields = ['sender', 'accepted']
-
-
 class KashRequestSerializer(serializers.ModelSerializer):
     recipient = LimitedProfileSerializer(read_only=True)
     initiator = LimitedProfileSerializer(read_only=True)
     recipient_tag = serializers.CharField(write_only=True)
     formatted = SerializerMethodField(read_only=True)
-    fees = SerializerMethodField(read_only=True)
-    total = SerializerMethodField(read_only=True)
     responses = SerializerMethodField(read_only=True)
 
     # Depreacted. v1 Legacy
@@ -29,12 +18,6 @@ class KashRequestSerializer(serializers.ModelSerializer):
         if obj.accepted_at or obj.rejected_at:
             return [{'sender': obj.recipient.kashtag, 'accepted': bool(obj.accepted_at)}]
         return []
-
-    def get_fees(self, obj):
-        return money_to_dict(obj.fees)
-
-    def get_total(self, obj):
-        return money_to_dict(obj.total)
 
     def get_formatted(self, obj):
         amount = obj.amount.amount
@@ -54,5 +37,5 @@ class KashRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = KashRequest
         fields = ['id', 'recipient', 'recipient_tag', 'initiator', 'note', 'amount',
-                  'amount_currency', 'responses', 'fees', 'total', 'formatted', 'created_at', 'accepted_at',
+                  'amount_currency', 'responses', 'formatted', 'created_at', 'accepted_at',
                   'rejected_at']

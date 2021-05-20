@@ -10,11 +10,12 @@ from django.dispatch import receiver
 from djmoney.contrib.exchange.models import convert_money
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money, Currency
+from stellar_sdk import TransactionBuilder
 
 from core.models.base import BaseModel
 from core.utils.payment import rave_request, rave2_request
 from kash.signals import transaction_status_changed
-from kash.utils import TransactionStatusEnum, TransactionType, Conversions
+from kash.utils import TransactionStatusEnum, TransactionType, Conversions, StellarHelpers
 
 
 class VirtualCard(BaseModel):
@@ -272,18 +273,32 @@ class VirtualCard(BaseModel):
             rave_request("POST", f'/virtual-cards/{self.external_id}/withdraw', {
                 'amount': int(amount.amount)
             })
-        withdraw_amount = Conversions.get_xof_from_usd(amount, is_withdrawal=True)
-        payout_method = self.profile.momo_accounts.first()
-        txn = Transaction.objects.request(
-            obj=self,
-            name=self.profile.name,
-            amount=withdraw_amount,
-            phone=payout_method.phone,
-            gateway=payout_method.gateway,
-            initiator=self.profile.user,
-            txn_type=TransactionType.payout
-        )
-        WithdrawalHistory.objects.create(txn_ref=txn.reference, card=self, amount=amount)
+        if hasattr(self.profile, "wallet"):
+            transaction = TransactionBuilder(
+                source_account=StellarHelpers.get_master_account(),
+                network_passphrase=settings.STELLAR_NETWORK_PASSPHRASE,
+                base_fee=1000
+            ).append_payment_op(
+                destination=self.profile.wallet.external_id,
+                amount=amount.amount,
+                asset_issuer=settings.USDC_ASSET.issuer,
+                asset_code=settings.USDC_ASSET.code
+            ).add_text_memo(f'Retrait de la carte "{self.nickname}"').build()
+            transaction.sign(StellarHelpers.master_keypair)
+            StellarHelpers.submit_transaction(transaction)
+        else:
+            withdraw_amount = Conversions.get_xof_from_usd(amount, is_withdrawal=True)
+            payout_method = self.profile.momo_accounts.first()
+            txn = Transaction.objects.request(
+                obj=self,
+                name=self.profile.name,
+                amount=withdraw_amount,
+                phone=payout_method.phone,
+                gateway=payout_method.gateway,
+                initiator=self.profile.user,
+                txn_type=TransactionType.payout
+            )
+            WithdrawalHistory.objects.create(txn_ref=txn.reference, card=self, amount=amount)
         return
 
     def terminate(self):

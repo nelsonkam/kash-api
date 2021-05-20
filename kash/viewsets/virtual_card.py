@@ -108,7 +108,6 @@ class VirtualCardViewSet(ModelViewSet):
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
     def txn_callback(self, request):
-        logger.info(request.data)
         card_id = request.data.get("CardId")
         card = VirtualCard.objects.get(external_id=card_id)
         amount = request.data.get("Amount")
