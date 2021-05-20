@@ -273,6 +273,7 @@ class VirtualCard(BaseModel):
             rave_request("POST", f'/virtual-cards/{self.external_id}/withdraw', {
                 'amount': int(amount.amount)
             })
+        withdraw_amount = Conversions.get_xof_from_usd(amount, is_withdrawal=True)
         if hasattr(self.profile, "wallet"):
             transaction = TransactionBuilder(
                 source_account=StellarHelpers.get_master_account(),
@@ -280,14 +281,13 @@ class VirtualCard(BaseModel):
                 base_fee=1000
             ).append_payment_op(
                 destination=self.profile.wallet.external_id,
-                amount=amount.amount,
+                amount=round(withdraw_amount.amount / Conversions.get_xof_usd_deposit_rate(), 7),
                 asset_issuer=settings.USDC_ASSET.issuer,
                 asset_code=settings.USDC_ASSET.code
             ).add_text_memo(f'Retrait de la carte "{self.nickname}"').build()
             transaction.sign(StellarHelpers.master_keypair)
             StellarHelpers.submit_transaction(transaction)
         else:
-            withdraw_amount = Conversions.get_xof_from_usd(amount, is_withdrawal=True)
             payout_method = self.profile.momo_accounts.first()
             txn = Transaction.objects.request(
                 obj=self,

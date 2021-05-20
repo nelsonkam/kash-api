@@ -19,7 +19,7 @@ from djmoney.money import Money
 
 from core.models.base import BaseModel
 from core.utils.notify import tg_bot
-from kash.utils import TransactionStatusEnum
+from kash.utils import TransactionStatusEnum, Conversions
 
 
 @deconstructible
@@ -79,15 +79,15 @@ class UserProfile(BaseModel):
         return {
             'sendkash': {
                 'min': 25,
-                'max': round(convert_money(Money(Decimal(self.wallet.balance), "USD"), "XOF").amount) - 50
+                'max': self.wallet.xof_amount.amount - 25
             },
             'deposit': {
                 'min': 25,
                 'max': 500000
             },
             'withdraw': {
-                'min': 1,
-                'max': Decimal(self.wallet.balance)
+                'min': 100,
+                'max': self.wallet.xof_amount.amount - 100
             },
             'purchase-card': {
                 'min': 5,

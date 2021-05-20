@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.dispatch import receiver
@@ -89,7 +91,7 @@ class Wallet(BaseModel):
 
     @property
     def xof_amount(self):
-        return convert_money(Money(self.balance, "USD"), "XOF")
+        return Money(Decimal(self.balance) * Conversions.get_xof_usd_deposit_rate(), "XOF")
 
     @property
     def balance(self):
@@ -114,7 +116,7 @@ class Wallet(BaseModel):
             )
         transaction.append_payment_op(
             destination=StellarHelpers.get_master_account().account_id,
-            amount=round(convert_money(Money(50, "XOF"), "USD").amount, 7),
+            amount=round(Decimal(25) / Conversions.get_xof_usd_deposit_rate(), 7),
             asset_code=settings.USDC_ASSET.code,
             asset_issuer=settings.USDC_ASSET.issuer
         )
@@ -146,7 +148,7 @@ class Wallet(BaseModel):
         transaction.sign(self.keypair)
         StellarHelpers.submit_fee_bump_transaction(transaction)
 
-        xof_amount = amount.amount * Conversions.get_xof_usd_withdrawal_rate()
+        xof_amount = (amount.amount * Conversions.get_xof_usd_deposit_rate()) - 100
         payout_method = self.profile.momo_accounts.first()
         Transaction.objects.request(
             obj=self,

@@ -25,11 +25,11 @@ def rates(request):
         },
         "withdraw": {
             "USD": 1,
-            "XOF": Conversions.get_xof_usd_withdrawal_rate()
+            "XOF": Conversions.get_xof_usd_deposit_rate()
         },
         "transfer": {
             "USD": 1,
-            "XOF": round(convert_money(Money(1, "USD"), "XOF").amount)
+            "XOF": Conversions.get_xof_usd_deposit_rate()
         }
     })
 

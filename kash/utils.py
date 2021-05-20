@@ -59,13 +59,7 @@ class TransactionType(models.TextChoices):
 class Conversions:
     @staticmethod
     def get_xof_usd_deposit_rate():
-        return convert_money(Money(1, "USD"), "XOF").amount + (
-                Decimal(0.1) * convert_money(Money(1, "USD"), "XOF").amount)
-
-    @staticmethod
-    def get_xof_usd_withdrawal_rate():
-        return convert_money(Money(1, "USD"), "XOF").amount - (
-                Decimal(0.01) * convert_money(Money(1, "USD"), "XOF").amount)
+        return Decimal(650)
 
     @staticmethod
     def get_xof_from_usd(amount, is_withdrawal=False):
@@ -162,7 +156,7 @@ class StellarHelpers:
             'successful': payment.get('transaction_successful'),
             'created_at': payment.get('created_at'),
             'type': 'debit' if payment.get('from') == wallet.external_id else 'credit',
-            'amount': payment.get('amount'),
+            'amount': Decimal(payment.get('amount')) * Conversions.get_xof_usd_deposit_rate(),
             'source': get_kashtag(payment),
             'memo': get_memo(payment)
         } for payment in payments if payment.get("type") == "payment"]

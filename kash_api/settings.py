@@ -74,7 +74,7 @@ MIDDLEWARE = [
     'django_hosts.middleware.HostsResponseMiddleware'
 ]
 
-ROOT_URLCONF = "kweek_api.urls"
+ROOT_URLCONF = "kash_api.urls"
 ROOT_HOSTCONF = 'kash_api.hosts'
 DEFAULT_HOST = 'api'
 
