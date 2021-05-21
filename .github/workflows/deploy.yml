@@ -25,7 +25,7 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Deployment
-        uses: appleboy/ssh-action@main
+        uses: appleboy/ssh-action@v0.1.4
         with:
           host: ${{ secrets.SSH_HOST }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
