@@ -51,7 +51,7 @@ class WalletViewSet(ReadOnlyModelViewSet):
         amount = Decimal(request.data.get("amount"))
         if request.data.get("currency").upper() == "XOF":
             xof_amount = amount
-            usd_amount = Decimal(round(amount / Conversions.get_xof_usd_deposit_rate(), 2))
+            usd_amount = Decimal(round(amount / Conversions.get_xof_usd_deposit_rate(), 7))
         elif request.data.get("currency").upper() == "USD":
             xof_amount = amount * Conversions.get_xof_usd_deposit_rate()
             usd_amount = amount
