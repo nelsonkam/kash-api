@@ -29,7 +29,6 @@ jobs:
           USERNAME: ${{ secrets.SSH_USERNAME }}
           KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         with:
-          rm: true
           source: "."
           target: "~/apps/kash-api"
 
