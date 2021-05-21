@@ -43,6 +43,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           script: |
             cd ~/apps/kash-api
-            echo $ENV_VAR > .env
+            echo "$ENV_VAR" 
+            echo "$ENV_VAR" > .env
             sudo docker-compose up -d --build
 
