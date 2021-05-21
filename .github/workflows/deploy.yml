@@ -22,6 +22,16 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      - name: Copy file via scp
+        uses: appleboy/scp-action@master
+        env:
+          HOST: ${{ secrets.HOST }}
+          USERNAME: ${{ secrets.USERNAME }}
+          KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        with:
+          rm: true
+          source: "."
+          target: "~/apps/kash-api"
 
       # Runs a single command using the runners shell
       - name: Deployment
@@ -32,6 +42,5 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           script: |
             cd ~/apps/kash-api
-            git fetch && git reset --hard origin/master
-            docker-compose up -d --build
+            sudo docker-compose up -d --build
 
