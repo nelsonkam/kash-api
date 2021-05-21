@@ -284,7 +284,7 @@ class VirtualCard(BaseModel):
                 amount=round(withdraw_amount.amount / Conversions.get_xof_usd_deposit_rate(), 7),
                 asset_issuer=settings.USDC_ASSET.issuer,
                 asset_code=settings.USDC_ASSET.code
-            ).add_text_memo(f'Retrait de la carte "{self.nickname}"').build()
+            ).add_text_memo(f'Retrait de la carte').build()
             transaction.sign(StellarHelpers.master_keypair)
             StellarHelpers.submit_transaction(transaction)
         else:
