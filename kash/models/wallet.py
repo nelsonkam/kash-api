@@ -105,7 +105,7 @@ class Wallet(BaseModel):
             return
 
         transaction = self.get_transaction_builder()
-        xof_amount = convert_money(amount, "XOF")
+        xof_amount = amount * Conversions.get_xof_usd_deposit_rate()
 
         for wallet in wallets:
             transaction.append_payment_op(
@@ -130,7 +130,7 @@ class Wallet(BaseModel):
             wallet.profile.push_notify(
                 obj=wallet,
                 title="Le goût de ça 🤑",
-                description=f"${self.profile.kashtag} vient de t'envoyer {amount} ({xof_amount})",
+                description=f"${self.profile.kashtag} vient de t'envoyer {xof_amount}",
             )
 
     def transfer(self, wallet, amount: Money, narration: str = None):
