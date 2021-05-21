@@ -36,11 +36,14 @@ jobs:
       # Runs a single command using the runners shell
       - name: Deployment
         uses: appleboy/ssh-action@v0.1.4
+        env:
+          ENV_VAR: ${{secrets.ENV_VAR}}
         with:
           host: ${{ secrets.SSH_HOST }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           username: ${{ secrets.SSH_USERNAME }}
           script: |
             cd ~/apps/kash-api
+            echo $ENV_VAR > .env
             sudo docker-compose up -d --build
 
