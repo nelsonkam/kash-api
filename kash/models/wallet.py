@@ -130,7 +130,7 @@ class Wallet(BaseModel):
             wallet.profile.push_notify(
                 obj=wallet,
                 title="Le goût de ça 🤑",
-                description=f"${self.profile.kashtag} vient de t'envoyer {xof_amount}",
+                description=f"${self.profile.kashtag} vient de t'envoyer CFA {round(xof_amount.amount)}",
             )
 
     def transfer(self, wallet, amount: Money, narration: str = None):
