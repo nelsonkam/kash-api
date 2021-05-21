@@ -59,7 +59,7 @@ class TransactionType(models.TextChoices):
 class Conversions:
     @staticmethod
     def get_xof_usd_deposit_rate():
-        return Decimal(650)
+        return Decimal(615)
 
     @staticmethod
     def get_xof_from_usd(amount, is_withdrawal=False):
