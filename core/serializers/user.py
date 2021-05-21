@@ -14,4 +14,3 @@ class UserSerializer(BaseModelSerializer):
             "email",
             "phone_number",
         ]
-        depth = 1
