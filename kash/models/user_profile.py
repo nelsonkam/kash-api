@@ -1,5 +1,6 @@
 import re
 from datetime import timedelta
+from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -13,10 +14,12 @@ from django.dispatch import receiver
 from django.utils.deconstruct import deconstructible
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
+from djmoney.contrib.exchange.models import convert_money
+from djmoney.money import Money
 
 from core.models.base import BaseModel
 from core.utils.notify import tg_bot
-from kash.utils import TransactionStatusEnum
+from kash.utils import TransactionStatusEnum, Conversions
 
 
 @deconstructible
@@ -76,7 +79,15 @@ class UserProfile(BaseModel):
         return {
             'sendkash': {
                 'min': 25,
-                'max': 100000
+                'max': self.wallet.xof_amount.amount - 25
+            },
+            'deposit': {
+                'min': 25,
+                'max': 500000
+            },
+            'withdraw': {
+                'min': 100,
+                'max': self.wallet.xof_amount.amount - 100
             },
             'purchase-card': {
                 'min': 5,

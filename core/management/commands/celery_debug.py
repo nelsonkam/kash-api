@@ -8,7 +8,7 @@ from django.utils import autoreload
 def restart_celery():
     cmd = 'pkill celery'
     subprocess.call(shlex.split(cmd))
-    cmd = 'celery -A kweek_api worker -l info --beat'
+    cmd = 'celery -A kash_api worker -l info --beat'
     subprocess.call(shlex.split(cmd))
 
 class Command(BaseCommand):

@@ -10,7 +10,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import User
 from core.serializers import UserSerializer
-from kash.models import UserProfile
+from kash.models import UserProfile, Wallet
 from kash.serializers.auth import RegisterSerializer
 
 
@@ -23,10 +23,11 @@ class AuthViewSet(GenericViewSet):
         data = serializer.validated_data
         user = User.objects.create_user(username=data.get('kashtag'), name=data.get('name'),
                                         password=data.get('password'))
-        UserProfile.objects.create(
+        profile = UserProfile.objects.create(
             user=user,
             kashtag=data.get('kashtag')
         )
+        Wallet.objects.create(profile=profile)
         refresh = RefreshToken.for_user(user)
         data = {
             "refresh": str(refresh),

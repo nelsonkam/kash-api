@@ -7,6 +7,8 @@ from django.db import models
 def generate_uid():
     return secrets.token_urlsafe(8)
 
+def generate_affiliate_code():
+    return generate_ref_id("A-", 4)
 
 def generate_ref_id(prefix="", length=6):
     alphabet = string.ascii_uppercase + string.digits

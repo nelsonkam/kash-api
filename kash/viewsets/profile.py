@@ -18,8 +18,9 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from core.models import User
 from core.utils import upload_content_file
-from kash.models import UserProfile
+from kash.models import UserProfile, Wallet
 from kash.serializers.profile import ProfileSerializer, LimitedProfileSerializer
+from kash.serializers.wallet import WalletSerializer
 
 
 class ProfileViewset(ModelViewSet):
@@ -138,3 +139,11 @@ class ProfileViewset(ModelViewSet):
         user.phone_number = phone
         user.save()
         return Response({"message": "Security code is valid."})
+
+    @action(detail=True, methods=['post'])
+    def wallet(self, request, pk=None):
+        profile = self.get_object()
+        if Wallet.objects.filter(profile=profile).exists():
+            return Response(status=201)
+        wallet = Wallet.objects.create(profile=profile)
+        return Response(WalletSerializer(wallet).data)

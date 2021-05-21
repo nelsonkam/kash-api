@@ -18,17 +18,6 @@ class KashRequest(BaseModel):
     rejected_at = models.DateTimeField(null=True)
     accepted_at = models.DateTimeField(null=True)
 
-    @property
-    def fees(self):
-        if self.amount < Money(5000, "XOF"):
-            return Money(0, "XOF")
-        else:
-            return self.amount * 0.03
-
-    @property
-    def total(self):
-        return self.amount + self.fees
-
     def notify_recipient(self):
         from kash.models import Notification
 
@@ -43,16 +32,10 @@ class KashRequest(BaseModel):
         )
         notif.send()
 
-    def accept(self, phone, gateway):
-        from kash.models import Transaction
-        return Transaction.objects.request(
-            obj=self,
-            name=self.recipient.name,
-            amount=self.total,
-            initiator=self.recipient.user,
-            phone=phone,
-            gateway=gateway
-        )
+    def accept(self, amount):
+        self.recipient.wallet.transfer(self.initiator.wallet, amount, "Demande de kash")
+        self.accepted_at = now()
+        self.save()
 
 
 class KashRequestResponse(BaseModel):

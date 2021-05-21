@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.utils.timezone import now
+from djmoney.money import Money
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import Throttled, ValidationError
@@ -10,9 +11,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from kash.models import KashRequestResponse, SendKash, KashRequest, Notification
+from kash.models import KashRequest, Notification
 from kash.pagination import KashPagination
-from kash.serializers.kash_request import KashRequestSerializer, KashRequestResponseSerializer
+from kash.serializers.kash_request import KashRequestSerializer
 
 
 class KashRequestViewSet(ModelViewSet):
@@ -63,21 +64,13 @@ class KashRequestViewSet(ModelViewSet):
     @action(detail=True, methods=['post'])
     def accept(self, request, pk=None):
         kash_request = get_object_or_404(KashRequest.objects.all(), pk=pk)
-        txn = kash_request.accept(phone=request.data.get('phone'),
-                         gateway=request.data.get('gateway'))
-        return Response({'txn_ref': txn.reference})
+        amount = Money(request.data.get('amount'), "XOF")
+        kash_request.accept(amount)
+
+        return Response(status=200)
 
     @action(detail=True, methods=['post'])
-    def accepted(self, request, pk=None):
-        kash_request = get_object_or_404(KashRequest.objects.all(), pk=pk)
-        if kash_request.rejected_at:
-            raise ValidationError('This request has already been rejected.')
-        kash_request.accepted_at = now()
-        kash_request.save()
-        return Response([{'sender': kash_request.recipient.kashtag, 'accepted': bool(kash_request.accepted_at)}])
-
-    @action(detail=True, methods=['post'])
-    def rejected(self, request, pk=None):
+    def reject(self, request, pk=None):
         kash_request = get_object_or_404(KashRequest.objects.all(), pk=pk)
         if kash_request.accepted_at:
             raise ValidationError('This request has already been accepted.')
