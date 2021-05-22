@@ -11,8 +11,10 @@ from kash.utils import Conversions, StellarHelpers
 @api_view(http_method_names=['GET'])
 def version(request):
     return Response({
-        'version': "1.0.0",
-        'ios_url': "https://apple.com"
+        'version': "1.1.0",
+        'ios_url': "http://kashafrica.app.link/EKgDUkI0Hfb",
+        'android_url': "http://kashafrica.app.link/EKgDUkI0Hfb",
+        'url': "http://kashafrica.app.link/EKgDUkI0Hfb",
     })
 
 
