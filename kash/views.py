@@ -13,7 +13,9 @@ def version(request):
     return Response({
         'version': "1.1.0",
         'ios_url': "http://kashafrica.app.link/EKgDUkI0Hfb",
+        'ios': "http://kashafrica.app.link/EKgDUkI0Hfb",
         'android_url': "http://kashafrica.app.link/EKgDUkI0Hfb",
+        'android': "http://kashafrica.app.link/EKgDUkI0Hfb",
         'url': "http://kashafrica.app.link/EKgDUkI0Hfb",
     })
 
