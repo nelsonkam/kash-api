@@ -75,7 +75,7 @@ class VirtualCard(BaseModel):
             'amount': float(usd_amount.amount),
             'billing_name': self.profile.name or "John Doe",
             'debit_currency': debit_currency,
-            'callback_url': "https://prod.kweek.africa/kash/virtual-cards/txn_callback/"
+            'callback_url': "https://prod.mykash.africa/kash/virtual-cards/txn_callback/"
         }).json()
         if resp.get('data'):
             self.external_id = resp.get('data').get('id')
