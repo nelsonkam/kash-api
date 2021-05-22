@@ -33,6 +33,14 @@ class KashRequest(BaseModel):
         notif.send()
 
     def accept(self, amount):
+        from kash.models import Wallet
+
+        if not hasattr(self.recipient, "wallet"):
+            return Wallet.objects.create(profile=self.recipient)
+
+        if not hasattr(self.initiator, "wallet"):
+            return Wallet.objects.create(profile=self.initiator)
+
         self.recipient.wallet.transfer(self.initiator.wallet, amount, "Demande de kash")
         self.accepted_at = now()
         self.save()
