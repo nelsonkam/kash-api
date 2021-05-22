@@ -121,7 +121,7 @@ class Wallet(BaseModel):
             asset_issuer=settings.USDC_ASSET.issuer
         )
         if narration:
-            transaction = transaction.add_text_memo(narration)
+            transaction = transaction.add_text_memo(narration[0:30])
         transaction = transaction.build()
         transaction.sign(self.keypair)
         StellarHelpers.submit_fee_bump_transaction(transaction)
