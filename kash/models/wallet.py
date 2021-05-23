@@ -188,8 +188,30 @@ class Wallet(BaseModel):
         transaction.sign(StellarHelpers.master_keypair)
         StellarHelpers.submit_transaction(transaction)
 
-    def deposit(self):
-        StellarHelpers.claim_pending_balances(self.keypair)
+    def deposit(self, amount):
+        transaction = TransactionBuilder(
+            source_account=StellarHelpers.get_master_account(),
+            network_passphrase=settings.STELLAR_NETWORK_PASSPHRASE,
+            base_fee=100000
+        ).append_payment_op(
+            destination=self.profile.wallet.external_id,
+            amount=round(amount.amount / Conversions.get_usd_rate(), 7),
+            asset_issuer=settings.USDC_ASSET.issuer,
+            asset_code=settings.USDC_ASSET.code
+        ).add_text_memo(f'Recharge').build()
+        transaction.sign(StellarHelpers.master_keypair)
+        StellarHelpers.submit_transaction(transaction)
+
+
+class WalletFundingHistory(BaseModel):
+    class FundingStatus(models.TextChoices):
+        success = 'success'
+        failed = 'failed'
+        pending = 'pending'
+
+    txn_ref = models.CharField(max_length=255, unique=True)
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE)
+    status = models.CharField(max_length=15)
 
 
 @receiver(transaction_status_changed)
@@ -197,13 +219,22 @@ def deposit_wallet(sender, **kwargs):
     from kash.models import Notification
     txn = kwargs.pop("transaction")
     wallet_type = ContentType.objects.get_for_model(Wallet)
-    if txn.content_type == wallet_type \
-            and txn.transaction_type == TransactionType.payment \
-            and txn.status == TransactionStatusEnum.failed.value:
-        StellarHelpers.claim_pending_balances(StellarHelpers.master_keypair)
 
     if txn.content_type == wallet_type \
             and txn.transaction_type == TransactionType.payment \
             and txn.status == TransactionStatusEnum.success.value:
         wallet = txn.content_object
-        wallet.deposit()
+        item = WalletFundingHistory.objects.filter(
+            txn_ref=txn.reference,
+            wallet=wallet,
+            status=WalletFundingHistory.FundingStatus.pending
+        ).first()
+        if item:
+            try:
+                wallet.deposit(txn.amount)
+                item.status = WalletFundingHistory.FundingStatus.success
+                item.save()
+            except:
+                item.status = WalletFundingHistory.FundingStatus.failed
+                item.save()
+                txn.refund()

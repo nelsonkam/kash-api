@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from kash.models import Transaction, Wallet, UserProfile
+from kash.models import Transaction, Wallet, UserProfile, WalletFundingHistory
 from kash.pagination import KashPagination
 from kash.serializers.wallet import WalletSerializer
 from kash.throttles import DepositRateThrottle
@@ -47,29 +47,11 @@ class WalletViewSet(ReadOnlyModelViewSet):
 
     @action(detail=True, methods=["POST"])
     def deposit(self, request, external_id=None):
-        raise Exception("Down")
         wallet = self.get_object()
         amount = Decimal(request.data.get("amount"))
-        if request.data.get("currency").upper() == "XOF":
-            xof_amount = amount
-            usd_amount = Decimal(round(amount / Conversions.get_usd_rate(), 7))
-        elif request.data.get("currency").upper() == "USD":
-            xof_amount = amount * Conversions.get_usd_rate()
-            usd_amount = amount
-        else:
-            raise NotImplemented
-        usd_amount = Money(usd_amount, request.data.get('currency'))
-        xof_amount = Money(xof_amount, request.data.get('currency'))
+        xof_amount = Money(amount, request.data.get('currency'))
         phone = request.data.get('phone')
         gateway = request.data.get('gateway')
-
-        if Transaction.objects.filter(
-                initiator=request.user,
-                status=TransactionStatusEnum.pending,
-                transaction_type=TransactionType.payment).exists():
-            raise Throttled
-
-        # wallet.initiate_deposit(usd_amount)
         txn = Transaction.objects.request(**{
             'obj': wallet,
             'name': wallet.profile.name,
@@ -78,6 +60,11 @@ class WalletViewSet(ReadOnlyModelViewSet):
             'gateway': gateway,
             'initiator': wallet.profile.user
         })
+        WalletFundingHistory.objects.create(
+            txn_ref=txn.reference,
+            wallet=wallet,
+            status=WalletFundingHistory.FundingStatus.pending
+        )
         return Response({'txn_ref': txn.reference})
 
     @action(detail=True, methods=["POST"])

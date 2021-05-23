@@ -299,7 +299,7 @@ class VirtualCard(BaseModel):
             transaction = TransactionBuilder(
                 source_account=StellarHelpers.get_master_account(),
                 network_passphrase=settings.STELLAR_NETWORK_PASSPHRASE,
-                base_fee=1000
+                base_fee=100000
             ).append_payment_op(
                 destination=self.profile.wallet.external_id,
                 amount=round(withdraw_amount.amount / Conversions.get_usd_rate(), 7),
