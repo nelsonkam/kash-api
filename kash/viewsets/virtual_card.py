@@ -30,31 +30,47 @@ class VirtualCardViewSet(ModelViewSet):
     @action(detail=True, methods=['post'])
     def purchase(self, request, pk=None):
         card = self.get_object()
-        if request.data.get('amount'):
-            amount = Money(request.data.get('amount'), "USD")
-        elif request.data.get('initial_amount'):
-            amount = Money(request.data.get('initial_amount'), "XOF")
+        if request.data.get('phone'):
+            if request.data.get('amount'):
+                amount = Money(request.data.get('amount'), "USD")
+            elif request.data.get('initial_amount'):
+                amount = Money(request.data.get('initial_amount'), "XOF")
+            else:
+                raise NotImplemented
+
+            txn = card.purchase_momo(
+                amount=amount,
+                phone=request.data.get('phone'),
+                gateway=request.data.get('gateway')
+            )
+
+            return Response({'txn_ref': txn.reference})
         else:
-            raise NotImplemented
-
-        txn = card.purchase(
-            amount=amount,
-            phone=request.data.get('phone'),
-            gateway=request.data.get('gateway')
-        )
-
-        return Response({'txn_ref': txn.reference})
+            amount = request.data.get('amount')
+            card.purchase(
+                amount=Money(amount, "XOF"),
+                usd_amount=request.data.get('usd_amount')
+            )
+            return Response(status=200)
 
     @action(detail=True, methods=['post'])
     def fund(self, request, pk=None):
         card = self.get_object()
-        amount = Money(request.data.get('amount'), "USD")
-        txn = card.fund(
-            amount=amount,
-            phone=request.data.get('phone'),
-            gateway=request.data.get('gateway')
-        )
-        return Response({'txn_ref': txn.reference})
+        if request.data.get('phone'):
+            amount = Money(request.data.get('amount'), "USD")
+            txn = card.fund_momo(
+                amount=amount,
+                phone=request.data.get('phone'),
+                gateway=request.data.get('gateway')
+            )
+            return Response({'txn_ref': txn.reference})
+        else:
+            amount = request.data.get('amount')
+            card.fund(
+                amount=Money(amount, "XOF"),
+                usd_amount=request.data.get('usd_amount')
+            )
+            return Response(status=200)
 
     @action(detail=True, methods=['post'])
     def convert(self, request, pk=None):

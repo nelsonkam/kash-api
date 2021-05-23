@@ -29,7 +29,17 @@ class VirtualCard(BaseModel):
     def issuance_cost(self):
         return Money(1000, 'XOF')
 
-    def purchase(self, amount, phone, gateway):
+    def purchase(self, amount, usd_amount):
+        from kash.models import Wallet
+        if not hasattr(self.profile, "wallet"):
+            Wallet.objects.create(profile=self.profile)
+
+        converted_amount = Money(round(amount.amount / Conversions.get_usd_rate(), 7), "USD")
+
+        self.profile.wallet.pay(converted_amount, "Achat de carte")
+        self.create_external(usd_amount)
+
+    def purchase_momo(self, amount, phone, gateway):
         from kash.models import Transaction, KashTransaction
         xof_amount = amount if amount.currency == Currency('XOF') else Conversions.get_xof_from_usd(amount)
         usd_amount = amount if amount.currency == Currency('USD') else Conversions.get_usd_from_xof(amount)
@@ -202,7 +212,7 @@ class VirtualCard(BaseModel):
         resp = rave2_request("POST", '/services/virtualcards/transactions', data)
         return resp.json().get("Statements")
 
-    def fund(self, amount, phone, gateway):
+    def fund_momo(self, amount, phone, gateway):
         from kash.models import Transaction, KashTransaction
         xof_amount = Conversions.get_xof_from_usd(amount)
         total_amount = xof_amount + self.issuance_cost if not self.external_id else xof_amount
@@ -228,11 +238,22 @@ class VirtualCard(BaseModel):
         FundingHistory.objects.create(txn_ref=txn.reference, card=self, amount=amount, status='pending')
         return txn
 
+    def fund(self, amount, usd_amount):
+        from kash.models import Wallet
+        if not hasattr(self.profile, "wallet"):
+            Wallet.objects.create(profile=self.profile)
+
+        converted_amount = Money(round(amount.amount / Conversions.get_usd_rate(), 7), "USD")
+
+        self.profile.wallet.pay(converted_amount, "Recharge de carte")
+        self.fund_external(usd_amount)
+
     def fund_external(self, amount):
         if not self.external_id:
             return None
 
         if settings.DEBUG:
+            print(f"Card funded: ${amount}")
             return
 
         usd_balance = rave_request("GET", "/balances/USD").json().get('data').get('available_balance')
@@ -281,7 +302,7 @@ class VirtualCard(BaseModel):
                 base_fee=1000
             ).append_payment_op(
                 destination=self.profile.wallet.external_id,
-                amount=round(withdraw_amount.amount / Conversions.get_xof_usd_deposit_rate(), 7),
+                amount=round(withdraw_amount.amount / Conversions.get_usd_rate(), 7),
                 asset_issuer=settings.USDC_ASSET.issuer,
                 asset_code=settings.USDC_ASSET.code
             ).add_text_memo(f'Retrait de la carte').build()

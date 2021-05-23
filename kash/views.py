@@ -25,15 +25,15 @@ def rates(request):
     return Response({
         "deposit": {
             "USD": 1,
-            "XOF": Conversions.get_xof_usd_deposit_rate()
+            "XOF": Conversions.get_usd_rate()
         },
         "withdraw": {
             "USD": 1,
-            "XOF": Conversions.get_xof_usd_deposit_rate()
+            "XOF": Conversions.get_usd_rate()
         },
         "transfer": {
             "USD": 1,
-            "XOF": Conversions.get_xof_usd_deposit_rate()
+            "XOF": Conversions.get_usd_rate()
         }
     })
 

@@ -82,7 +82,7 @@ class Wallet(BaseModel):
         return TransactionBuilder(
             source_account=self.get_account(),
             network_passphrase=settings.STELLAR_NETWORK_PASSPHRASE,
-            base_fee=1000
+            base_fee=100000
         )
 
     @property
@@ -91,7 +91,7 @@ class Wallet(BaseModel):
 
     @property
     def xof_amount(self):
-        return Money(Decimal(self.balance) * Conversions.get_xof_usd_deposit_rate(), "XOF")
+        return Money(Decimal(self.balance) * Conversions.get_usd_rate(), "XOF")
 
     @property
     def balance(self):
@@ -105,7 +105,7 @@ class Wallet(BaseModel):
             return
 
         transaction = self.get_transaction_builder()
-        xof_amount = amount * Conversions.get_xof_usd_deposit_rate()
+        xof_amount = amount * Conversions.get_usd_rate()
 
         for wallet in wallets:
             transaction.append_payment_op(
@@ -116,12 +116,12 @@ class Wallet(BaseModel):
             )
         transaction.append_payment_op(
             destination=StellarHelpers.get_master_account().account_id,
-            amount=round(Decimal(25) / Conversions.get_xof_usd_deposit_rate(), 7),
+            amount=round(Decimal(25) / Conversions.get_usd_rate(), 7),
             asset_code=settings.USDC_ASSET.code,
             asset_issuer=settings.USDC_ASSET.issuer
         )
         if narration:
-            transaction = transaction.add_text_memo(narration[0:30])
+            transaction = transaction.add_text_memo(narration[0:28])
         transaction = transaction.build()
         transaction.sign(self.keypair)
         StellarHelpers.submit_fee_bump_transaction(transaction)
@@ -136,6 +136,17 @@ class Wallet(BaseModel):
     def transfer(self, wallet, amount: Money, narration: str = None):
         return self.bulk_transfer([wallet], amount, narration)
 
+    def pay(self, amount: Money, memo: str):
+        transaction = self.get_transaction_builder(
+        ).append_payment_op(
+            destination=StellarHelpers.get_master_account().account_id,
+            amount=amount.amount,
+            asset_issuer=settings.USDC_ASSET.issuer,
+            asset_code=settings.USDC_ASSET.code,
+        ).add_text_memo(memo[0:28]).build()
+        transaction.sign(self.keypair)
+        StellarHelpers.submit_fee_bump_transaction(transaction)
+
     def withdraw(self, amount: Money):
         from kash.models import Transaction
         transaction = self.get_transaction_builder(
@@ -148,7 +159,7 @@ class Wallet(BaseModel):
         transaction.sign(self.keypair)
         StellarHelpers.submit_fee_bump_transaction(transaction)
 
-        xof_amount = (amount.amount * Conversions.get_xof_usd_deposit_rate()) - 100
+        xof_amount = (amount.amount * Conversions.get_usd_rate()) - 100
         payout_method = self.profile.momo_accounts.first()
         Transaction.objects.request(
             obj=self,
@@ -168,7 +179,7 @@ class Wallet(BaseModel):
         transaction = TransactionBuilder(
             source_account=StellarHelpers.get_master_account(),
             network_passphrase=settings.STELLAR_NETWORK_PASSPHRASE,
-            base_fee=1000
+            base_fee=100000
         ).append_create_claimable_balance_op(
             claimants=claimants,
             amount=amount.amount,

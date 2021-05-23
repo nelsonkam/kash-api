@@ -58,7 +58,7 @@ class TransactionType(models.TextChoices):
 
 class Conversions:
     @staticmethod
-    def get_xof_usd_deposit_rate():
+    def get_usd_rate():
         return Decimal(615)
 
     @staticmethod
@@ -101,7 +101,7 @@ class StellarHelpers:
     def submit_fee_bump_transaction(transaction: TransactionEnvelope):
         fee_bump = TransactionBuilder.build_fee_bump_transaction(
             fee_source=StellarHelpers.master_keypair,
-            base_fee=1000,
+            base_fee=100000,
             inner_transaction_envelope=transaction,
             network_passphrase=settings.STELLAR_NETWORK_PASSPHRASE
         )
@@ -119,7 +119,7 @@ class StellarHelpers:
             transaction = TransactionBuilder(
                 source_account=StellarHelpers.get_account(keypair.public_key),
                 network_passphrase=settings.STELLAR_NETWORK_PASSPHRASE,
-                base_fee=1000
+                base_fee=100000
             )
             for balance in records:
                 transaction = transaction.append_claim_claimable_balance_op(balance_id=balance.get('id'))
@@ -156,7 +156,7 @@ class StellarHelpers:
             'successful': payment.get('transaction_successful'),
             'created_at': payment.get('created_at'),
             'type': 'debit' if payment.get('from') == wallet.external_id else 'credit',
-            'amount': Decimal(payment.get('amount')) * Conversions.get_xof_usd_deposit_rate(),
+            'amount': Decimal(payment.get('amount')) * Conversions.get_usd_rate(),
             'source': get_kashtag(payment),
             'memo': get_memo(payment)
         } for payment in payments if payment.get("type") == "payment"]
