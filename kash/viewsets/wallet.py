@@ -47,6 +47,7 @@ class WalletViewSet(ReadOnlyModelViewSet):
 
     @action(detail=True, methods=["POST"])
     def deposit(self, request, external_id=None):
+        raise Exception("Down")
         wallet = self.get_object()
         amount = Decimal(request.data.get("amount"))
         if request.data.get("currency").upper() == "XOF":
@@ -68,7 +69,7 @@ class WalletViewSet(ReadOnlyModelViewSet):
                 transaction_type=TransactionType.payment).exists():
             raise Throttled
 
-        wallet.initiate_deposit(usd_amount)
+        # wallet.initiate_deposit(usd_amount)
         txn = Transaction.objects.request(**{
             'obj': wallet,
             'name': wallet.profile.name,
@@ -97,4 +98,3 @@ class WalletViewSet(ReadOnlyModelViewSet):
         wallets = Wallet.objects.filter(profile__kashtag__in=tags)
         wallet.bulk_transfer(wallets, Money(request.data.get("amount"), "USD"), request.data.get("note"))
         return Response(status=200)
-
