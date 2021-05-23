@@ -37,7 +37,7 @@ class VirtualCard(BaseModel):
         converted_amount = Money(round(amount.amount / Conversions.get_usd_rate(), 7), "USD")
 
         self.profile.wallet.pay(converted_amount, "Achat de carte")
-        self.create_external(usd_amount)
+        self.create_external(Money(usd_amount, "USD"))
 
     def purchase_momo(self, amount, phone, gateway):
         from kash.models import Transaction, KashTransaction
@@ -246,7 +246,7 @@ class VirtualCard(BaseModel):
         converted_amount = Money(round(amount.amount / Conversions.get_usd_rate(), 7), "USD")
 
         self.profile.wallet.pay(converted_amount, "Recharge de carte")
-        self.fund_external(usd_amount)
+        self.fund_external(Money(usd_amount, "USD"))
 
     def fund_external(self, amount):
         if not self.external_id:
