@@ -278,6 +278,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "kash.tasks.send_pending_notifications",
         "schedule": crontab(minute='*/3'),
     },
+    "sync_wallet_transactions": {
+        "task": "kash.tasks.sync_wallet_transactions",
+        "schedule": crontab(hour='*/6', minute='00'),
+    },
 } if APP_NAME == "api-server" else {}
 
 CONVERSION_RATES = {
