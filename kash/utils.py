@@ -158,7 +158,8 @@ class StellarHelpers:
             'type': 'debit' if payment.get('from') == wallet.external_id else 'credit',
             'amount': Decimal(payment.get('amount')) * Conversions.get_usd_rate(),
             'source': get_kashtag(payment),
-            'memo': get_memo(payment)
+            'memo': get_memo(payment),
+            'account_id': payment.get('to') if payment.get('from') == wallet.external_id else payment.get('from')
         } for payment in payments if payment.get("type") == "payment"]
 
     @staticmethod

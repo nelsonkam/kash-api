@@ -1,7 +1,9 @@
 from celery import shared_task
 from django.contrib.contenttypes.models import ContentType
+from django.utils.dateparse import parse_datetime
+from djmoney.money import Money
 
-from kash.utils import TransactionStatusEnum, TransactionType
+from kash.utils import TransactionStatusEnum, TransactionType, StellarHelpers
 
 
 @shared_task
@@ -26,3 +28,34 @@ def send_pending_notifications():
 
     for notification in Notification.objects.filter(sent_at__isnull=True):
         notification.send()
+
+
+@shared_task
+def sync_wallet_transactions():
+    from kash.models import Wallet, WalletTransaction
+    fetched = 0
+    for wallet in Wallet.objects.all():
+        latest_payment = wallet.wallettransaction_set.order_by("timestamp").last()
+        payments = StellarHelpers.horizon_server.payments().for_account(
+            wallet.external_id
+        ).include_failed(True).limit(100)
+        if latest_payment:
+            payments = payments.cursor(latest_payment.cursor)
+        payments = payments.call()
+        payments = payments.get("_embedded").get("records")
+        data = StellarHelpers.format_payment_transactions(wallet, payments)
+        fetched += len(data)
+        for item in data:
+            source = item.get('source')[1:] if item.get('source') != "Kash" else item.get('source')
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                is_successful=item.get("successful"),
+                cursor=item.get("cursor"),
+                timestamp=parse_datetime(item.get("created_at")),
+                amount=Money(item.get('amount'), "XOF"),
+                txn_type=item.get('type'),
+                source=source,
+                memo=item.get("memo", "") or "",
+                external_id=item.get('account_id')
+            )
+    print(f"{fetched} items fetched!")

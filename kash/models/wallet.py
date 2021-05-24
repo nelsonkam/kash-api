@@ -214,6 +214,18 @@ class WalletFundingHistory(BaseModel):
     status = models.CharField(max_length=15)
 
 
+class WalletTransaction(BaseModel):
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE)
+    is_successful = models.BooleanField()
+    cursor = models.CharField(max_length=255)
+    timestamp = models.DateTimeField()
+    amount = MoneyField(max_digits=17, decimal_places=0, default_currency="XOF")
+    txn_type = models.CharField(max_length=255)
+    source = models.CharField(max_length=255)
+    memo = models.CharField(max_length=32, blank=True)
+    external_id = models.CharField(max_length=255)
+
+
 @receiver(transaction_status_changed)
 def deposit_wallet(sender, **kwargs):
     from kash.models import Notification
