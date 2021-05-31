@@ -86,7 +86,7 @@ class UserProfile(BaseModel):
                 'max': 500000
             },
             'withdraw': {
-                'min': 100,
+                'min': 110,
                 'max': self.wallet.xof_amount.amount - 100
             },
             'purchase-card': {

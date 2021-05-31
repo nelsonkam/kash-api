@@ -37,9 +37,6 @@ class TransactionManager(models.Manager):
             transaction.reference = kwargs['reference']
 
         transaction.save()
-
-        if settings.DEBUG:
-            return
         if txn_type == TransactionType.payment:
             request_transaction.delay(transaction.id)
         else:

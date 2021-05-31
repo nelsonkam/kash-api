@@ -147,7 +147,7 @@ class Wallet(BaseModel):
         transaction.sign(self.keypair)
         StellarHelpers.submit_fee_bump_transaction(transaction)
 
-    def withdraw(self, amount: Money):
+    def withdraw(self, amount: Money, phone: str, gateway: str):
         from kash.models import Transaction
         transaction = self.get_transaction_builder(
         ).append_payment_op(
@@ -160,13 +160,13 @@ class Wallet(BaseModel):
         StellarHelpers.submit_fee_bump_transaction(transaction)
 
         xof_amount = (amount.amount * Conversions.get_usd_rate()) - 100
-        payout_method = self.profile.momo_accounts.first()
+
         Transaction.objects.request(
             obj=self,
             name=self.profile.name,
             amount=xof_amount,
-            phone=payout_method.phone,
-            gateway=payout_method.gateway,
+            phone=phone,
+            gateway=gateway,
             initiator=self.profile.user,
             txn_type=TransactionType.payout
         )
@@ -242,11 +242,6 @@ def deposit_wallet(sender, **kwargs):
             status=WalletFundingHistory.FundingStatus.pending
         ).first()
         if item:
-            try:
-                wallet.deposit(txn.amount)
-                item.status = WalletFundingHistory.FundingStatus.success
-                item.save()
-            except:
-                item.status = WalletFundingHistory.FundingStatus.failed
-                item.save()
-                txn.refund()
+            wallet.deposit(txn.amount)
+            item.status = WalletFundingHistory.FundingStatus.success
+            item.save()

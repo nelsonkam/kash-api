@@ -70,8 +70,16 @@ class WalletViewSet(ReadOnlyModelViewSet):
     @action(detail=True, methods=["POST"])
     def withdraw(self, request, external_id=None):
         wallet = self.get_object()
-        amount = Money(request.data.get('amount'), request.data.get('currency', "USD"))
-        wallet.withdraw(amount)
+        currency = request.data.get('currency', "USD")
+        if currency.upper() == "USD":
+            payout_method = wallet.profile.momo_accounts.first()
+            amount = Money(request.data.get('amount'), request.data.get('currency', "USD"))
+            wallet.withdraw(amount, payout_method.phone, payout_method.gateway)
+        elif currency.upper() == "XOF":
+            amount = request.data.get('amount')
+            amount = Money(round(Decimal(amount) / Conversions.get_usd_rate(), 7), "USD")
+            wallet.withdraw(amount, request.data.get('phone'), request.data.get('gateway'))
+
         return Response(status=200)
 
     @action(detail=True, methods=["POST"])
