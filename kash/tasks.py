@@ -59,3 +59,19 @@ def sync_wallet_transactions():
                 external_id=item.get('account_id')
             )
     print(f"{fetched} items fetched!")
+
+
+def get_merchants():
+    from kash.models import VirtualCard
+    count_result = {}
+    amount_result = {}
+    for card in VirtualCard.objects.all():
+        txns = card.get_statement()
+        for txn in txns:
+            merchant = txn.get("merchant")
+            count_result[merchant] = count_result.get(merchant, 0)
+            count_result[merchant] += 1
+            amount_result[merchant] = amount_result.get(merchant, 0)
+            amount_result[merchant] += float(txn.get('amount'))
+    for k, v in count_result.items():
+        print(k, v, amount_result.get(k))

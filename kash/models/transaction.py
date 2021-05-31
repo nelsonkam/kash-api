@@ -24,7 +24,6 @@ class TransactionManager(models.Manager):
         assert gateway in GatewayEnum.values(), f"The gateway `{gateway}` is not supported."
         amount = amount if isinstance(amount, Money) else Money(amount, 'XOF')
         amount = round(convert_money(amount, "XOF"))
-        print(amount)
         transaction = self.model(
             content_object=obj,
             name=name or '',
@@ -39,8 +38,8 @@ class TransactionManager(models.Manager):
 
         transaction.save()
 
-        # if settings.DEBUG:
-        #     return
+        if settings.DEBUG:
+            return
         if txn_type == TransactionType.payment:
             request_transaction.delay(transaction.id)
         else:
@@ -237,7 +236,7 @@ class Transaction(models.Model):
 
         status = self.status
         print("status", status)
-        print(response.text, response.status_code)
+        print(response.text, response.status_code == 200, response.json())
 
         if response.status_code == 200:
             response_data = response.json()
