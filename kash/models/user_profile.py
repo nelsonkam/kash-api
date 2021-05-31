@@ -76,10 +76,12 @@ class UserProfile(BaseModel):
 
     @property
     def limits(self):
+        xof_amount = self.wallet.xof_amount.amount
+        withdrawal_fees = max(100, round(xof_amount * Decimal(0.02)))
         return {
             'sendkash': {
                 'min': 25,
-                'max': self.wallet.xof_amount.amount - 25
+                'max': max(self.wallet.xof_amount.amount - 25, 0)
             },
             'deposit': {
                 'min': 25,
@@ -87,7 +89,7 @@ class UserProfile(BaseModel):
             },
             'withdraw': {
                 'min': 110,
-                'max': self.wallet.xof_amount.amount - 100
+                'max': xof_amount - withdrawal_fees
             },
             'purchase-card': {
                 'min': 5,

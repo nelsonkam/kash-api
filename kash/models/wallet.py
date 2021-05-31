@@ -114,12 +114,13 @@ class Wallet(BaseModel):
                 asset_code=settings.USDC_ASSET.code,
                 asset_issuer=settings.USDC_ASSET.issuer
             )
-        transaction.append_payment_op(
-            destination=StellarHelpers.get_master_account().account_id,
-            amount=round(Decimal(25) / Conversions.get_usd_rate(), 7),
-            asset_code=settings.USDC_ASSET.code,
-            asset_issuer=settings.USDC_ASSET.issuer
-        )
+        if round(xof_amount.amount * len(wallets)) >= 1000:
+            transaction.append_payment_op(
+                destination=StellarHelpers.get_master_account().account_id,
+                amount=round(Decimal(25) / Conversions.get_usd_rate(), 7),
+                asset_code=settings.USDC_ASSET.code,
+                asset_issuer=settings.USDC_ASSET.issuer
+            )
         if narration:
             transaction = transaction.add_text_memo(narration[0:28])
         transaction = transaction.build()
@@ -159,7 +160,8 @@ class Wallet(BaseModel):
         transaction.sign(self.keypair)
         StellarHelpers.submit_fee_bump_transaction(transaction)
 
-        xof_amount = (amount.amount * Conversions.get_usd_rate()) - 100
+        xof_amount = (amount.amount * Conversions.get_usd_rate())
+        xof_amount -= max(100, round(xof_amount * Decimal(0.02)))
 
         Transaction.objects.request(
             obj=self,
