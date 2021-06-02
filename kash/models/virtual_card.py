@@ -246,7 +246,10 @@ class VirtualCard(BaseModel):
         converted_amount = Money(round(amount.amount / Conversions.get_usd_rate(), 7), "USD")
 
         self.profile.wallet.pay(converted_amount, "Recharge de carte")
-        self.fund_external(Money(usd_amount, "USD"))
+        try:
+            self.fund_external(Money(usd_amount, "USD"))
+        except:
+            self.profile.wallet.deposit(amount)
 
     def fund_external(self, amount):
         if not self.external_id:
