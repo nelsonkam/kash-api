@@ -370,25 +370,9 @@ def fund_card(sender, **kwargs):
         card = txn.content_object
         item = FundingHistory.objects.filter(txn_ref=txn.reference, card=card).first()
         if item and item.status == FundingHistory.FundingStatus.pending:
-            try:
-                if card.external_id:
-                    card.fund_external(item.amount)
-                else:
-                    card.create_external(item.amount)
-                item.status = FundingHistory.FundingStatus.success
-                item.save()
-            except:
-                item.status = FundingHistory.FundingStatus.failed
-                item.save()
-                txn.refund()
-                description = "Nous n'avons pas pu créer ta carte. " \
-                              "Réessaies avec au moins 5000 FCFA ou un peu plus tard." \
-                    if not card.external_id \
-                    else "Nous n'avons pas pu recharger ta carte. Réessaies un peu plus tard."
-                notif = Notification.objects.create(
-                    content_object=card,
-                    profile=card.profile,
-                    title="Création de ta carte ⚠️" if not card.external_id else "Recharge de ta carte ⚠️",
-                    description=description
-                )
-                notif.send()
+            if card.external_id:
+                card.fund_external(item.amount)
+            else:
+                card.create_external(item.amount)
+            item.status = FundingHistory.FundingStatus.success
+            item.save()
