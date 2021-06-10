@@ -27,7 +27,7 @@ class VirtualCard(BaseModel):
 
     @property
     def issuance_cost(self):
-        return Money(1000, 'XOF')
+        return Money(0, 'XOF')
 
     def purchase(self, amount, usd_amount):
         from kash.models import Wallet
