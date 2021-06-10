@@ -12,7 +12,6 @@ from stellar_sdk import Server, Keypair, TransactionEnvelope, TransactionBuilder
 
 from core.utils.payment import rave_request
 
-
 class Enum(BaseEnum):
     @classmethod
     def keys(cls):
@@ -165,3 +164,11 @@ class StellarHelpers:
     @staticmethod
     def format_payment_transaction(wallet, payment):
         return StellarHelpers.format_payment_transactions(wallet, [payment])
+
+
+def get_balances():
+    from kash.models import Wallet
+
+    for wallet in Wallet.objects.all():
+        if float(wallet.balance) > 0:
+            print(f"{wallet.profile}: ${wallet.balance} ({wallet.xof_amount})")
