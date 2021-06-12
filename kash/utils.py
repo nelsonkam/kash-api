@@ -170,8 +170,16 @@ class StellarHelpers:
 def get_balances():
     from kash.models import Wallet
     balance = Decimal(0)
+    total = 0
+    card_holder_total = 0
     for wallet in Wallet.objects.all():
         if float(wallet.balance) > 0:
             balance += Decimal(wallet.balance)
-            print(f"{wallet.profile}: ${wallet.balance} ({wallet.xof_amount})")
-    print(f"Total: ${balance} ({balance * Conversions.get_usd_rate()} XOF)")
+            card_count = wallet.profile.virtualcard_set.count()
+            card_holder_total += 0 if card_count == 0 else 1
+            print(
+                f"{wallet.profile}: ${wallet.balance} ({wallet.xof_amount}) | Cards: {card_count}"
+            )
+        total += 1
+    print(f"\n\nTotal: ${balance} ({balance * Conversions.get_usd_rate()} XOF)")
+    print(f"Total !0 users: {total} | Cardholder !0 users: {card_holder_total}")
