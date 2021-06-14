@@ -233,7 +233,7 @@ class Transaction(models.Model):
 
         status = self.status
         print("status", status)
-        print(response.text, response.status_code == 200, response.json())
+        print(response.text, response.status_code, response.status_code == 200)
 
         if response.status_code == 200:
             response_data = response.json()
