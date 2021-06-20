@@ -235,6 +235,17 @@ OPEN_EXCHANGE_RATES_APP_ID = env("OPEN_EXCHANGE_RATES_APP_ID")
 
 INTERNAL_IPS = ("127.0.0.1")
 
+if not DEBUG:
+    sentry_sdk.init(
+        dsn="https://1dcbf0b1f34c4a4f9304d0d54c534783@o875363.ingest.sentry.io/5825286",
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=1.0,
+
+        # If you wish to associate users to errors (assuming you are using
+        # django.contrib.auth) you may enable sending PII data.
+        send_default_pii=True
+    )
+
 QOSIC_USERNAME = env('QOSIC_USERNAME')
 QOSIC_PASSWORD = env('QOSIC_PASSWORD')
 QOSIC_MOOV_MONEY_CLIENT_ID = env('QOSIC_MOOV_MONEY_CLIENT_ID')
@@ -278,14 +289,23 @@ CONVERSION_RATES = {
     'MARGIN': .1
 }
 
-
-if not DEBUG:
-    sentry_sdk.init(
-        dsn="https://4c4f295e7f2845118ca85670803681a2@o441760.ingest.sentry.io/5416328",
-        integrations=[DjangoIntegration()],
-        traces_sample_rate=1.0,
-
-        # If you wish to associate users to errors (assuming you are using
-        # django.contrib.auth) you may enable sending PII data.
-        send_default_pii=True
-    )
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'DEBUG',  # change debug level as appropiate
+            'propagate': False,
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
