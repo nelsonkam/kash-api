@@ -19,10 +19,15 @@ from kash.utils import TransactionStatusEnum, TransactionType, Conversions, Stel
 
 
 class VirtualCard(BaseModel):
+    class Category(models.TextChoices):
+        general = "general", "General"
+        ads = "ads", "Ads"
+
     external_id = models.CharField(max_length=255, blank=True)
     is_active = models.BooleanField(default=True)
     service = models.CharField(max_length=255, default='rave')
     nickname = models.CharField(max_length=255)
+    category = models.CharField(max_length=255, blank=True)
     profile = models.ForeignKey('kash.UserProfile', on_delete=models.CASCADE)
 
     @property
@@ -136,7 +141,7 @@ class VirtualCard(BaseModel):
                 "balance_before": "30.00",
                 "balance_after": "180.00",
                 "merchant": "Funding"
-            },{
+            }, {
                 "date": "2021-05-08",
                 "amount": "150.00",
                 "type": "Credit",
@@ -289,36 +294,33 @@ class VirtualCard(BaseModel):
         self.save()
         return
 
-    def withdraw(self, amount):
+    def withdraw(self, amount, phone=None, gateway=None):
         from kash.models import Transaction
+
         if not self.external_id:
             return None
+
         if not settings.DEBUG:
             rave_request("POST", f'/virtual-cards/{self.external_id}/withdraw', {
                 'amount': int(amount.amount)
             })
+
         withdraw_amount = Conversions.get_xof_from_usd(amount, is_withdrawal=True)
-        if hasattr(self.profile, "wallet"):
-            transaction = TransactionBuilder(
-                source_account=StellarHelpers.get_master_account(),
-                network_passphrase=settings.STELLAR_NETWORK_PASSPHRASE,
-                base_fee=100000
-            ).append_payment_op(
-                destination=self.profile.wallet.external_id,
-                amount=round(withdraw_amount.amount / Conversions.get_usd_rate(), 7),
-                asset_issuer=settings.USDC_ASSET.issuer,
-                asset_code=settings.USDC_ASSET.code
-            ).add_text_memo(f'Retrait de la carte').build()
-            transaction.sign(StellarHelpers.master_keypair)
-            StellarHelpers.submit_transaction(transaction)
-        else:
+        if not (phone and gateway):
             payout_method = self.profile.momo_accounts.first()
+            if payout_method:
+                phone = payout_method.phone
+                gateway = payout_method.gateway
+            else:
+                raise Exception("User doesn't hasn't defined a momo account.")
+
+        if phone and gateway:
             txn = Transaction.objects.request(
                 obj=self,
                 name=self.profile.name,
                 amount=withdraw_amount,
-                phone=payout_method.phone,
-                gateway=payout_method.gateway,
+                phone=phone,
+                gateway=gateway,
                 initiator=self.profile.user,
                 txn_type=TransactionType.payout
             )
@@ -370,9 +372,26 @@ def fund_card(sender, **kwargs):
         card = txn.content_object
         item = FundingHistory.objects.filter(txn_ref=txn.reference, card=card).first()
         if item and item.status == FundingHistory.FundingStatus.pending:
-            if card.external_id:
-                card.fund_external(item.amount)
-            else:
-                card.create_external(item.amount)
-            item.status = FundingHistory.FundingStatus.success
-            item.save()
+            try:
+                if card.external_id:
+                    card.fund_external(item.amount)
+                else:
+                    card.create_external(item.amount)
+                item.status = FundingHistory.FundingStatus.success
+                item.save()
+            except:
+                item.status = FundingHistory.FundingStatus.failed
+                item.save()
+                txn.refund()
+                description = "Nous n'avons pas pu créer ta carte. " \
+                              "Réessaies avec au moins 5000 FCFA ou un peu plus tard." \
+                    if not card.external_id \
+                    else "Hello 🤑, le service de recharge de cartes est momentanément indisponible. " \
+                         "Tu peux néanmoins créer gratuitement une nouvelle carte et la recharger en même temps jusqu'à ce que la situation soit rétablie."
+                notif = Notification.objects.create(
+                    content_object=card,
+                    profile=card.profile,
+                    title="Création de ta carte ⚠️" if not card.external_id else "Recharge de ta carte ⚠️",
+                    description=description
+                )
+                notif.send()

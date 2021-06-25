@@ -88,8 +88,8 @@ class UserProfile(BaseModel):
                 'max': 500000
             },
             'withdraw': {
-                'min': 110,
-                'max': xof_amount - withdrawal_fees
+                'min': 0,
+                'max': xof_amount
             },
             'purchase-card': {
                 'min': 5,

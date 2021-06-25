@@ -143,7 +143,4 @@ class ProfileViewset(ModelViewSet):
     @action(detail=True, methods=['post'])
     def wallet(self, request, pk=None):
         profile = self.get_object()
-        if Wallet.objects.filter(profile=profile).exists():
-            return Response(status=201)
-        wallet = Wallet.objects.create(profile=profile)
-        return Response(WalletSerializer(wallet).data)
+        return Response(status=201)

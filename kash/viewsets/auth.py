@@ -27,7 +27,6 @@ class AuthViewSet(GenericViewSet):
             user=user,
             kashtag=data.get('kashtag')
         )
-        Wallet.objects.create(profile=profile)
         refresh = RefreshToken.for_user(user)
         data = {
             "refresh": str(refresh),

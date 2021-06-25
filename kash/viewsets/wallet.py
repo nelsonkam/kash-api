@@ -88,8 +88,8 @@ class WalletViewSet(ReadOnlyModelViewSet):
         tags = request.data.get("recipient_tags")
         profiles = UserProfile.objects.filter(kashtag__in=tags)
         nowallet_profiles = profiles.filter(wallet__isnull=True)
-        for profile in nowallet_profiles:
-            Wallet.objects.create(profile=profile)
+        if nowallet_profiles.count() > 0:
+            raise Exception("Some recipients do not have kash wallets for transfer.")
         wallets = Wallet.objects.filter(profile__kashtag__in=tags)
         wallet.bulk_transfer(wallets, Money(request.data.get("amount"), "USD"), request.data.get("note"))
         return Response(status=200)

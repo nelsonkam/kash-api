@@ -13,4 +13,4 @@ class VirtualCardSerializer(ModelSerializer):
 
     class Meta:
         model = VirtualCard
-        fields = ['nickname', 'is_active', 'card_details', 'id', 'issuance_cost']
+        fields = ['nickname', 'category', 'is_active', 'card_details', 'id', 'issuance_cost']

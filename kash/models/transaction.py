@@ -257,7 +257,7 @@ class Transaction(models.Model):
             self.last_status_checked = now()
             self.save()
 
-        if self.created + timedelta(minutes=3) < now() and status != TransactionStatusEnum.success.value:
+        if self.created + timedelta(minutes=2) < now() and status != TransactionStatusEnum.success.value:
             status = TransactionStatusEnum.failed.value
 
         if Transaction.objects.get(pk=self.pk).status != status:
