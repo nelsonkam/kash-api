@@ -172,8 +172,9 @@ def get_balances():
     balance = Decimal(0)
     total = 0
     card_holder_total = 0
+    zero_balance_wallets = 0
     for wallet in Wallet.objects.all():
-        if float(wallet.balance) > 0:
+        if round(wallet.xof_amount.amount) > 0:
             balance += Decimal(wallet.balance)
             card_count = wallet.profile.virtualcard_set.exclude(external_id='').count()
             card_holder_total += 0 if card_count == 0 else 1
@@ -181,5 +182,11 @@ def get_balances():
                 f"{wallet.profile}: ${wallet.balance} ({wallet.xof_amount}) | Cards: {card_count}"
             )
             total += 1
+        else:
+            print(
+                f"{wallet.profile}: ${wallet.balance} ({wallet.xof_amount}) | Zero balance"
+            )
+            zero_balance_wallets += 1
     print(f"\n\nTotal: ${balance} ({balance * Conversions.get_usd_rate()} XOF)")
     print(f"Total !0 users: {total} | Cardholder !0 users: {card_holder_total}")
+    print(f"Total 0 users: {zero_balance_wallets}")

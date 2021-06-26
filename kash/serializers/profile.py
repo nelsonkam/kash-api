@@ -14,7 +14,12 @@ class ProfileSerializer(ModelSerializer):
     payout_methods = serializers.SerializerMethodField()
     momo_accounts = serializers.SerializerMethodField()
     invite = InviteCodeSerializer(read_only=True)
-    wallet = WalletSerializer(read_only=True)
+    wallet = serializers.SerializerMethodField()
+
+    def get_wallet(self, obj):
+        if round(obj.wallet.xof_amount.amount) == 0:
+            return None
+        return WalletSerializer(read_only=True, instance=obj.wallet).data
 
     def get_payout_methods(self, obj):
         serializer = MomoAccountSerializer(obj.momo_accounts.all(), many=True)
