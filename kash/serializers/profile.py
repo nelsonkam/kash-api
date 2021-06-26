@@ -17,6 +17,8 @@ class ProfileSerializer(ModelSerializer):
     wallet = serializers.SerializerMethodField()
 
     def get_wallet(self, obj):
+        if not hasattr(obj, "wallet"):
+            return None
         if round(obj.wallet.xof_amount.amount) == 0:
             return None
         return WalletSerializer(read_only=True, instance=obj.wallet).data
