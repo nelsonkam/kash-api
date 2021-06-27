@@ -161,7 +161,6 @@ class Wallet(BaseModel):
         StellarHelpers.submit_fee_bump_transaction(transaction)
 
         xof_amount = (amount.amount * Conversions.get_usd_rate())
-        xof_amount -= max(100, round(xof_amount * Decimal(0.02)))
 
         Transaction.objects.request(
             obj=self,
