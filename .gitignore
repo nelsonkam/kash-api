@@ -23,3 +23,5 @@ test.py
 .idea/
 node_modules/
 celerybeat-schedule.db
+
+staticfiles/

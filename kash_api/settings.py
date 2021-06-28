@@ -57,10 +57,12 @@ INSTALLED_APPS = [
     "djmoney",
     'djmoney.contrib.exchange',
     "storages",
+    'silk'
 ]
 
 MIDDLEWARE = [
     'django_hosts.middleware.HostsRequestMiddleware',
+    'silk.middleware.SilkyMiddleware',
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -71,7 +73,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'django_hosts.middleware.HostsResponseMiddleware'
+    'django_hosts.middleware.HostsResponseMiddleware',
 ]
 
 ROOT_URLCONF = "kash_api.urls"
@@ -309,3 +311,8 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+LOGIN_URL = "/admin/"
+
+SILKY_PYTHON_PROFILER = True
+SILKY_AUTHENTICATION = True
+SILKY_AUTHORISATION = True

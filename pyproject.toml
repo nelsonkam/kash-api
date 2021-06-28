@@ -41,6 +41,7 @@ python-binance = "^1.0.7"
 stellar-sdk = "^3.3.3"
 django-cryptography = "^1.0"
 drf-nested-routers = "^0.93.3"
+django-silk = "^4.1.0"
 
 [tool.poetry.dev-dependencies]
 
