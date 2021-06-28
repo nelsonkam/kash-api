@@ -12,6 +12,7 @@ from django.db.models import Sum, Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.deconstruct import deconstructible
+from django.utils.functional import cached_property
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from djmoney.contrib.exchange.models import convert_money
@@ -49,25 +50,22 @@ class UserProfile(BaseModel):
         )
         notify.send()
 
-    @property
+    @cached_property
     def name(self):
         return self.user.name
 
-    @property
+    @cached_property
     def phone_number(self):
         return self.user.phone_number
 
     @property
     def txn_summary(self):
-        from kash.models import KashTransaction
-        received = Sum('amount', filter=Q(txn_type=KashTransaction.TxnType.credit,
-                                          txn__status=TransactionStatusEnum.success.value,
-                                          timestamp__gte=now() - timedelta(days=30)))
-        sent = Sum('amount', filter=Q(txn_type=KashTransaction.TxnType.debit,
-                                      txn__status=TransactionStatusEnum.success.value,
-                                      timestamp__gte=now() - timedelta(days=30)))
+
         return {
-            '30-days': self.kash_transactions.aggregate(received=received, sent=sent)
+            '30-days': {
+                'sent': 0,
+                'received': 0
+            }
         }
 
     @property
@@ -102,5 +100,5 @@ class UserProfile(BaseModel):
         }
 
     def __str__(self):
-        return f'{self.name} (${self.kashtag})'
+        return f'${self.kashtag}'
 
