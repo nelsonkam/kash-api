@@ -72,6 +72,7 @@ class Wallet(BaseModel):
     profile = models.OneToOneField("kash.UserProfile", on_delete=models.CASCADE, related_name="wallet")
     external_id = models.CharField(max_length=255)
     secret_key = encrypt(models.CharField(max_length=255))
+    is_active = models.BooleanField(default=True)
 
     objects = WalletManager()
 
@@ -202,6 +203,20 @@ class Wallet(BaseModel):
         ).add_text_memo(f'Recharge').build()
         transaction.sign(StellarHelpers.master_keypair)
         StellarHelpers.submit_transaction(transaction)
+
+    def deactivate(self):
+        if round(self.xof_amount.amount) == 0:
+            transaction = self.get_transaction_builder().append_change_trust_op(
+                asset_code=settings.USDC_ASSET.code,
+                asset_issuer=settings.USDC_ASSET.issuer,
+                limit=Decimal(0)
+            ).append_account_merge_op(
+                destination=StellarHelpers.master_keypair.public_key
+            ).build()
+            transaction.sign(self.keypair)
+            StellarHelpers.submit_fee_bump_transaction(transaction)
+            self.is_active = False
+            self.save()
 
 
 class WalletFundingHistory(BaseModel):
