@@ -206,7 +206,16 @@ class Wallet(BaseModel):
 
     def deactivate(self):
         if round(self.xof_amount.amount) == 0:
-            transaction = self.get_transaction_builder().append_change_trust_op(
+
+            transaction = self.get_transaction_builder()
+            if 0 < float(self.balance) < 1:
+                transaction = transaction.append_payment_op(
+                    destination=StellarHelpers.get_master_account().account_id,
+                    amount=self.balance,
+                    asset_issuer=settings.USDC_ASSET.issuer,
+                    asset_code=settings.USDC_ASSET.code,
+                ).add_text_memo("Deactivation")
+            transaction = transaction.append_change_trust_op(
                 asset_code=settings.USDC_ASSET.code,
                 asset_issuer=settings.USDC_ASSET.issuer,
                 limit=Decimal(0)
