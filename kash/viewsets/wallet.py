@@ -26,7 +26,7 @@ class WalletViewSet(ReadOnlyModelViewSet):
     pagination_class = KashPagination
 
     def get_queryset(self):
-        return Wallet.objects.filter(profile=self.request.user.profile)
+        return Wallet.objects.filter(profile=self.request.user.profile, is_active=True)
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
