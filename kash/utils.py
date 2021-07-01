@@ -67,7 +67,7 @@ class Conversions:
         amount_to_charge = Money(rates.get('data').get('to').get('amount'), "NGN")
         amount_to_charge = amount_to_charge * settings.CONVERSION_RATES['NGN_XOF']
         amount_to_charge = Money(amount_to_charge.amount, "XOF")
-        margin = Money(amount.amount * 55, "XOF") if not is_withdrawal else Money(amount.amount * -15, "XOF")
+        margin = Money(amount.amount * 55, "XOF") if not is_withdrawal else Money(amount.amount * 30, "XOF")
         return amount_to_charge + margin
 
     @staticmethod
