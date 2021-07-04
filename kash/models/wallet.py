@@ -92,10 +92,14 @@ class Wallet(BaseModel):
 
     @property
     def xof_amount(self):
+        if not self.is_active:
+            return Money(0, "XOF")
         return Money(Decimal(self.balance) * Conversions.get_usd_rate(), "XOF")
 
     @property
     def balance(self):
+        if not self.is_active:
+            return 0
         server = StellarHelpers.get_horizon_server()
         balances = server.accounts().account_id(self.external_id).call().get("balances")
         balance = [balance for balance in balances if balance.get('asset_code') == settings.USDC_ASSET.code][0]
