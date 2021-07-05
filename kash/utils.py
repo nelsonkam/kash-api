@@ -63,12 +63,11 @@ class Conversions:
 
     @staticmethod
     def get_xof_from_usd(amount, is_withdrawal=False):
-        rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount={float(amount.amount)}').json()
+        rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount=1').json()
         amount_to_charge = Money(rates.get('data').get('to').get('amount'), "NGN")
-        amount_to_charge = amount_to_charge * settings.CONVERSION_RATES['NGN_XOF']
-        amount_to_charge = Money(amount_to_charge.amount, "XOF")
-        margin = Money(amount.amount * 55, "XOF") if not is_withdrawal else Money(amount.amount * 30, "XOF")
-        return amount_to_charge + margin
+        amount_to_charge = (amount_to_charge * settings.CONVERSION_RATES['NGN_XOF'])/(1-settings.CONVERSION_RATES['MARGIN'])
+        amount_to_charge = amount_to_charge.amount - (25 if is_withdrawal else 0)
+        return Money(round(amount_to_charge * amount.amount), "XOF")
 
     @staticmethod
     def get_usd_from_xof(amount):
