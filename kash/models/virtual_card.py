@@ -368,7 +368,7 @@ class CardTransaction(BaseModel):
     narration = models.TextField()
     external_id = models.CharField(max_length=255, unique=True)
     txn_type = models.CharField(max_length=10)
-    status = models.CharField()
+    status = models.CharField(max_length=255)
     timestamp = models.DateTimeField()
 
 
