@@ -363,13 +363,13 @@ class WithdrawalHistory(BaseModel):
 class CardTransaction(BaseModel):
     card = models.ForeignKey(VirtualCard, on_delete=models.CASCADE)
     amount = MoneyField(max_digits=17, decimal_places=2, default_currency="USD")
-    product = models.TextField()
-    reference_details = models.TextField()
-    narration = models.TextField()
+    product = models.TextField(null=True)
+    reference_details = models.TextField(null=True)
+    narration = models.TextField(null=True)
     external_id = models.CharField(max_length=255, unique=True)
-    txn_type = models.CharField(max_length=10)
-    status = models.CharField(max_length=255)
-    timestamp = models.DateTimeField()
+    txn_type = models.CharField(max_length=10, null=True)
+    status = models.CharField(max_length=255, null=True)
+    timestamp = models.DateTimeField(null=True)
 
 
 @receiver(transaction_status_changed)
