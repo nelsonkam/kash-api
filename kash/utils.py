@@ -225,3 +225,10 @@ def vc_fill_txns():
                     status="success" if "success" in txn.get("status").lower() else "failed",
                     timestamp=dateparse.parse_datetime(txn.get("created_at"))
                 )
+
+def refund_qosic():
+    from kash.models import Transaction
+    for txn in Transaction.objects.filter(pk__gte=5163, transaction_type='payout', status='failed'):
+        print(f"Refunding {txn.name} {txn.amount} on {txn.phone} ({txn.gateway})")
+        txn.retry()
+        print("Refunded.")
