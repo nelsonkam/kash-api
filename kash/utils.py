@@ -68,7 +68,7 @@ class Conversions:
         rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount=1').json()
         amount_to_charge = Money(rates.get('data').get('to').get('amount'), "NGN")
         amount_to_charge = (amount_to_charge * settings.CONVERSION_RATES['NGN_XOF']) / (
-                    1 - settings.CONVERSION_RATES['MARGIN'])
+                1 - settings.CONVERSION_RATES['MARGIN'])
         amount_to_charge = amount_to_charge.amount - (20 if is_withdrawal else 0)
         return Money(round(amount_to_charge * amount.amount), "XOF")
 
@@ -226,9 +226,11 @@ def vc_fill_txns():
                     timestamp=dateparse.parse_datetime(txn.get("created_at"))
                 )
 
+
 def refund_qosic():
     from kash.models import Transaction
-    for txn in Transaction.objects.filter(pk__gte=5163, transaction_type='payout', status='failed'):
+    for txn in Transaction.objects.filter(pk__gte=5163, transaction_type='payout', status='failed').order_by("-amount"):
         print(f"Refunding {txn.name} {txn.amount} on {txn.phone} ({txn.gateway})")
         txn.retry()
-        print("Refunded.")
+        print("Refunded.\n\n")
+
