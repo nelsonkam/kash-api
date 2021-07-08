@@ -360,6 +360,18 @@ class WithdrawalHistory(BaseModel):
     amount = MoneyField(max_digits=17, decimal_places=2, default_currency="XOF")
 
 
+class CardTransaction(BaseModel):
+    card = models.ForeignKey(VirtualCard, on_delete=models.CASCADE)
+    amount = MoneyField(max_digits=17, decimal_places=2, default_currency="USD")
+    product = models.TextField()
+    reference_details = models.TextField()
+    narration = models.TextField()
+    external_id = models.CharField(max_length=255, unique=True)
+    txn_type = models.CharField(max_length=10)
+    status = models.CharField()
+    timestamp = models.DateTimeField()
+
+
 @receiver(transaction_status_changed)
 def fund_card(sender, **kwargs):
     from kash.models import Notification

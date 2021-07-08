@@ -6,13 +6,13 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.db import models
+from django.utils import dateparse
 from django.utils.timezone import now
 from djmoney.contrib.exchange.models import convert_money
 from djmoney.money import Money
 from stellar_sdk import Server, Keypair, TransactionEnvelope, TransactionBuilder
 
 from core.utils.payment import rave_request
-
 
 
 class Enum(BaseEnum):
@@ -67,7 +67,8 @@ class Conversions:
     def get_xof_from_usd(amount, is_withdrawal=False):
         rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount=1').json()
         amount_to_charge = Money(rates.get('data').get('to').get('amount'), "NGN")
-        amount_to_charge = (amount_to_charge * settings.CONVERSION_RATES['NGN_XOF'])/(1-settings.CONVERSION_RATES['MARGIN'])
+        amount_to_charge = (amount_to_charge * settings.CONVERSION_RATES['NGN_XOF']) / (
+                    1 - settings.CONVERSION_RATES['MARGIN'])
         amount_to_charge = amount_to_charge.amount - (20 if is_withdrawal else 0)
         return Money(round(amount_to_charge * amount.amount), "XOF")
 
@@ -207,6 +208,20 @@ def vc_self_destruct():
         time.sleep(1)
 
 
-
-
-
+def vc_fill_txns():
+    from kash.models import VirtualCard, CardTransaction
+    for card in VirtualCard.objects.exclude(external_id__exact=''):
+        txns = card.get_transactions()
+        for txn in txns:
+            if not CardTransaction.objects.filter(external_id=txn.get("id")).exists():
+                CardTransaction.objects.create(
+                    card=card,
+                    amount=Money(txn.get("amount"), "USD"),
+                    product=txn.get("product"),
+                    narration=txn.get("narration"),
+                    reference_details=txn.get("gateway_reference_details"),
+                    external_id=txn.get("id"),
+                    txn_type="debit" if txn.get('indicator') == "D" else "credit",
+                    status="success" if "success" in txn.get("status").lower() else "failed",
+                    timestamp=dateparse.parse_datetime(txn.get("created_at"))
+                )

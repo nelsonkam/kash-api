@@ -90,6 +90,25 @@ class Transaction(models.Model):
 
         return phone
 
+    def retry(self, is_async=False):
+        if self.status == TransactionStatusEnum.success:
+            return
+
+        self.status = TransactionStatusEnum.pending
+        self.save()
+        self.check_status()
+
+        if self.status == TransactionStatusEnum.success:
+            return
+
+        self.reference = generate_reference_10()
+        self.save()
+
+        if is_async:
+            request_transaction.delay(self.pk)
+        else:
+            self.request()
+
     def request(self):
         if self.transaction_type == TransactionType.payment:
             if self.gateway == GatewayEnum.mtn.value:
@@ -111,6 +130,7 @@ class Transaction(models.Model):
 
         try:
             response = self.api.Transaction.payout(data)
+            print(response.text, response.status_code, response.status_code == 200)
             assert response.status_code == 200, \
                 "%s: status_code: %s content: %s" % (self, response.status_code, response.text)
             assert int(response.json()['responsecode']) == 0, "%s: responsecode: %s json: %s" % (
@@ -132,6 +152,7 @@ class Transaction(models.Model):
 
         try:
             response = self.api.Transaction.payout(data)
+            print(response.text, response.status_code, response.status_code == 200)
             assert response.status_code == 200, \
                 "%s: status_code: %s content: %s" % (self, response.status_code, response.text)
             assert int(response.json()['responsecode']) == 0, "%s: responsecode: %s json: %s" % (
@@ -163,6 +184,7 @@ class Transaction(models.Model):
         data = self._get_request_data()
         try:
             response = self.api.Transaction.create(data)
+            print(response.text, response.status_code, response.status_code == 200)
             assert response.status_code == 200, \
                 "%s: status_code: %s content: %s" % (self, response.status_code, response.text)
         except (AssertionError, ReadTimeout) as e:
@@ -190,6 +212,7 @@ class Transaction(models.Model):
         data = self._get_request_data()
         try:
             response = self.api.Transaction.create(data)
+            print(response.text, response.status_code, response.status_code == 200)
             assert response.status_code == 202, \
                 "%s: status_code: %s content: %s" % (self, response.status_code, response.text)
         except (AssertionError, ReadTimeout) as e:
