@@ -305,14 +305,18 @@ class VirtualCard(BaseModel):
                 'amount': int(amount.amount)
             })
 
-        withdraw_amount = Conversions.get_xof_from_usd(amount, is_withdrawal=True)
+        withdraw_amount = Conversions.get_xof_from_usd(amount)
         if not (phone and gateway):
             payout_method = self.profile.momo_accounts.first()
             if payout_method:
                 phone = payout_method.phone
                 gateway = payout_method.gateway
+            elif Transaction.objects.filter(initiator=self.profile.user).exists():
+                txn = Transaction.objects.filter(initiator=self.profile.user).last()
+                phone = txn.phone
+                gateway = txn.gateway
             else:
-                raise Exception("User doesn't hasn't defined a momo account.")
+                raise Exception("User hasn't defined a momo account.")
 
         if phone and gateway:
             txn = Transaction.objects.request(

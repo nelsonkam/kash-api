@@ -1,3 +1,4 @@
+import time
 from _blake2 import blake2b
 from decimal import Decimal
 from enum import Enum as BaseEnum
@@ -11,6 +12,7 @@ from djmoney.money import Money
 from stellar_sdk import Server, Keypair, TransactionEnvelope, TransactionBuilder
 
 from core.utils.payment import rave_request
+
 
 
 class Enum(BaseEnum):
@@ -189,3 +191,22 @@ def get_balances():
     print(f"\n\nTotal: ${balance} ({balance * Conversions.get_usd_rate()} XOF)")
     print(f"Total !0 users: {total} | Cardholder !0 users: {card_holder_total}")
     print(f"Total 0 users: {zero_balance_wallets}")
+
+
+def vc_self_destruct():
+    from kash.models import VirtualCard
+    for card in VirtualCard.objects.filter(is_active=True).exclude(external_id__exact=''):
+        print(f"Terminating card: ID: {card.pk} - Nickname: {card.nickname} - EID: {card.external_id}")
+        details = card.card_details
+        balance = Decimal(details.get("amount"))
+        if balance >= Decimal(2):
+            card.withdraw(Money(balance - Decimal(1), "USD"))
+        card.is_active = False
+        card.save()
+        print(f"Card terminated!")
+        time.sleep(1)
+
+
+
+
+
