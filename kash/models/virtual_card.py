@@ -184,10 +184,12 @@ class VirtualCard(BaseModel):
             return ref
 
         data = [{
+            'id': item.get("id"),
             'status': item.get("status"),
             'indicator': item.get('indicator'),
             'gateway_reference_details': format_reference(item.get('gateway_reference_details')),
             'narration': item.get('narration') or item.get('product'),
+            'product': item.get('product'),
             'amount': item.get('amount'),
             'fee': item.get('fee'),
             'currency': item.get('currency'),
@@ -197,7 +199,7 @@ class VirtualCard(BaseModel):
 
     def rave_transactions(self):
         query = {
-            'from': (date.today() - timedelta(days=90)).isoformat(),
+            'from': (date.today() - timedelta(days=190)).isoformat(),
             'to': (date.today() + timedelta(days=1)),
             'size': 20,
             'index': 1
