@@ -194,18 +194,13 @@ def get_balances():
     print(f"Total 0 users: {zero_balance_wallets}")
 
 
-def vc_self_destruct():
+def vc_reactivate():
     from kash.models import VirtualCard
-    for card in VirtualCard.objects.filter(is_active=True).exclude(external_id__exact=''):
-        print(f"Terminating card: ID: {card.pk} - Nickname: {card.nickname} - EID: {card.external_id}")
-        details = card.card_details
-        balance = Decimal(details.get("amount"))
-        if balance >= Decimal(2):
-            card.withdraw(Money(balance - Decimal(1), "USD"))
-        card.is_active = False
+    for card in VirtualCard.objects.filter(is_active=False).exclude(external_id__exact=''):
+        print(f"Reactivating card: ID: {card.pk} - Nickname: {card.nickname} - EID: {card.external_id}")
+        card.is_active = True
         card.save()
-        print(f"Card terminated!")
-        time.sleep(1)
+        print(f"Card reactivated!")
 
 
 def vc_fill_txns():
