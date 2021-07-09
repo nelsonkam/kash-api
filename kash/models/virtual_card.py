@@ -32,7 +32,7 @@ class VirtualCard(BaseModel):
 
     @property
     def issuance_cost(self):
-        return Money(0, 'XOF')
+        return Money(1000, 'XOF')
 
     def purchase(self, amount, usd_amount):
         from kash.models import Wallet
@@ -307,7 +307,7 @@ class VirtualCard(BaseModel):
                 'amount': int(amount.amount)
             })
 
-        withdraw_amount = Conversions.get_xof_from_usd(amount)
+        withdraw_amount = Conversions.get_xof_from_usd(amount, is_withdrawal=True)
         if not (phone and gateway):
             payout_method = self.profile.momo_accounts.first()
             if payout_method:

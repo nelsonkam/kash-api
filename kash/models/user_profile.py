@@ -91,11 +91,11 @@ class UserProfile(BaseModel):
             },
             'purchase-card': {
                 'min': 5,
-                'max': 1000,
+                'max': 100,
             },
             'fund-card': {
                 'min': 5,
-                'max': 1000
+                'max': 100
             }
         }
 
