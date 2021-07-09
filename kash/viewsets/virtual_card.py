@@ -30,6 +30,7 @@ class VirtualCardViewSet(ModelViewSet):
     @action(detail=True, methods=['post'])
     def purchase(self, request, pk=None):
         card = self.get_object()
+        raise Exception("Card creation unavailable.")
         if request.data.get('phone'):
             if request.data.get('amount'):
                 amount = Money(request.data.get('amount'), "USD")
@@ -119,6 +120,7 @@ class VirtualCardViewSet(ModelViewSet):
     @action(detail=True, methods=['post'])
     def withdraw(self, request, pk=None):
         card = self.get_object()
+        raise Exception("Card withdrawal unavailable.")
         card.withdraw(
             Money(request.data.get('amount'), 'USD'),
             phone=request.data.get("phone"),
