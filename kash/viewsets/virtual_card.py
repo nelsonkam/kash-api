@@ -56,6 +56,7 @@ class VirtualCardViewSet(ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def fund(self, request, pk=None):
+        raise Exception("Card funding unavailable.")
         card = self.get_object()
         if request.data.get('phone'):
             amount = Money(request.data.get('amount'), "USD")
