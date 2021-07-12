@@ -168,7 +168,7 @@ class Wallet(BaseModel):
         xof_amount = (amount.amount * Conversions.get_usd_rate())
         xof_amount -= max(100, round(xof_amount * Decimal(0.02)))
         if xof_amount > 0:
-            Transaction.objects.request(
+            txn = Transaction.objects.request(
                 obj=self,
                 name=self.profile.name,
                 amount=xof_amount,
@@ -177,6 +177,9 @@ class Wallet(BaseModel):
                 initiator=self.profile.user,
                 txn_type=TransactionType.payout
             )
+            if txn.status == TransactionStatusEnum.success:
+                self.profile.push_notify("Remboursement",
+                                           "Nous avons procéder au remboursement de votre portefeuille.", self)
 
     def initiate_deposit(self, amount: Money):
         claimants = [

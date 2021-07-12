@@ -245,3 +245,4 @@ def wallet_withdrawal():
             else:
                 raise Exception("User hasn't defined a momo account.")
             wallet.withdraw(Money(wallet.balance, "USD"), phone, gateway)
+
