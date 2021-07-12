@@ -224,10 +224,13 @@ def vc_fill_txns():
 
 def refund_qosic():
     from kash.models import Transaction
-    for txn in Transaction.objects.filter(pk__gte=5163, transaction_type='payout', status='failed').order_by("-amount"):
-        print(f"Refunding {txn.name} {txn.amount} on {txn.phone} ({txn.gateway})")
-        txn.retry()
-        print("Refunded.\n\n")
+    for txn in Transaction.objects.filter(pk__gte=5494, transaction_type='payout', status='failed').order_by("-amount"):
+        if txn.amount > 0:
+            print(f"Refunding {txn.name} {txn.amount} on {txn.phone} ({txn.gateway})")
+            txn.retry()
+            print("Refunded.\n\n")
+            txn.initiator.profile.push_notify("Remboursement",
+                         "Nous avons procéder au remboursement de votre portefeuille.", txn)
 
 
 def wallet_withdrawal():
