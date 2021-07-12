@@ -119,7 +119,7 @@ class VirtualCardViewSet(ModelViewSet):
     @action(detail=True, methods=['post'])
     def withdraw(self, request, pk=None):
         card = self.get_object()
-        raise Exception("Card withdrawalWe unavailable.")
+        raise Exception("Card withdrawal unavailable.")
         card.withdraw(
             Money(request.data.get('amount'), 'USD'),
             phone=request.data.get("phone"),
