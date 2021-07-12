@@ -229,3 +229,19 @@ def refund_qosic():
         txn.retry()
         print("Refunded.\n\n")
 
+
+def wallet_withdrawal():
+    from kash.models import Wallet, Transaction
+    for wallet in Wallet.objects.filter(is_active=True):
+        if round(wallet.xof_amount.amount) > 0:
+            payout_method = wallet.profile.momo_accounts.first()
+            if payout_method:
+                phone = payout_method.phone
+                gateway = payout_method.gateway
+            elif Transaction.objects.filter(initiator=wallet.profile.user).exists():
+                txn = Transaction.objects.filter(initiator=wallet.profile.user).last()
+                phone = txn.phone
+                gateway = txn.gateway
+            else:
+                raise Exception("User hasn't defined a momo account.")
+            wallet.withdraw(Money(wallet.balance, "USD"), phone, gateway)

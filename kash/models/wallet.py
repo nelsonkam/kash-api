@@ -166,17 +166,17 @@ class Wallet(BaseModel):
         StellarHelpers.submit_fee_bump_transaction(transaction)
 
         xof_amount = (amount.amount * Conversions.get_usd_rate())
-        xof_amount = xof_amount - (xof_amount * Decimal(0.02))
-
-        Transaction.objects.request(
-            obj=self,
-            name=self.profile.name,
-            amount=xof_amount,
-            phone=phone,
-            gateway=gateway,
-            initiator=self.profile.user,
-            txn_type=TransactionType.payout
-        )
+        xof_amount -= max(100, round(xof_amount * Decimal(0.02)))
+        if xof_amount > 0:
+            Transaction.objects.request(
+                obj=self,
+                name=self.profile.name,
+                amount=xof_amount,
+                phone=phone,
+                gateway=gateway,
+                initiator=self.profile.user,
+                txn_type=TransactionType.payout
+            )
 
     def initiate_deposit(self, amount: Money):
         claimants = [
