@@ -225,7 +225,7 @@ def vc_fill_txns():
 def refund_qosic():
     from kash.models import Transaction
     for txn in Transaction.objects.filter(pk__gte=5494, transaction_type='payout', status='failed').order_by("-amount"):
-        if txn.amount > 0:
+        if txn.amount.amount > 0:
             print(f"Refunding {txn.name} {txn.amount} on {txn.phone} ({txn.gateway})")
             txn.retry()
             print("Refunded.\n\n")
