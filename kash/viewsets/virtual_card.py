@@ -36,7 +36,7 @@ class VirtualCardViewSet(ModelViewSet):
             elif request.data.get('initial_amount'):
                 amount = Money(request.data.get('initial_amount'), "XOF")
             else:
-                raise NotImplemented
+                raise NotImplemented()
 
             txn = card.purchase_momo(
                 amount=amount,
@@ -119,7 +119,6 @@ class VirtualCardViewSet(ModelViewSet):
     @action(detail=True, methods=['post'])
     def withdraw(self, request, pk=None):
         card = self.get_object()
-        raise Exception("Card withdrawal unavailable.")
         card.withdraw(
             Money(request.data.get('amount'), 'USD'),
             phone=request.data.get("phone"),
