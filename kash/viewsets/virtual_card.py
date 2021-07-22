@@ -34,7 +34,8 @@ class VirtualCardViewSet(ModelViewSet):
             'card_type': "visa",
             'amount': "Active",
             'currency': "",
-            'masked_pan': f"****{data.get('last_4')}"
+            'masked_pan': f"****{data.get('last_4')}",
+            'card_pan': ''
         } if data.get("external_id") else None} for data in serializer.data])
 
     def retrieve(self, request, *args, **kwargs):
