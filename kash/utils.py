@@ -189,7 +189,7 @@ def vc_fill_txns():
 
 def fill_last4():
     from kash.models import VirtualCard
-    for card in VirtualCard.objects.exclude(external_id__exact=''):
+    for card in VirtualCard.objects.exclude(external_id__exact='').exclude(last_4__exact=''):
         masked_pan = card.card_details.get("masked_pan")
         card.last_4 = masked_pan[len(masked_pan) - 4:len(masked_pan)]
         card.save()
