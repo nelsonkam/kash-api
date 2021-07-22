@@ -127,8 +127,11 @@ class VirtualCard(BaseModel):
             }
         rave2_request("POST", f'/cardservice/balance/{self.external_id}?seckey={settings.RAVE_SECRET_KEY}')
         resp = rave_request('GET', f'/virtual-cards/{self.external_id}')
-
-        return resp.json().get("data")
+        data = resp.json().get("data")
+        masked_pan = data.get("masked_pan")
+        self.last_4 = masked_pan[len(masked_pan) - 4:len(masked_pan)]
+        self.save()
+        return data
 
     def get_statement(self):
         if settings.DEBUG:
