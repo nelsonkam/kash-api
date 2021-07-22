@@ -27,31 +27,38 @@ class VirtualCardViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(profile=self.request.user.profile)
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response([{**data, 'card_details': {
+            'card_type': "visa",
+            'amount': "Active",
+            'currency': "",
+            'masked_pan': f"****{data.get('last_4')}"
+        } if data.get("external_id") else None} for data in serializer.data])
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response({**serializer.data, 'card_details': instance.card_details})
+
     @action(detail=True, methods=['post'])
     def purchase(self, request, pk=None):
         card = self.get_object()
-        if request.data.get('phone'):
-            if request.data.get('amount'):
-                amount = Money(request.data.get('amount'), "USD")
-            elif request.data.get('initial_amount'):
-                amount = Money(request.data.get('initial_amount'), "XOF")
-            else:
-                raise NotImplemented()
-
-            txn = card.purchase_momo(
-                amount=amount,
-                phone=request.data.get('phone'),
-                gateway=request.data.get('gateway')
-            )
-
-            return Response({'txn_ref': txn.reference})
+        if request.data.get('amount'):
+            amount = Money(request.data.get('amount'), "USD")
+        elif request.data.get('initial_amount'):
+            amount = Money(request.data.get('initial_amount'), "XOF")
         else:
-            amount = request.data.get('amount')
-            card.purchase(
-                amount=Money(amount, "XOF"),
-                usd_amount=request.data.get('usd_amount')
-            )
-            return Response(status=200)
+            raise NotImplemented()
+
+        txn = card.purchase_momo(
+            amount=amount,
+            phone=request.data.get('phone'),
+            gateway=request.data.get('gateway')
+        )
+
+        return Response({'txn_ref': txn.reference})
 
     @action(detail=True, methods=['post'])
     def fund(self, request, pk=None):

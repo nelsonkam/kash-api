@@ -169,40 +169,6 @@ class StellarHelpers:
         return StellarHelpers.format_payment_transactions(wallet, [payment])
 
 
-def get_balances():
-    from kash.models import Wallet
-    balance = Decimal(0)
-    total = 0
-    card_holder_total = 0
-    zero_balance_wallets = 0
-    for wallet in Wallet.objects.all():
-        if round(wallet.xof_amount.amount) > 0:
-            balance += Decimal(wallet.balance)
-            card_count = wallet.profile.virtualcard_set.exclude(external_id='').count()
-            card_holder_total += 0 if card_count == 0 else 1
-            print(
-                f"{wallet.profile}: ${wallet.balance} ({wallet.xof_amount}) | Cards: {card_count}"
-            )
-            total += 1
-        else:
-            print(
-                f"{wallet.profile}: ${wallet.balance} ({wallet.xof_amount}) | Zero balance"
-            )
-            zero_balance_wallets += 1
-    print(f"\n\nTotal: ${balance} ({balance * Conversions.get_usd_rate()} XOF)")
-    print(f"Total !0 users: {total} | Cardholder !0 users: {card_holder_total}")
-    print(f"Total 0 users: {zero_balance_wallets}")
-
-
-def vc_reactivate():
-    from kash.models import VirtualCard
-    for card in VirtualCard.objects.filter(is_active=False).exclude(external_id__exact=''):
-        print(f"Reactivating card: ID: {card.pk} - Nickname: {card.nickname} - EID: {card.external_id}")
-        card.is_active = True
-        card.save()
-        print(f"Card reactivated!")
-
-
 def vc_fill_txns():
     from kash.models import VirtualCard, CardTransaction
     for card in VirtualCard.objects.exclude(external_id__exact=''):
@@ -221,31 +187,9 @@ def vc_fill_txns():
                     timestamp=dateparse.parse_datetime(txn.get("created_at"))
                 )
 
-
-def refund_qosic():
-    from kash.models import Transaction
-    for txn in Transaction.objects.filter(pk__gte=5494, transaction_type='payout', status='failed').order_by("-amount"):
-        if txn.amount.amount > 0:
-            print(f"Refunding {txn.name} {txn.amount} on {txn.phone} ({txn.gateway})")
-            txn.retry()
-            print("Refunded.\n\n")
-            txn.initiator.profile.push_notify("Remboursement",
-                         "Nous avons procéder au remboursement de votre portefeuille.", txn)
-
-
-def wallet_withdrawal():
-    from kash.models import Wallet, Transaction
-    for wallet in Wallet.objects.filter(is_active=True):
-        if round(wallet.xof_amount.amount) > 0:
-            payout_method = wallet.profile.momo_accounts.first()
-            if payout_method:
-                phone = payout_method.phone
-                gateway = payout_method.gateway
-            elif Transaction.objects.filter(initiator=wallet.profile.user).exists():
-                txn = Transaction.objects.filter(initiator=wallet.profile.user).last()
-                phone = txn.phone
-                gateway = txn.gateway
-            else:
-                raise Exception("User hasn't defined a momo account.")
-            wallet.withdraw(Money(wallet.balance, "USD"), phone, gateway)
-
+def fill_last4():
+    from kash.models import VirtualCard
+    for card in VirtualCard.objects.exclude(external_id__exact=''):
+        masked_pan = card.card_details.get("masked_pan")
+        card.last_4 = masked_pan[len(masked_pan) - 4:len(masked_pan)]
+        card.save()

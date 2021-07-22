@@ -29,20 +29,15 @@ class VirtualCard(BaseModel):
     nickname = models.CharField(max_length=255)
     category = models.CharField(max_length=255, blank=True)
     profile = models.ForeignKey('kash.UserProfile', on_delete=models.CASCADE)
+    last_4 = models.CharField(max_length=4, blank=True)
 
     @property
     def issuance_cost(self):
         return Money(1000, 'XOF')
 
-    def purchase(self, amount, usd_amount):
-        from kash.models import Wallet
-        if not hasattr(self.profile, "wallet"):
-            Wallet.objects.create(profile=self.profile)
-
-        converted_amount = Money(round(amount.amount / Conversions.get_usd_rate(), 7), "USD")
-
-        self.profile.wallet.pay(converted_amount, "Achat de carte")
-        self.create_external(Money(usd_amount, "USD"))
+    @property
+    def card_type(self):
+        return 'visa'
 
     def purchase_momo(self, amount, phone, gateway):
         from kash.models import Transaction, KashTransaction
@@ -77,23 +72,26 @@ class VirtualCard(BaseModel):
 
         if settings.DEBUG:
             self.external_id = secrets.token_urlsafe(20)
+            self.last_4 = "0000"
             self.save()
             return
 
         usd_balance = rave_request("GET", "/balances/USD").json().get('data').get('available_balance')
         debit_currency = 'NGN'
-        if usd_amount.amount <= usd_balance - 5:
+        if usd_amount.amount <= usd_balance:
             debit_currency = 'USD'
 
         resp = rave_request('POST', '/virtual-cards', {
             'currency': 'USD',
             'amount': float(usd_amount.amount),
-            'billing_name': self.profile.name or "John Doe",
+            'billing_name': self.profile.name,
             'debit_currency': debit_currency,
             'callback_url': "https://prod.mykash.africa/kash/virtual-cards/txn_callback/"
         }).json()
         if resp.get('data'):
             self.external_id = resp.get('data').get('id')
+            masked_pan = resp.get('data').get("masked_pan")
+            self.last_4 = masked_pan[len(masked_pan) - 4:len(masked_pan)]
             self.save()
         else:
             raise Exception(f"Card creation failed: {resp.get('message')}")
@@ -296,13 +294,13 @@ class VirtualCard(BaseModel):
         self.save()
         return
 
-    def withdraw(self, amount, phone=None, gateway=None):
+    def withdraw(self, amount, phone=None, gateway=None, withdrawn=False):
         from kash.models import Transaction
 
         if not self.external_id:
             return None
 
-        if not settings.DEBUG:
+        if not settings.DEBUG and not withdrawn:
             rave_request("POST", f'/virtual-cards/{self.external_id}/withdraw', {
                 'amount': int(amount.amount)
             })

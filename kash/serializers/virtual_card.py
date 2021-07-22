@@ -1,5 +1,5 @@
 from rest_framework.fields import SerializerMethodField
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, ListSerializer
 
 from core.utils import money_to_dict
 from kash.models import VirtualCard
@@ -13,4 +13,4 @@ class VirtualCardSerializer(ModelSerializer):
 
     class Meta:
         model = VirtualCard
-        fields = ['nickname', 'category', 'is_active', 'card_details', 'id', 'issuance_cost']
+        fields = ['nickname', 'category', 'is_active', 'last_4', 'card_type', 'external_id', 'id', 'issuance_cost']
