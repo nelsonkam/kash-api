@@ -1,8 +1,11 @@
 from celery import shared_task
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.utils.dateparse import parse_datetime
 from djmoney.money import Money
 
+from core.utils.notify import tg_bot
+from core.utils.payment import rave_request
 from kash.utils import TransactionStatusEnum, TransactionType, StellarHelpers
 
 
@@ -30,48 +33,16 @@ def send_pending_notifications():
         notification.send()
 
 
+
 @shared_task
-def sync_wallet_transactions():
-    from kash.models import Wallet, WalletTransaction
-    fetched = 0
-    for wallet in Wallet.objects.all():
-        latest_payment = wallet.wallettransaction_set.order_by("timestamp").last()
-        payments = StellarHelpers.horizon_server.payments().for_account(
-            wallet.external_id
-        ).include_failed(True).limit(100)
-        if latest_payment:
-            payments = payments.cursor(latest_payment.cursor)
-        payments = payments.call()
-        payments = payments.get("_embedded").get("records")
-        data = StellarHelpers.format_payment_transactions(wallet, payments)
-        fetched += len(data)
-        for item in data:
-            source = item.get('source')[1:] if item.get('source') != "Kash" else item.get('source')
-            WalletTransaction.objects.create(
-                wallet=wallet,
-                is_successful=item.get("successful"),
-                cursor=item.get("cursor"),
-                timestamp=parse_datetime(item.get("created_at")),
-                amount=Money(item.get('amount'), "XOF"),
-                txn_type=item.get('type'),
-                source=source,
-                memo=item.get("memo", "") or "",
-                external_id=item.get('account_id')
-            )
-    print(f"{fetched} items fetched!")
+def monitor_flw_balance():
+    ngn_balance = rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
+    usd_balance = rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
+    if ngn_balance < 90000 and usd_balance < 50:
+        tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"""
+        ⚠️ Flutterwave balance too low!
+        NGN Balance: {ngn_balance}
+        USD Balance: {usd_balance}
 
-
-def get_merchants():
-    from kash.models import VirtualCard
-    count_result = {}
-    amount_result = {}
-    for card in VirtualCard.objects.all():
-        txns = card.get_statement()
-        for txn in txns:
-            merchant = txn.get("merchant")
-            count_result[merchant] = count_result.get(merchant, 0)
-            count_result[merchant] += 1
-            amount_result[merchant] = amount_result.get(merchant, 0)
-            amount_result[merchant] += float(txn.get('amount'))
-    for k, v in count_result.items():
-        print(k, v, amount_result.get(k))
+        {"_Ceci est un message test._" if settings.DEBUG else ""}
+        """)

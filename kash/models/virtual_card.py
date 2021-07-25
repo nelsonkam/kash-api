@@ -406,7 +406,7 @@ def fund_card(sender, **kwargs):
                               "Réessaies avec au moins 5000 FCFA ou un peu plus tard." \
                     if not card.external_id \
                     else "Hello 🤑, le service de recharge de cartes est momentanément indisponible. " \
-                         "Tu peux néanmoins créer gratuitement une nouvelle carte et la recharger en même temps jusqu'à ce que la situation soit rétablie."
+                         "Tu peux réessayer dans 30 minutes."
                 notif = Notification.objects.create(
                     content_object=card,
                     profile=card.profile,

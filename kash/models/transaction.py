@@ -146,6 +146,8 @@ class Transaction(models.Model):
 
         self.last_status_checked = now()
         self.save()
+        if self.status != TransactionStatusEnum.pending.value:
+            transaction_status_changed.send(sender=self.__class__, transaction=self)
 
     def _payout_moov_mobile_money(self):
         data = self._get_request_data()
@@ -168,6 +170,8 @@ class Transaction(models.Model):
 
         self.last_status_checked = now()
         self.save()
+        if self.status != TransactionStatusEnum.pending.value:
+            transaction_status_changed.send(sender=self.__class__, transaction=self)
 
     def _get_request_data(self):
         data = {
@@ -298,16 +302,16 @@ class Transaction(models.Model):
 @receiver(transaction_status_changed)
 def notify(sender, **kwargs):
     txn = kwargs.pop("transaction")
-    if txn.status == TransactionStatusEnum.success.value and txn.transaction_type == TransactionType.payment:
+    if txn.status == TransactionStatusEnum.success.value:
         tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"""
-New successful payment on Kash!💪🏾
+New successful {txn.transaction_type} on Kash!💪🏾
 
 Type: {txn.content_type.model}
 Amount: {txn.amount}
 Reference: {txn.reference}
 
 {"_Ceci est un message test._" if settings.DEBUG else ""}
-""")
+""", disable_notification=True)
     elif txn.status == TransactionStatusEnum.failed.value and txn.transaction_type == TransactionType.payout:
         tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"""
 ⚠️ Payout failed!
