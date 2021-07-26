@@ -99,6 +99,17 @@ class UserProfile(BaseModel):
             }
         }
 
+    def get_momo_account(self):
+        from kash.models import Transaction
+        payout_method = self.momo_accounts.first()
+        if payout_method:
+            return payout_method.phone, payout_method.gateway
+        elif Transaction.objects.filter(initiator=self.profile.user).exists():
+            txn = Transaction.objects.filter(initiator=self.profile.user).last()
+            return txn.phone, txn.gateway
+        else:
+            raise Exception("User hasn't defined a momo account.")
+
     def __str__(self):
         return f'${self.kashtag}'
 

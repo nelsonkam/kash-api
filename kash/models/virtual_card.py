@@ -303,23 +303,17 @@ class VirtualCard(BaseModel):
         if not self.external_id:
             return None
 
+        history = WithdrawalHistory.objects.create(card=self, amount=amount, status=WithdrawalHistory.Status.pending)
         if not settings.DEBUG and not withdrawn:
             rave_request("POST", f'/virtual-cards/{self.external_id}/withdraw', {
                 'amount': int(amount.amount)
             })
+        history.status = WithdrawalHistory.Status.withdrawn
+        history.save()
 
         withdraw_amount = Conversions.get_xof_from_usd(amount, is_withdrawal=True)
         if not (phone and gateway):
-            payout_method = self.profile.momo_accounts.first()
-            if payout_method:
-                phone = payout_method.phone
-                gateway = payout_method.gateway
-            elif Transaction.objects.filter(initiator=self.profile.user).exists():
-                txn = Transaction.objects.filter(initiator=self.profile.user).last()
-                phone = txn.phone
-                gateway = txn.gateway
-            else:
-                raise Exception("User hasn't defined a momo account.")
+            phone, gateway = self.profile.get_momo_account()
 
         if phone and gateway:
             txn = Transaction.objects.request(
@@ -331,7 +325,10 @@ class VirtualCard(BaseModel):
                 initiator=self.profile.user,
                 txn_type=TransactionType.payout
             )
-            WithdrawalHistory.objects.create(txn_ref=txn.reference, card=self, amount=amount)
+            if txn.status == TransactionStatusEnum.success:
+                history.status = WithdrawalHistory.Status.paid_out
+                history.txn_ref = txn.reference
+                history.save()
         return
 
     def terminate(self):
@@ -358,9 +355,15 @@ class FundingHistory(BaseModel):
 
 
 class WithdrawalHistory(BaseModel):
-    txn_ref = models.CharField(max_length=255, unique=True)
+    class Status(models.TextChoices):
+        paid_out = 'paid-out'
+        failed = 'failed'
+        pending = 'pending'
+        withdrawn = 'withdrawn'
+    txn_ref = models.CharField(max_length=255, unique=True, blank=True)
     card = models.ForeignKey(VirtualCard, on_delete=models.CASCADE)
     amount = MoneyField(max_digits=17, decimal_places=2, default_currency="XOF")
+    status = models.CharField(max_length=15, choices=Status.choices)
 
 
 class CardTransaction(BaseModel):

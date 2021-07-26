@@ -46,3 +46,28 @@ def monitor_flw_balance():
 
         {"_Ceci est un message test._" if settings.DEBUG else ""}
         """)
+
+
+@shared_task
+def retry_failed_withdrawals():
+    from kash.models import Transaction, WithdrawalHistory
+    qs = WithdrawalHistory.objects\
+        .filter(status=WithdrawalHistory.Status.withdrawn)\
+        .prefetch_related("card", "card__profile", "card__profile__user")
+
+    for withdrawal in qs:
+        phone, gateway = withdrawal.card.profile.get_momo_account()
+        if phone and gateway:
+            txn = Transaction.objects.request(
+                obj=withdrawal.card,
+                name=withdrawal.card.profile.name,
+                amount=withdrawal.amount,
+                phone=phone,
+                gateway=gateway,
+                initiator=withdrawal.card.profile.user,
+                txn_type=TransactionType.payout
+            )
+            if txn.status == TransactionStatusEnum.success:
+                withdrawal.status = WithdrawalHistory.Status.paid_out
+                withdrawal.txn_ref = txn.reference
+                withdrawal.save()

@@ -280,6 +280,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "kash.tasks.send_pending_notifications",
         "schedule": crontab(minute='*/3'),
     },
+    "retry_failed_withdrawals": {
+        "task": "kash.tasks.retry_failed_withdrawals",
+        "schedule": crontab(minute='*/3'),
+    },
     "monitor_flw_balance": {
         "task": "kash.tasks.monitor_flw_balance",
         "schedule": crontab(hour='*/3', minute='00'),
