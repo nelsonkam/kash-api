@@ -1,12 +1,9 @@
 from celery import shared_task
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
-from django.utils.dateparse import parse_datetime
-from djmoney.money import Money
 
 from core.utils.notify import tg_bot
 from core.utils.payment import rave_request
-from kash.utils import TransactionStatusEnum, TransactionType, StellarHelpers
+from kash.utils import TransactionStatusEnum, TransactionType, Conversions
 
 
 @shared_task
@@ -57,11 +54,13 @@ def retry_failed_withdrawals():
 
     for withdrawal in qs:
         phone, gateway = withdrawal.card.profile.get_momo_account()
+        withdraw_amount = Conversions.get_xof_from_usd(withdrawal.amount, is_withdrawal=True)
+
         if phone and gateway:
             txn = Transaction.objects.request(
                 obj=withdrawal.card,
                 name=withdrawal.card.profile.name,
-                amount=withdrawal.amount,
+                amount=withdraw_amount,
                 phone=phone,
                 gateway=gateway,
                 initiator=withdrawal.card.profile.user,
