@@ -13,6 +13,7 @@ from djmoney.money import Money, Currency
 from stellar_sdk import TransactionBuilder
 
 from core.models.base import BaseModel
+from core.utils.notify import tg_bot
 from core.utils.payment import rave_request, rave2_request
 from kash.signals import transaction_status_changed
 from kash.utils import TransactionStatusEnum, TransactionType, Conversions, StellarHelpers
@@ -401,12 +402,22 @@ def fund_card(sender, **kwargs):
                     card.create_external(item.amount)
                 item.status = FundingHistory.FundingStatus.success
                 item.save()
-            except:
+            except Exception as err:
+                tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"""
+                Card {'creation' if not card.external_id else 'funding'} failed!
+
+                Card: {card.external_id} (*{card.last_4})
+                Amount: {txn.amount}
+                Reference: {txn.reference}
+                Error: {err}
+
+                {"_Ceci est un message test._" if settings.DEBUG else ""}
+                """, disable_notification=True)
                 item.status = FundingHistory.FundingStatus.failed
                 item.save()
                 txn.refund()
                 description = "Nous n'avons pas pu créer ta carte. " \
-                              "Réessaies avec au moins 5000 FCFA ou un peu plus tard." \
+                              "Réessaies dans 30 minutes." \
                     if not card.external_id \
                     else "Hello 🤑, le service de recharge de cartes est momentanément indisponible. " \
                          "Tu peux réessayer dans 30 minutes."
