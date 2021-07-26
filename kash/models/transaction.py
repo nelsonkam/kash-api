@@ -91,14 +91,14 @@ class Transaction(models.Model):
         return phone
 
     def retry(self, is_async=False):
-        if self.status == TransactionStatusEnum.success:
+        if self.status == TransactionStatusEnum.success.value:
             return
 
         self.status = TransactionStatusEnum.pending
         self.save()
         self.check_status()
 
-        if self.status == TransactionStatusEnum.success:
+        if self.status == TransactionStatusEnum.success.value:
             return
 
         self.reference = generate_reference_10()

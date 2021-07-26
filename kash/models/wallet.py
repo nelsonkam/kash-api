@@ -177,7 +177,7 @@ class Wallet(BaseModel):
                 initiator=self.profile.user,
                 txn_type=TransactionType.payout
             )
-            if txn.status == TransactionStatusEnum.success:
+            if txn.status == TransactionStatusEnum.success.value:
                 self.profile.push_notify("Remboursement",
                                            "Nous avons procéder au remboursement de votre portefeuille.", self)
 

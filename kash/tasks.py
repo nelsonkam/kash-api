@@ -66,7 +66,7 @@ def retry_failed_withdrawals():
                 initiator=withdrawal.card.profile.user,
                 txn_type=TransactionType.payout
             )
-            if txn.status == TransactionStatusEnum.success:
+            if txn.status == TransactionStatusEnum.success.value:
                 withdrawal.status = WithdrawalHistory.Status.paid_out
                 withdrawal.txn_ref = txn.reference
                 withdrawal.save()

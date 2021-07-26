@@ -326,7 +326,7 @@ class VirtualCard(BaseModel):
                 initiator=self.profile.user,
                 txn_type=TransactionType.payout
             )
-            if txn.status == TransactionStatusEnum.success:
+            if txn.status == TransactionStatusEnum.success.value:
                 history.status = WithdrawalHistory.Status.paid_out
                 history.txn_ref = txn.reference
                 history.save()
