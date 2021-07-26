@@ -309,6 +309,7 @@ New successful {txn.transaction_type} on Kash!💪🏾
 Type: {txn.content_type.model}
 Amount: {txn.amount}
 Reference: {txn.reference}
+User: {txn.initiator.profile}
 
 {"_Ceci est un message test._" if settings.DEBUG else ""}
 """, disable_notification=True)
