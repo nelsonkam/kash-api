@@ -361,7 +361,7 @@ class WithdrawalHistory(BaseModel):
         failed = 'failed'
         pending = 'pending'
         withdrawn = 'withdrawn'
-    txn_ref = models.CharField(max_length=255, unique=True, blank=True)
+    txn_ref = models.CharField(max_length=255, blank=True)
     card = models.ForeignKey(VirtualCard, on_delete=models.CASCADE)
     amount = MoneyField(max_digits=17, decimal_places=2, default_currency="XOF")
     status = models.CharField(max_length=15, choices=Status.choices)
