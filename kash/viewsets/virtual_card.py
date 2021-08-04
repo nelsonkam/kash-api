@@ -52,7 +52,11 @@ class VirtualCardViewSet(ModelViewSet):
         elif request.data.get('initial_amount'):
             amount = Money(request.data.get('initial_amount'), "XOF")
         else:
-            raise NotImplemented()
+            card.profile.push_notify("Création de ta carte ⚠️",
+                                     "Réessaies en spécifiant un montant à recharger "
+                                     "à la création de ta carte ($5 minimum)",
+                                     card)
+            raise NotImplementedError
 
         txn = card.purchase_momo(
             amount=amount,

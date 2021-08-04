@@ -286,7 +286,7 @@ CELERY_BEAT_SCHEDULE = {
     # },
     "monitor_flw_balance": {
         "task": "kash.tasks.monitor_flw_balance",
-        "schedule": crontab(hour='*/3', minute='00'),
+        "schedule": crontab(hour='*', minute='00'),
     },
 } if APP_NAME == "api-server" else {}
 
