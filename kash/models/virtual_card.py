@@ -10,6 +10,7 @@ from django.dispatch import receiver
 from djmoney.contrib.exchange.models import convert_money
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money, Currency
+from rest_framework.exceptions import ValidationError
 from stellar_sdk import TransactionBuilder
 
 from core.models.base import BaseModel
@@ -41,9 +42,17 @@ class VirtualCard(BaseModel):
         return 'visa'
 
     def purchase_momo(self, amount, phone, gateway):
-        from kash.models import Transaction, KashTransaction
+        from kash.models import Transaction
         xof_amount = amount if amount.currency == Currency('XOF') else Conversions.get_xof_from_usd(amount)
         usd_amount = amount if amount.currency == Currency('USD') else Conversions.get_usd_from_xof(amount)
+
+        if usd_amount < 5:
+            self.profile.push_notify(
+                "Création de ta carte ⚠️",
+                "Nous n'avons pas pu créer ta carte. Réessaies avec au moins $5.",
+                self
+            )
+            raise ValidationError("Minimum funding amount is $5.")
 
         txn = Transaction.objects.request(**{
             'obj': self,
@@ -53,17 +62,7 @@ class VirtualCard(BaseModel):
             'gateway': gateway,
             'initiator': self.profile.user
         })
-        KashTransaction.objects.create(
-            amount=txn.amount,
-            sender=self.profile,
-            txn=txn,
-            txn_ref=txn.reference,
-            timestamp=txn.created,
-            profile=self.profile,
-            narration="Achat d'une carte virtuelle 💳",
-            receiver=self,
-            txn_type=KashTransaction.TxnType.debit,
-        )
+
         FundingHistory.objects.create(txn_ref=txn.reference, card=self, amount=usd_amount, status='pending')
         return txn
 
@@ -222,8 +221,17 @@ class VirtualCard(BaseModel):
         return resp.json().get("Statements")
 
     def fund_momo(self, amount, phone, gateway):
-        from kash.models import Transaction, KashTransaction
+        from kash.models import Transaction
         xof_amount = Conversions.get_xof_from_usd(amount)
+
+        if amount < 5:
+            self.profile.push_notify(
+                "Recharge de ta carte ⚠️",
+                "Nous n'avons pas pu recharger ta carte. Réessaies avec au moins $5.",
+                self
+            )
+            raise ValidationError("Minimum funding amount is $5.")
+
         total_amount = xof_amount + self.issuance_cost if not self.external_id else xof_amount
         txn = Transaction.objects.request(**{
             'obj': self,
@@ -233,17 +241,6 @@ class VirtualCard(BaseModel):
             'gateway': gateway,
             'initiator': self.profile.user
         })
-        KashTransaction.objects.create(
-            amount=txn.amount,
-            sender=self.profile,
-            txn_ref=txn.reference,
-            txn=txn,
-            timestamp=txn.created,
-            profile=self.profile,
-            narration="Recharge d'une carte virtuelle 💳",
-            receiver=self,
-            txn_type=KashTransaction.TxnType.debit,
-        )
         FundingHistory.objects.create(txn_ref=txn.reference, card=self, amount=amount, status='pending')
         return txn
 
@@ -347,6 +344,7 @@ class FundingHistory(BaseModel):
     class FundingStatus(models.TextChoices):
         success = 'success'
         failed = 'failed'
+        paid = 'paid'
         pending = 'pending'
 
     txn_ref = models.CharField(max_length=255, unique=True)
@@ -395,6 +393,8 @@ def fund_card(sender, **kwargs):
         card = txn.content_object
         item = FundingHistory.objects.filter(txn_ref=txn.reference, card=card).first()
         if item and item.status == FundingHistory.FundingStatus.pending:
+            item.status = FundingHistory.FundingStatus.paid
+            item.save()
             try:
                 if card.external_id:
                     card.fund_external(item.amount)
@@ -413,8 +413,8 @@ def fund_card(sender, **kwargs):
 
                 {"_Ceci est un message test._" if settings.DEBUG else ""}
                 """, disable_notification=True)
-                item.status = FundingHistory.FundingStatus.failed
-                item.save()
+                # item.status = FundingHistory.FundingStatus.failed
+                # item.save()
                 # txn.refund()
                 # description = "Nous n'avons pas pu créer ta carte. " \
                 #               "Réessaies avec au moins $5 ou dans 30 minutes." \

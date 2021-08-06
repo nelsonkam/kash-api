@@ -2,6 +2,7 @@ import logging
 
 from djmoney.contrib.exchange.models import convert_money
 from djmoney.money import Money
+from moneyed import Currency
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
