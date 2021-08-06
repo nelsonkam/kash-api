@@ -28,8 +28,12 @@ class Enum(BaseEnum):
     def items(cls):
         return [(k.value, k.name) for k in cls]
 
-
 class GatewayEnum(Enum):
+    moov = 'moov-bj'
+    mtn = 'mtn-bj'
+
+
+class Gateway(models.TextChoices):
     moov = 'moov-bj'
     mtn = 'mtn-bj'
 
@@ -40,6 +44,12 @@ class TransactionStatusEnum(Enum):
     failed = 'failed'
     refunded = 'refunded'
 
+
+class TransactionStatus(models.TextChoices):
+    pending = 'pending'
+    success = 'success'
+    failed = 'failed'
+    refunded = 'refunded'
 
 def generate_reference(digest_size=5):
     person = "".join(str(now().timestamp()).split('.'))[:16]
