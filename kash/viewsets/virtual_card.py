@@ -70,21 +70,13 @@ class VirtualCardViewSet(ModelViewSet):
     @action(detail=True, methods=['post'])
     def fund(self, request, pk=None):
         card = self.get_object()
-        if request.data.get('phone'):
-            amount = Money(request.data.get('amount'), "USD")
-            txn = card.fund_momo(
-                amount=amount,
-                phone=request.data.get('phone'),
-                gateway=request.data.get('gateway')
-            )
-            return Response({'txn_ref': txn.reference})
-        else:
-            amount = request.data.get('amount')
-            card.fund(
-                amount=Money(amount, "XOF"),
-                usd_amount=request.data.get('usd_amount')
-            )
-            return Response(status=200)
+        amount = Money(request.data.get('amount'), "USD")
+        txn = card.fund_momo(
+            amount=amount,
+            phone=request.data.get('phone'),
+            gateway=request.data.get('gateway')
+        )
+        return Response({'txn_ref': txn.reference})
 
     @action(detail=True, methods=['post'])
     def convert(self, request, pk=None):

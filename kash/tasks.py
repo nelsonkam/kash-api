@@ -70,3 +70,15 @@ def retry_failed_withdrawals():
                 withdrawal.status = WithdrawalHistory.Status.paid_out
                 withdrawal.txn_ref = txn.reference
                 withdrawal.save()
+
+
+@shared_task
+def retry_failed_funding():
+    from kash.models import FundingHistory
+    qs = FundingHistory.objects.filter(
+        status=FundingHistory.FundingStatus.paid,
+        retries__gte=1, retries__lt=4
+    ).prefetch_related("card", "card__profile")
+
+    for item in qs:
+        item.fund()

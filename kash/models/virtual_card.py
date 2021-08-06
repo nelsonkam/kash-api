@@ -1,5 +1,5 @@
-import secrets
 import re
+import secrets
 from datetime import timedelta, date
 from urllib import parse
 
@@ -7,17 +7,15 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.dispatch import receiver
-from djmoney.contrib.exchange.models import convert_money
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money, Currency
 from rest_framework.exceptions import ValidationError
-from stellar_sdk import TransactionBuilder
 
 from core.models.base import BaseModel
 from core.utils.notify import tg_bot
 from core.utils.payment import rave_request, rave2_request
 from kash.signals import transaction_status_changed
-from kash.utils import TransactionStatusEnum, TransactionType, Conversions, StellarHelpers
+from kash.utils import TransactionStatusEnum, TransactionType, Conversions
 
 
 class VirtualCard(BaseModel):
@@ -244,19 +242,6 @@ class VirtualCard(BaseModel):
         FundingHistory.objects.create(txn_ref=txn.reference, card=self, amount=amount, status='pending')
         return txn
 
-    def fund(self, amount, usd_amount):
-        from kash.models import Wallet
-        if not hasattr(self.profile, "wallet"):
-            Wallet.objects.create(profile=self.profile)
-
-        converted_amount = Money(round(amount.amount / Conversions.get_usd_rate(), 7), "USD")
-
-        self.profile.wallet.pay(converted_amount, "Recharge de carte")
-        try:
-            self.fund_external(Money(usd_amount, "USD"))
-        except:
-            self.profile.wallet.deposit(amount)
-
     def fund_external(self, amount):
         if not self.external_id:
             return None
@@ -349,8 +334,64 @@ class FundingHistory(BaseModel):
 
     txn_ref = models.CharField(max_length=255, unique=True)
     card = models.ForeignKey(VirtualCard, on_delete=models.CASCADE)
-    amount = MoneyField(max_digits=17, decimal_places=2, default_currency="XOF")
+    amount = MoneyField(max_digits=17, decimal_places=2, default_currency="USD")
     status = models.CharField(max_length=15)
+    retries = models.PositiveIntegerField(default=0)
+
+    def fund(self):
+        from kash.models import Transaction
+        if not self.status == FundingHistory.FundingStatus.paid:
+            return
+        card = self.card
+        try:
+            self.retries += 1
+            self.save()
+            if card.external_id:
+                card.fund_external(self.amount)
+            else:
+                card.create_external(self.amount)
+            self.status = FundingHistory.FundingStatus.success
+            self.save()
+            card.profile.push_notify(
+                f"{'Création' if not card.external_id else 'Recharge'} de ta carte",
+                f"Ta carte a été {'créée' if not card.external_id else 'rechargée'} avec succès ✅.",
+                card
+            )
+        except Exception as err:
+            tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"""
+                       Card {'creation' if not card.external_id else 'funding'} failed!
+
+                       Card: {card.external_id} (*{card.last_4})
+                       Amount: {self.amount}
+                       Reference: {self.txn_ref}
+                       Retries: {self.retries}
+                       Error: {err}
+
+                       {"_Ceci est un message test._" if settings.DEBUG else ""}
+                       """, disable_notification=True)
+            if self.retries == 1:
+                card.profile.push_notify(
+                    title="Création de votre carte️" if not card.external_id else "Recharge de votre carte️",
+                    description=f"Veuillez patienter, la {'création' if not card.external_id else 'recharge'} "
+                                f"de votre carte est en cours.",
+                    obj=card
+                )
+            if self.retries == 4:
+                self.status = FundingHistory.FundingStatus.failed
+                self.save()
+
+                Transaction.objects.get(reference=self.txn_ref).refund()
+
+                description = "Nous n'avons pas pu créer votre carte et nous vous avons remboursé. " \
+                              "Veuillez réessayer avec au moins $5 ou dans 30 minutes." \
+                    if not card.external_id \
+                    else "Nous n'avons pas pu recharger votre carte et nous vous avons rembourséd. " \
+                         "Veuillez réessayer dans 30 minutes."
+                card.profile.push_notify(
+                    title="Création de votre carte ⚠️" if not card.external_id else "Recharge de votre carte ⚠️",
+                    description=description,
+                    obj=card
+                )
 
 
 class WithdrawalHistory(BaseModel):
@@ -359,6 +400,7 @@ class WithdrawalHistory(BaseModel):
         failed = 'failed'
         pending = 'pending'
         withdrawn = 'withdrawn'
+
     txn_ref = models.CharField(max_length=255, blank=True)
     card = models.ForeignKey(VirtualCard, on_delete=models.CASCADE)
     amount = MoneyField(max_digits=17, decimal_places=2, default_currency="XOF")
@@ -379,7 +421,6 @@ class CardTransaction(BaseModel):
 
 @receiver(transaction_status_changed)
 def fund_card(sender, **kwargs):
-    from kash.models import Notification
     txn = kwargs.pop("transaction")
     vcard_type = ContentType.objects.get_for_model(VirtualCard)
 
@@ -395,36 +436,4 @@ def fund_card(sender, **kwargs):
         if item and item.status == FundingHistory.FundingStatus.pending:
             item.status = FundingHistory.FundingStatus.paid
             item.save()
-            try:
-                if card.external_id:
-                    card.fund_external(item.amount)
-                else:
-                    card.create_external(item.amount)
-                item.status = FundingHistory.FundingStatus.success
-                item.save()
-            except Exception as err:
-                tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"""
-                Card {'creation' if not card.external_id else 'funding'} failed!
-
-                Card: {card.external_id} (*{card.last_4})
-                Amount: {txn.amount}
-                Reference: {txn.reference}
-                Error: {err}
-
-                {"_Ceci est un message test._" if settings.DEBUG else ""}
-                """, disable_notification=True)
-                # item.status = FundingHistory.FundingStatus.failed
-                # item.save()
-                # txn.refund()
-                # description = "Nous n'avons pas pu créer ta carte. " \
-                #               "Réessaies avec au moins $5 ou dans 30 minutes." \
-                #     if not card.external_id \
-                #     else "Hello 🤑, le service de recharge de cartes est momentanément indisponible. " \
-                #          "Tu peux réessayer dans 30 minutes."
-                # notif = Notification.objects.create(
-                #     content_object=card,
-                #     profile=card.profile,
-                #     title="Création de ta carte ⚠️" if not card.external_id else "Recharge de ta carte ⚠️",
-                #     description=description
-                # )
-                # notif.send()
+            item.fund()
