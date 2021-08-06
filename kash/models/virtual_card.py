@@ -415,16 +415,16 @@ def fund_card(sender, **kwargs):
                 """, disable_notification=True)
                 item.status = FundingHistory.FundingStatus.failed
                 item.save()
-                txn.refund()
-                description = "Nous n'avons pas pu créer ta carte. " \
-                              "Réessaies avec au moins $5 ou dans 30 minutes." \
-                    if not card.external_id \
-                    else "Hello 🤑, le service de recharge de cartes est momentanément indisponible. " \
-                         "Tu peux réessayer dans 30 minutes."
-                notif = Notification.objects.create(
-                    content_object=card,
-                    profile=card.profile,
-                    title="Création de ta carte ⚠️" if not card.external_id else "Recharge de ta carte ⚠️",
-                    description=description
-                )
-                notif.send()
+                # txn.refund()
+                # description = "Nous n'avons pas pu créer ta carte. " \
+                #               "Réessaies avec au moins $5 ou dans 30 minutes." \
+                #     if not card.external_id \
+                #     else "Hello 🤑, le service de recharge de cartes est momentanément indisponible. " \
+                #          "Tu peux réessayer dans 30 minutes."
+                # notif = Notification.objects.create(
+                #     content_object=card,
+                #     profile=card.profile,
+                #     title="Création de ta carte ⚠️" if not card.external_id else "Recharge de ta carte ⚠️",
+                #     description=description
+                # )
+                # notif.send()
