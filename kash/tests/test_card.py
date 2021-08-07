@@ -1,3 +1,4 @@
+from djmoney.money import Money
 from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
@@ -5,8 +6,8 @@ from django.test import override_settings
 
 from core.models import User
 from kash.card_providers import CardProvider
-from kash.models import UserProfile, VirtualCard, Transaction, FundingHistory
-from kash.utils import Gateway, TransactionStatus
+from kash.models import UserProfile, VirtualCard, Transaction, FundingHistory, WithdrawalHistory
+from kash.utils import Gateway, TransactionStatus, TransactionType, Conversions
 from kash.tasks import retry_failed_funding
 
 
@@ -105,7 +106,7 @@ class CardTestCase(APITestCase):
         self.assertEqual(history_item.retries, 2)
 
         card.nickname = "Test Card"
-        card.save()
+        card.save(update_fields=['nickname'])
         retry_failed_funding.delay()
         history_item.refresh_from_db()
         self.assertEqual(history_item.status, FundingHistory.FundingStatus.success)
@@ -158,7 +159,7 @@ class CardTestCase(APITestCase):
         })
 
         card.nickname = "Fail: Test Card"
-        card.save()
+        card.save(update_fields=['nickname'])
         response = self.client.post(reverse("virtual-cards-fund", kwargs={'pk': card.pk}), {
             "amount": 10,
             'phone': '90137010',
@@ -178,7 +179,7 @@ class CardTestCase(APITestCase):
         self.assertEqual(history_item.retries, 2)
 
         card.nickname = "Test Card"
-        card.save()
+        card.save(update_fields=['nickname'])
         retry_failed_funding.delay()
         history_item.refresh_from_db()
         self.assertEqual(history_item.status, FundingHistory.FundingStatus.success)
@@ -197,7 +198,7 @@ class CardTestCase(APITestCase):
         })
 
         card.nickname = "Fail: Test Card"
-        card.save()
+        card.save(update_fields=['nickname'])
         response = self.client.post(reverse("virtual-cards-fund", kwargs={'pk': card.pk}), {
             "amount": 10,
             'phone': '90137010',
@@ -223,3 +224,58 @@ class CardTestCase(APITestCase):
         self.assertEqual(txn.status, TransactionStatus.refunded)
         self.assertEqual(history_item.status, FundingHistory.FundingStatus.failed)
         self.assertEqual(history_item.retries, 4)
+
+    def test_card_withdraw_success(self):
+        response = self.client.post(reverse("virtual-cards-list"), {
+            "nickname": 'Test Card',
+            'category': VirtualCard.Category.general
+        })
+        card = VirtualCard.objects.get(pk=response.data.get("id"))
+        self.client.post(reverse("virtual-cards-purchase", kwargs={'pk': card.pk}), {
+            "amount": 10,
+            'phone': '90137010',
+            'gateway': Gateway.mtn
+        })
+        data = {
+            "amount": 10,
+            'phone': '90137010',
+            'gateway': Gateway.mtn
+        }
+        response = self.client.post(reverse("virtual-cards-withdraw", kwargs={'pk': card.pk}), data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        txn = Transaction.objects.get(
+            phone=data.get("phone"),
+            gateway=data.get("gateway"),
+            transaction_type=TransactionType.payout
+        )
+        history_item = WithdrawalHistory.objects.get(txn_ref=txn.reference, card=card)
+        xof_amount = Conversions.get_xof_from_usd(Money(data.get("amount"), "USD"), is_withdrawal=True)
+        self.assertEqual(txn.amount, xof_amount)
+        self.assertEqual(txn.status, TransactionStatus.success)
+        self.assertEqual(history_item.status, WithdrawalHistory.Status.paid_out)
+
+    def test_card_withdraw_fail(self):
+        response = self.client.post(reverse("virtual-cards-list"), {
+            "nickname": 'Test Card',
+            'category': VirtualCard.Category.general
+        })
+        card = VirtualCard.objects.get(pk=response.data.get("id"))
+        self.client.post(reverse("virtual-cards-purchase", kwargs={'pk': card.pk}), {
+            "amount": 10,
+            'phone': '90137010',
+            'gateway': Gateway.mtn
+        })
+        card.refresh_from_db()
+        card.nickname = "Fail: Test Card"
+        card.save(update_fields=['nickname'])
+        data = {
+            "amount": 10,
+            'phone': '90137010',
+            'gateway': Gateway.mtn
+        }
+        with self.assertRaises(Exception):
+            response = self.client.post(reverse("virtual-cards-withdraw", kwargs={'pk': card.pk}), data)
+
+
+

@@ -13,7 +13,7 @@ class DummyCardProvider(BaseCardProvider):
             raise Exception("Couldn't create card")
         card.external_id = secrets.token_urlsafe(20)
         card.last_4 = "".join(secrets.choice(string.digits) for i in range(4))
-        card.save()
+        card.save(update_fields=['last_4', 'external_id'])
 
     def fund(self, card, amount):
         if "fail" in card.nickname.lower() or amount.amount < 5:
@@ -27,6 +27,8 @@ class DummyCardProvider(BaseCardProvider):
         print("Card unfrozen")
 
     def withdraw(self, card, amount):
+        if "fail" in card.nickname.lower():
+            raise Exception("Couldn't withdraw from card")
         print(f"Card withdrawn: ${amount}")
 
     def terminate(self, card):

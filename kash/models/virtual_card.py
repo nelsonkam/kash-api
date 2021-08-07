@@ -154,7 +154,7 @@ class VirtualCard(BaseModel):
         history = WithdrawalHistory.objects.create(card=self, amount=amount, status=WithdrawalHistory.Status.pending)
         self.provider.withdraw(self, amount)
         history.status = WithdrawalHistory.Status.withdrawn
-        history.save()
+        history.save(update_fields=['status'])
 
         withdraw_amount = Conversions.get_xof_from_usd(amount, is_withdrawal=True)
         if not (phone and gateway):
@@ -208,6 +208,7 @@ class FundingHistory(BaseModel):
         try:
             self.retries += 1
             self.save()
+            external_id = card.external_id
             if card.external_id:
                 card.fund_external(self.amount)
             else:
@@ -215,8 +216,8 @@ class FundingHistory(BaseModel):
             self.status = FundingHistory.FundingStatus.success
             self.save()
             card.profile.push_notify(
-                f"{'Création' if not card.external_id else 'Recharge'} de ta carte",
-                f"Ta carte a été {'créée' if not card.external_id else 'rechargée'} avec succès ✅.",
+                f"{'Création' if not external_id else 'Recharge'} de ta carte",
+                f"Ta carte a été {'créée' if not external_id else 'rechargée'} avec succès ✅.",
                 card
             )
         except Exception as err:
