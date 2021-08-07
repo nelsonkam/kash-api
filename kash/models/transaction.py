@@ -7,7 +7,7 @@ from djmoney.contrib.exchange.models import convert_money
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money
 
-from core.utils.notify import tg_bot
+from core.utils.notify import tg_bot, notify_telegram
 from kash.tasks import request_transaction
 from kash.payment_providers import PaymentProvider, get_payment_provider
 from kash.signals import transaction_status_changed
@@ -108,7 +108,7 @@ class Transaction(models.Model):
 def notify(sender, **kwargs):
     txn = kwargs.pop("transaction")
     if txn.status == TransactionStatusEnum.success.value:
-        tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"""
+        notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"""
 New successful {txn.transaction_type} on Kash!💪🏾
 
 Type: {txn.content_type.model}
@@ -119,7 +119,7 @@ User: {txn.initiator.profile}
 {"_Ceci est un message test._" if settings.DEBUG or settings.TESTING else ""}
 """, disable_notification=True)
     elif txn.status == TransactionStatusEnum.failed.value and txn.transaction_type == TransactionType.payout:
-        tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"""
+        notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"""
 ⚠️ Payout failed!
 Reference: {txn.reference}
 

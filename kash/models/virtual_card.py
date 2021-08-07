@@ -12,11 +12,23 @@ from djmoney.money import Money, Currency
 from rest_framework.exceptions import ValidationError
 
 from core.models.base import BaseModel
-from core.utils.notify import tg_bot
+from core.utils.notify import tg_bot, notify_telegram
 from core.utils.payment import rave_request, rave2_request
 from kash.card_providers import CardProvider, get_card_provider
 from kash.signals import transaction_status_changed
 from kash.utils import TransactionStatusEnum, TransactionType, Conversions, TransactionStatus
+
+
+class VirtualCardManager(models.Manager):
+
+    def create(self, *args, **kwargs):
+        card = self.model(
+            *args,
+            **kwargs,
+            provider_name=CardProvider.dummy if settings.DEBUG or settings.TESTING else CardProvider.rave
+        )
+        card.save()
+        return card
 
 
 class VirtualCard(BaseModel):
@@ -26,12 +38,13 @@ class VirtualCard(BaseModel):
 
     external_id = models.CharField(max_length=255, blank=True)
     is_active = models.BooleanField(default=True)
-    service = models.CharField(max_length=255, default='rave')
     nickname = models.CharField(max_length=255)
     category = models.CharField(max_length=255, blank=True)
     profile = models.ForeignKey('kash.UserProfile', on_delete=models.CASCADE)
     last_4 = models.CharField(max_length=4, blank=True)
     provider_name = models.CharField(max_length=20, choices=CardProvider.choices, default=CardProvider.rave)
+
+    objects = VirtualCardManager()
 
     @property
     def issuance_cost(self):
@@ -89,7 +102,7 @@ class VirtualCard(BaseModel):
         from kash.models import Transaction
         xof_amount = Conversions.get_xof_from_usd(amount)
 
-        if amount < 5:
+        if amount.amount < 5:
             self.profile.push_notify(
                 "Recharge de ta carte ⚠️",
                 "Nous n'avons pas pu recharger ta carte. Réessaies avec au moins $5.",
@@ -119,8 +132,7 @@ class VirtualCard(BaseModel):
     def freeze(self):
         if not self.external_id:
             return None
-        if not settings.DEBUG:
-            rave_request("PUT", f'/virtual-cards/{self.external_id}/status/block')
+        self.provider.freeze(self)
         self.is_active = False
         self.save()
         return
@@ -128,23 +140,19 @@ class VirtualCard(BaseModel):
     def unfreeze(self):
         if not self.external_id:
             return None
-        if not settings.DEBUG:
-            rave_request("PUT", f'/virtual-cards/{self.external_id}/status/unblock')
+        self.provider.unfreeze(self)
         self.is_active = True
         self.save()
         return
 
-    def withdraw(self, amount, phone=None, gateway=None, withdrawn=False):
+    def withdraw(self, amount, phone=None, gateway=None):
         from kash.models import Transaction
 
         if not self.external_id:
             return None
 
         history = WithdrawalHistory.objects.create(card=self, amount=amount, status=WithdrawalHistory.Status.pending)
-        if not settings.DEBUG and not withdrawn:
-            rave_request("POST", f'/virtual-cards/{self.external_id}/withdraw', {
-                'amount': int(amount.amount)
-            })
+        self.provider.withdraw(self, amount)
         history.status = WithdrawalHistory.Status.withdrawn
         history.save()
 
@@ -171,8 +179,7 @@ class VirtualCard(BaseModel):
     def terminate(self):
         if not self.external_id:
             return None
-        if not settings.DEBUG:
-            rave_request("PUT", f'/virtual-cards/{self.external_id}/terminate')
+        self.provider.terminate(self)
         self.external_id = ''
         self.is_active = False
         self.save()
@@ -180,6 +187,7 @@ class VirtualCard(BaseModel):
 
 
 class FundingHistory(BaseModel):
+    MAX_FUNDING_RETRIES = 4
     class FundingStatus(models.TextChoices):
         success = 'success'
         failed = 'failed'
@@ -212,7 +220,7 @@ class FundingHistory(BaseModel):
                 card
             )
         except Exception as err:
-            tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"""
+            notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"""
                        Card {'creation' if not card.external_id else 'funding'} failed!
 
                        Card: {card.external_id} (*{card.last_4})
@@ -230,7 +238,7 @@ class FundingHistory(BaseModel):
                                 f"de votre carte est en cours.",
                     obj=card
                 )
-            if self.retries == 4:
+            if self.retries == self.MAX_FUNDING_RETRIES:
                 self.status = FundingHistory.FundingStatus.failed
                 self.save()
 

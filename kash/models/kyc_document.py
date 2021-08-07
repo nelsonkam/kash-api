@@ -8,7 +8,7 @@ from core.models.base import BaseModel
 from django.db import models
 
 from core.utils import create_presigned_url
-from core.utils.notify import tg_bot
+from core.utils.notify import tg_bot, notify_telegram
 from kash.models import Notification
 from kash.signals import transaction_status_changed
 
@@ -52,10 +52,10 @@ class KYCDocument(BaseModel):
 @receiver(post_save, sender=KYCDocument)
 def notify(sender, instance, created, **kwargs):
     if created:
-        tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"New KYC Document on Kash!🆔")
+        notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"New KYC Document on Kash!🆔")
 
     if instance.doc_url and instance.selfie_url and instance.status == KYCDocument.Status.pending:
-        tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"KYC Document uploaded on Kash!✅")
+        notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"KYC Document uploaded on Kash!✅")
 
 
 @receiver(post_save, sender=KYCDocument, dispatch_uid="kyc_notify_status")

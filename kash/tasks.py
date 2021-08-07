@@ -1,7 +1,7 @@
 from celery import shared_task
 from django.conf import settings
 
-from core.utils.notify import tg_bot
+from core.utils.notify import tg_bot, notify_telegram
 from core.utils.payment import rave_request
 from kash.utils import TransactionStatusEnum, TransactionType, Conversions
 
@@ -36,7 +36,7 @@ def monitor_flw_balance():
     ngn_balance = rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
     usd_balance = rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
     if ngn_balance < 90000 and usd_balance < 50:
-        tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"""
+        notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"""
         ⚠️ Flutterwave balance too low!
         NGN Balance: {ngn_balance}
         USD Balance: {usd_balance}
@@ -77,7 +77,7 @@ def retry_failed_funding():
     from kash.models import FundingHistory
     qs = FundingHistory.objects.filter(
         status=FundingHistory.FundingStatus.paid,
-        retries__gte=1, retries__lt=4
+        retries__gte=1, retries__lt=FundingHistory.MAX_FUNDING_RETRIES
     ).prefetch_related("card", "card__profile")
 
     for item in qs:

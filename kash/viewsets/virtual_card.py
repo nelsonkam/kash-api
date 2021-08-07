@@ -12,7 +12,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from core.utils.payment import rave_request
 from kash.models import Transaction, VirtualCard
 from kash.serializers.virtual_card import VirtualCardSerializer
-from kash.utils import TransactionStatusEnum, Conversions
+from kash.utils import TransactionStatusEnum, Conversions, TransactionStatus
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ class VirtualCardViewSet(ModelViewSet):
                                      "Réessaies en spécifiant un montant à recharger "
                                      "à la création de ta carte ($5 minimum)",
                                      card)
-            raise NotImplementedError
+            raise NotImplementedError()
 
         txn = card.purchase_momo(
             amount=amount,
@@ -161,7 +161,7 @@ class VirtualCardViewSet(ModelViewSet):
         card = self.get_object()
         reference = request.data.get('txn_ref')
         txn = Transaction.objects.get(reference=reference)
-        if txn.content_object == card and txn.status == TransactionStatusEnum.success.value:
+        if txn.content_object == card and txn.status == TransactionStatus.success:
             return Response(status=201)
         return Response(status=400)
 
