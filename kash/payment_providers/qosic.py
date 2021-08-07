@@ -6,7 +6,7 @@ from django.utils.timezone import now
 from requests import ReadTimeout, request
 from requests.auth import HTTPBasicAuth
 
-from kash.providers.base import BaseProvider
+from .base import BaseProvider
 from kash.utils import Gateway, TransactionStatus, generate_reference_10, TransactionType
 
 

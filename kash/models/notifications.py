@@ -18,7 +18,7 @@ class Notification(BaseModel):
     sent_at = models.DateTimeField(null=True)
 
     def send(self):
-        if settings.DEBUG:
+        if settings.DEBUG or settings.TESTING:
             self.sent_at = now()
             self.save()
             print(

@@ -9,14 +9,14 @@ from djmoney.money import Money
 
 from core.utils.notify import tg_bot
 from kash.tasks import request_transaction
-from kash.providers import PaymentProvider, get_payment_provider
+from kash.payment_providers import PaymentProvider, get_payment_provider
 from kash.signals import transaction_status_changed
 from kash.utils import TransactionStatusEnum, generate_reference_10, TransactionType, Gateway, \
     TransactionStatus
 
 
 class TransactionManager(models.Manager):
-    def request(self, obj, name, phone, amount, gateway, initiator, txn_type=TransactionType.payment, **kwargs):
+    def create(self, obj, name, phone, amount, gateway, initiator, txn_type=TransactionType.payment, **kwargs):
         assert gateway in Gateway.values, f"The gateway `{gateway}` is not supported."
         amount = amount if isinstance(amount, Money) else Money(amount, 'XOF')
         amount = round(convert_money(amount, "XOF"))
@@ -27,15 +27,20 @@ class TransactionManager(models.Manager):
             amount=amount,
             gateway=gateway,
             initiator=initiator,
-            transaction_type=txn_type
+            transaction_type=txn_type,
+            provider_name=PaymentProvider.dummy if settings.DEBUG or settings.TESTING else PaymentProvider.qosic
         )
         if 'reference' in kwargs:
             transaction.reference = kwargs['reference']
 
         transaction.save()
-        if txn_type == TransactionType.payment:
+        return transaction
+
+    def request(self, *args, **kwargs):
+        transaction = self.create(*args, **kwargs)
+        if transaction.transaction_type == TransactionType.payment:
             request_transaction.delay(transaction.id)
-        elif txn_type == TransactionType.payout:
+        elif transaction.transaction_type == TransactionType.payout:
             transaction.payout()
         else:
             raise NotImplementedError()
@@ -111,7 +116,7 @@ Amount: {txn.amount}
 Reference: {txn.reference}
 User: {txn.initiator.profile}
 
-{"_Ceci est un message test._" if settings.DEBUG else ""}
+{"_Ceci est un message test._" if settings.DEBUG or settings.TESTING else ""}
 """, disable_notification=True)
     elif txn.status == TransactionStatusEnum.failed.value and txn.transaction_type == TransactionType.payout:
         tg_bot.send_message(chat_id=settings.TG_CHAT_ID, text=f"""

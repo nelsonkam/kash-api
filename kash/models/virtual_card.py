@@ -14,8 +14,9 @@ from rest_framework.exceptions import ValidationError
 from core.models.base import BaseModel
 from core.utils.notify import tg_bot
 from core.utils.payment import rave_request, rave2_request
+from kash.card_providers import CardProvider, get_card_provider
 from kash.signals import transaction_status_changed
-from kash.utils import TransactionStatusEnum, TransactionType, Conversions
+from kash.utils import TransactionStatusEnum, TransactionType, Conversions, TransactionStatus
 
 
 class VirtualCard(BaseModel):
@@ -30,6 +31,7 @@ class VirtualCard(BaseModel):
     category = models.CharField(max_length=255, blank=True)
     profile = models.ForeignKey('kash.UserProfile', on_delete=models.CASCADE)
     last_4 = models.CharField(max_length=4, blank=True)
+    provider_name = models.CharField(max_length=20, choices=CardProvider.choices, default=CardProvider.rave)
 
     @property
     def issuance_cost(self):
@@ -39,12 +41,28 @@ class VirtualCard(BaseModel):
     def card_type(self):
         return 'visa'
 
+    @property
+    def provider(self):
+        return get_card_provider(self.provider_name)
+
+    @property
+    def card_details(self):
+        return self.provider.get_details(self)
+
+    def get_statement(self):
+        return self.provider.get_statement(self)
+
+    def get_transactions(self):
+        if not self.external_id:
+            return None
+        return self.provider.get_transactions(self)
+
     def purchase_momo(self, amount, phone, gateway):
         from kash.models import Transaction
         xof_amount = amount if amount.currency == Currency('XOF') else Conversions.get_xof_from_usd(amount)
         usd_amount = amount if amount.currency == Currency('USD') else Conversions.get_usd_from_xof(amount)
 
-        if usd_amount < 5:
+        if usd_amount < Money(5, usd_amount.currency):
             self.profile.push_notify(
                 "Création de ta carte ⚠️",
                 "Nous n'avons pas pu créer ta carte. Réessaies avec au moins $5.",
@@ -52,7 +70,7 @@ class VirtualCard(BaseModel):
             )
             raise ValidationError("Minimum funding amount is $5.")
 
-        txn = Transaction.objects.request(**{
+        txn = Transaction.objects.create(**{
             'obj': self,
             'name': self.profile.name,
             'amount': xof_amount + self.issuance_cost,
@@ -60,163 +78,12 @@ class VirtualCard(BaseModel):
             'gateway': gateway,
             'initiator': self.profile.user
         })
-
         FundingHistory.objects.create(txn_ref=txn.reference, card=self, amount=usd_amount, status='pending')
+        txn.request()
         return txn
 
     def create_external(self, usd_amount, **kwargs):
-        if self.external_id:
-            return
-
-        if settings.DEBUG:
-            self.external_id = secrets.token_urlsafe(20)
-            self.last_4 = "0000"
-            self.save()
-            return
-
-        usd_balance = rave_request("GET", "/balances/USD").json().get('data').get('available_balance')
-        debit_currency = 'NGN'
-        if usd_amount.amount <= usd_balance:
-            debit_currency = 'USD'
-
-        resp = rave_request('POST', '/virtual-cards', {
-            'currency': 'USD',
-            'amount': float(usd_amount.amount),
-            'billing_name': self.profile.name,
-            'debit_currency': debit_currency,
-            'callback_url': "https://prod.mykash.africa/kash/virtual-cards/txn_callback/"
-        }).json()
-        if resp.get('data'):
-            self.external_id = resp.get('data').get('id')
-            masked_pan = resp.get('data').get("masked_pan")
-            self.last_4 = masked_pan[len(masked_pan) - 4:len(masked_pan)]
-            self.save()
-        else:
-            raise Exception(f"Card creation failed: {resp.get('message')}")
-
-    @property
-    def card_details(self):
-        if not self.external_id:
-            return None
-
-        if settings.DEBUG:
-            return {
-                "id": "7dc7b98c-7f6d-48f3-9b31-859a145c8085",
-                "account_id": 65637,
-                "amount": "20.00",
-                "currency": "USD",
-                "card_hash": "7dc7b98c-7f6d-48f3-9b31-859a145c8085",
-                "card_pan": "5366130719043293",
-                "masked_pan": "536613*******3293",
-                "city": "Lekki",
-                "state": "Lagos",
-                "address_1": "19, Olubunmi Rotimi",
-                "address_2": None,
-                "zip_code": "23401",
-                "cvv": "267",
-                "expiration": "2023-01",
-                "send_to": None,
-                "bin_check_name": None,
-                "card_type": "mastercard",
-                "name_on_card": "Jermaine Graham",
-                "created_at": "2020-01-17T18:31:48.97Z",
-                "is_active": True,
-                "callback_url": "https://your-callback-url.com/"
-            }
-        rave2_request("POST", f'/cardservice/balance/{self.external_id}?seckey={settings.RAVE_SECRET_KEY}')
-        resp = rave_request('GET', f'/virtual-cards/{self.external_id}')
-        data = resp.json().get("data")
-        masked_pan = data.get("masked_pan")
-        self.last_4 = masked_pan[len(masked_pan) - 4:len(masked_pan)]
-        self.save()
-        return data
-
-    def get_statement(self):
-        if settings.DEBUG:
-            data = [{
-                "date": "2021-05-09",
-                "amount": "150.00",
-                "type": "Debit",
-                "balance_before": "30.00",
-                "balance_after": "180.00",
-                "merchant": "Funding"
-            }, {
-                "date": "2021-05-08",
-                "amount": "150.00",
-                "type": "Credit",
-                "balance_before": "30.00",
-                "balance_after": "180.00",
-                "merchant": "Funding"
-            }]
-        else:
-            data = self.rave2_transactions() or []
-
-        return [{**i, 'type': i.get('type').lower(), 'created_at': i.get('date'), 'status': "success", } for i in data]
-
-    def get_transactions(self):
-        if not self.external_id:
-            return None
-        if settings.DEBUG:
-            return [
-                {
-                    "id": 39250,
-                    "amount": 25,
-                    "fee": 0,
-                    "product": "Card Transactions",
-                    "gateway_reference_details": "Card Withdrawal ",
-                    "reference": "CF-BARTER-20200113051758201204",
-                    "response_code": 5,
-                    "gateway_reference": "536613*******6517",
-                    "amount_confirmed": 0,
-                    "narration": "Card Withdrawal",
-                    "indicator": "D",
-                    "created_at": "2020-01-13T05:17:58.777Z",
-                    "status": "Successful",
-                    "response_message": "Transaction was Successful",
-                    "currency": "USD"
-                },
-            ]
-
-        def format_reference(ref):
-            if re.match(r'^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$', ref.upper()):
-                return self.profile.name or 'Kash'
-            return ref
-
-        data = [{
-            'id': item.get("id"),
-            'status': item.get("status"),
-            'indicator': item.get('indicator'),
-            'gateway_reference_details': format_reference(item.get('gateway_reference_details')),
-            'narration': item.get('narration') or item.get('product'),
-            'product': item.get('product'),
-            'amount': item.get('amount'),
-            'fee': item.get('fee'),
-            'currency': item.get('currency'),
-            'created_at': item.get('created_at')
-        } for item in self.rave_transactions()]
-        return data
-
-    def rave_transactions(self):
-        query = {
-            'from': (date.today() - timedelta(days=190)).isoformat(),
-            'to': (date.today() + timedelta(days=1)),
-            'size': 20,
-            'index': 1
-        }
-        resp = rave_request('GET', f'/virtual-cards/{self.external_id}/transactions?{parse.urlencode(query)}')
-        return resp.json().get('data')
-
-    def rave2_transactions(self):
-        data = {
-            "FromDate": (self.created_at - timedelta(days=90)).date().isoformat(),
-            "ToDate": (date.today() + timedelta(days=1)).isoformat(),
-            "PageIndex": 0,
-            "PageSize": 20,
-            "CardId": self.external_id,
-            "secret_key": settings.RAVE_SECRET_KEY
-        }
-        resp = rave2_request("POST", '/services/virtualcards/transactions', data)
-        return resp.json().get("Statements")
+        return self.provider.issue(self, usd_amount)
 
     def fund_momo(self, amount, phone, gateway):
         from kash.models import Transaction
@@ -231,7 +98,8 @@ class VirtualCard(BaseModel):
             raise ValidationError("Minimum funding amount is $5.")
 
         total_amount = xof_amount + self.issuance_cost if not self.external_id else xof_amount
-        txn = Transaction.objects.request(**{
+
+        txn = Transaction.objects.create(**{
             'obj': self,
             'name': self.profile.name,
             'amount': total_amount,
@@ -240,27 +108,13 @@ class VirtualCard(BaseModel):
             'initiator': self.profile.user
         })
         FundingHistory.objects.create(txn_ref=txn.reference, card=self, amount=amount, status='pending')
+        txn.request()
         return txn
 
     def fund_external(self, amount):
         if not self.external_id:
             return None
-
-        if settings.DEBUG:
-            print(f"Card funded: ${amount}")
-            return
-
-        usd_balance = rave_request("GET", "/balances/USD").json().get('data').get('available_balance')
-        debit_currency = 'NGN'
-        if amount.amount <= usd_balance - 5:
-            debit_currency = 'USD'
-
-        data = {
-            'amount': float(amount.amount),
-            'debit_currency': debit_currency
-        }
-
-        return rave_request("POST", f'/virtual-cards/{self.external_id}/fund', data)
+        return self.provider.fund(self, amount)
 
     def freeze(self):
         if not self.external_id:
@@ -424,13 +278,13 @@ def fund_card(sender, **kwargs):
     txn = kwargs.pop("transaction")
     vcard_type = ContentType.objects.get_for_model(VirtualCard)
 
-    if txn.content_type == vcard_type and txn.status == TransactionStatusEnum.failed.value:
+    if txn.content_type == vcard_type and txn.status == TransactionStatus.failed:
         item = FundingHistory.objects.filter(txn_ref=txn.reference, card=txn.content_object).first()
         if item:
             item.status = FundingHistory.FundingStatus.failed
             item.save()
 
-    if txn.content_type == vcard_type and txn.status == TransactionStatusEnum.success.value:
+    if txn.content_type == vcard_type and txn.status == TransactionStatus.success:
         card = txn.content_object
         item = FundingHistory.objects.filter(txn_ref=txn.reference, card=card).first()
         if item and item.status == FundingHistory.FundingStatus.pending:

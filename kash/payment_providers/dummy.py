@@ -1,8 +1,8 @@
-from kash.providers.base import BaseProvider
+from .base import BaseProvider
 from kash.utils import TransactionStatus, generate_reference_10
 
 
-class DummyProvider(BaseProvider):
+class DummyPaymentProvider(BaseProvider):
     def process(self, transaction):
         if "fail-" in transaction.reference:
             transaction.change_status(TransactionStatus.failed)
