@@ -313,3 +313,28 @@ class CardTestCase(APITestCase):
         history_item.refresh_from_db()
         self.assertEqual(history_item.status, FundingHistory.FundingStatus.success)
         self.assertEqual(history_item.retries, 2)
+
+    def test_card_concurrent_funding(self):
+        response = self.client.post(reverse("virtual-cards-list"), {
+            "nickname": 'Test Card',
+            'category': VirtualCard.Category.general
+        })
+        card = VirtualCard.objects.get(pk=response.data.get("id"))
+        self.client.post(reverse("virtual-cards-purchase", kwargs={'pk': card.pk}), {
+            "amount": 10,
+            'phone': '90137010',
+            'gateway': Gateway.mtn
+        })
+        set_dummy_balance(100)
+        response = self.client.post(reverse("virtual-cards-fund", kwargs={'pk': card.pk}), {
+            "amount": 300,
+            'phone': '90137010',
+            'gateway': Gateway.mtn
+        })
+        card.refresh_from_db()
+        txn = Transaction.objects.get(reference=response.data.get("txn_ref"))
+        history_item = FundingHistory.objects.get(txn_ref=txn.reference, card=card)
+        set_dummy_balance(1000)
+        retry_failed_funding.delay()
+        history_item.fund()
+        self.assertEqual(history_item.retries, 1)

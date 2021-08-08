@@ -208,7 +208,7 @@ class FundingHistory(BaseModel):
 
     def fund(self):
         from kash.models import Transaction
-        if not self.status == FundingHistory.FundingStatus.paid:
+        if self.status != FundingHistory.FundingStatus.paid:
             return
 
         if self.retries > 0 and not self.card.provider.is_balance_sufficient(self.amount):
@@ -216,13 +216,12 @@ class FundingHistory(BaseModel):
 
         card = self.card
         try:
-            self.retries += 1
-            self.save()
             external_id = card.external_id
             if card.external_id:
                 card.fund_external(self.amount)
             else:
                 card.create_external(self.amount)
+            self.retries += 1
             self.status = FundingHistory.FundingStatus.success
             self.save()
             card.profile.push_notify(
@@ -231,6 +230,8 @@ class FundingHistory(BaseModel):
                 card
             )
         except Exception as err:
+            self.retries += 1
+            self.save()
             notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"""
                        Card {'creation' if not card.external_id else 'funding'} failed!
 
