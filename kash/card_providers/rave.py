@@ -32,7 +32,7 @@ class RaveCardProvider(BaseCardProvider):
             masked_pan = resp.get('data').get("masked_pan")
             card.last_4 = masked_pan[len(masked_pan) - 4:len(masked_pan)]
             card.save()
-            return resp.data()
+            return resp.get("data")
         else:
             raise Exception(f"Card creation failed: {resp.get('message')}")
 
