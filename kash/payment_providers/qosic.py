@@ -42,8 +42,6 @@ class QosicProvider(BaseProvider):
             )
 
     def check_status(self, transaction):
-        if transaction.status != TransactionStatus.pending:
-            return
         response = self.api_client.post(
             'QosicBridge/user/gettransactionstatus',
             {'transref': transaction.reference, 'clientid': self._get_client_id(transaction)}
