@@ -5,18 +5,26 @@ from djmoney.money import Money
 
 from kash.card_providers.base import BaseCardProvider
 
+BALANCE = 100
+
+
+def set_dummy_balance(num):
+    global BALANCE
+    BALANCE = num
+
 
 class DummyCardProvider(BaseCardProvider):
 
     def issue(self, card, initial_amount):
-        if "fail" in card.nickname.lower() or initial_amount.amount < 5:
+        if "fail" in card.nickname.lower() or initial_amount.amount < 5 or not self.is_balance_sufficient(
+                initial_amount):
             raise Exception("Couldn't create card")
         card.external_id = secrets.token_urlsafe(20)
         card.last_4 = "".join(secrets.choice(string.digits) for i in range(4))
         card.save(update_fields=['last_4', 'external_id'])
 
     def fund(self, card, amount):
-        if "fail" in card.nickname.lower() or amount.amount < 5:
+        if "fail" in card.nickname.lower() or amount.amount < 5 or not self.is_balance_sufficient(amount):
             raise Exception("Couldn't fund card")
         print(f"Card funded: ${amount}")
 
@@ -98,3 +106,6 @@ class DummyCardProvider(BaseCardProvider):
         }]
 
         return [{**i, 'type': i.get('type').lower(), 'created_at': i.get('date'), 'status': "success", } for i in data]
+
+    def is_balance_sufficient(self, amount):
+        return BALANCE >= amount.amount

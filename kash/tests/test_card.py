@@ -6,6 +6,7 @@ from django.test import override_settings
 
 from core.models import User
 from kash.card_providers import CardProvider
+from kash.card_providers.dummy import set_dummy_balance
 from kash.models import UserProfile, VirtualCard, Transaction, FundingHistory, WithdrawalHistory
 from kash.utils import Gateway, TransactionStatus, TransactionType, Conversions
 from kash.tasks import retry_failed_funding
@@ -275,7 +276,40 @@ class CardTestCase(APITestCase):
             'gateway': Gateway.mtn
         }
         with self.assertRaises(Exception):
-            response = self.client.post(reverse("virtual-cards-withdraw", kwargs={'pk': card.pk}), data)
+            self.client.post(reverse("virtual-cards-withdraw", kwargs={'pk': card.pk}), data)
 
+    def test_card_funding_balance_insufficient(self):
+        response = self.client.post(reverse("virtual-cards-list"), {
+            "nickname": 'Test Card',
+            'category': VirtualCard.Category.general
+        })
+        card = VirtualCard.objects.get(pk=response.data.get("id"))
+        self.client.post(reverse("virtual-cards-purchase", kwargs={'pk': card.pk}), {
+            "amount": 10,
+            'phone': '90137010',
+            'gateway': Gateway.mtn
+        })
 
+        response = self.client.post(reverse("virtual-cards-fund", kwargs={'pk': card.pk}), {
+            "amount": 1000,
+            'phone': '90137010',
+            'gateway': Gateway.mtn
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        card.refresh_from_db()
+        txn = Transaction.objects.get(reference=response.data.get("txn_ref"))
+        history_item = FundingHistory.objects.get(txn_ref=txn.reference, card=card)
+        self.assertEqual(txn.status, TransactionStatus.success)
+        self.assertEqual(history_item.status, FundingHistory.FundingStatus.paid)
+        self.assertEqual(history_item.retries, 1)
 
+        retry_failed_funding.delay()
+        history_item.refresh_from_db()
+        self.assertEqual(history_item.status, FundingHistory.FundingStatus.paid)
+        self.assertEqual(history_item.retries, 1)
+
+        set_dummy_balance(1100)
+        retry_failed_funding.delay()
+        history_item.refresh_from_db()
+        self.assertEqual(history_item.status, FundingHistory.FundingStatus.success)
+        self.assertEqual(history_item.retries, 2)

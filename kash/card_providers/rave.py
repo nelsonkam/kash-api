@@ -3,6 +3,7 @@ from datetime import timedelta, date
 from urllib import parse
 
 from django.conf import settings
+from djmoney.money import Money
 
 from core.utils.payment import rave_request, rave2_request
 from kash.card_providers.base import BaseCardProvider
@@ -116,3 +117,10 @@ class RaveCardProvider(BaseCardProvider):
         }
         resp = rave_request('GET', f'/virtual-cards/{card.external_id}/transactions?{parse.urlencode(query)}')
         return resp.json().get('data')
+
+    def is_balance_sufficient(self, amount):
+        ngn_balance = rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
+        usd_balance = rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
+        data = rave_request("GET", f'/rates?from=USD&to=NGN&amount={amount.amount}').json()
+        ngn_amount = Money(data.get('data').get('to').get('amount'), "NGN")
+        return ngn_balance >= ngn_amount.amount or usd_balance >= amount.amount

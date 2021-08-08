@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.dispatch import receiver
+from django.utils.functional import cached_property
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money, Currency
 from rest_framework.exceptions import ValidationError
@@ -46,6 +47,8 @@ class VirtualCard(BaseModel):
 
     objects = VirtualCardManager()
 
+    _provider = None
+
     @property
     def issuance_cost(self):
         return Money(1000, 'XOF')
@@ -54,9 +57,12 @@ class VirtualCard(BaseModel):
     def card_type(self):
         return 'visa'
 
-    @property
+    @cached_property
     def provider(self):
-        return get_card_provider(self.provider_name)
+        if self._provider:
+            return self._provider
+        self._provider = get_card_provider(self.provider_name)
+        return self._provider
 
     @property
     def card_details(self):
@@ -204,6 +210,10 @@ class FundingHistory(BaseModel):
         from kash.models import Transaction
         if not self.status == FundingHistory.FundingStatus.paid:
             return
+
+        if self.retries > 0 and not self.card.provider.is_balance_sufficient(self.amount):
+            return
+
         card = self.card
         try:
             self.retries += 1

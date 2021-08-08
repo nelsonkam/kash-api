@@ -27,3 +27,6 @@ class BaseCardProvider:
 
     def get_transactions(self, card):
         raise NotImplementedError()
+
+    def is_balance_sufficient(self, amount):
+        raise NotImplementedError()
