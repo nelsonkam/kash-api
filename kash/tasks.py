@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 from celery import shared_task
 from django.conf import settings
+from django.utils.timezone import now
 
 from core.utils.notify import tg_bot, notify_telegram
 from core.utils.payment import rave_request
@@ -77,7 +80,8 @@ def retry_failed_funding():
     from kash.models import FundingHistory
     qs = FundingHistory.objects.filter(
         status=FundingHistory.FundingStatus.paid,
-        retries__gte=1, retries__lt=FundingHistory.MAX_FUNDING_RETRIES
+        retries__gte=1, retries__lt=FundingHistory.MAX_FUNDING_RETRIES,
+        created_at__lte=now() - timedelta(minutes=5)
     ).prefetch_related("card", "card__profile")
 
     for item in qs:
