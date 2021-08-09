@@ -98,7 +98,7 @@ class QosicProvider(BaseProvider):
         transaction.status = TransactionStatus.pending
         transaction.save()
         self.check_status(transaction)
-
+        transaction.refresh_from_db()
         if transaction.status == TransactionStatus.success:
             return
 

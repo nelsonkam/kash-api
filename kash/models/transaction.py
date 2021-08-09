@@ -33,6 +33,9 @@ class TransactionManager(models.Manager):
         if 'reference' in kwargs:
             transaction.reference = kwargs['reference']
 
+        if 'provider_name' in kwargs:
+            transaction.provider_name = kwargs['provider_name']
+
         transaction.save()
         return transaction
 

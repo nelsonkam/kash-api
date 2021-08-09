@@ -307,7 +307,7 @@ def fund_card(sender, **kwargs):
     if txn.content_type == vcard_type and txn.status == TransactionStatus.success:
         card = txn.content_object
         item = FundingHistory.objects.filter(txn_ref=txn.reference, card=card).first()
-        if item and item.status == FundingHistory.FundingStatus.pending:
+        if item and item.status != FundingHistory.FundingStatus.success:
             item.status = FundingHistory.FundingStatus.paid
             item.save()
             item.fund()
