@@ -2,11 +2,12 @@ from datetime import timedelta
 
 from celery import shared_task
 from django.conf import settings
+from django.db.models import Q
 from django.utils.timezone import now
 
 from core.utils.notify import tg_bot, notify_telegram
 from core.utils.payment import rave_request
-from kash.utils import TransactionStatusEnum, TransactionType, Conversions
+from kash.utils import TransactionStatusEnum, TransactionType, Conversions, TransactionStatus
 
 
 @shared_task
@@ -20,8 +21,12 @@ def request_transaction(txn_id=None):
 @shared_task
 def check_txn_status():
     from kash.models import Transaction
-    for txn in Transaction.objects.filter(status=TransactionStatusEnum.pending.value,
-                                          transaction_type=TransactionType.payment):
+    qs = Transaction.objects.filter(
+        Q(status=TransactionStatus.pending) | Q(status=TransactionStatus.failed),
+        transaction_type=TransactionType.payment,
+        created_at__gte=now() - timedelta(hours=1)
+    )
+    for txn in qs:
         txn.check_status()
 
 
@@ -31,7 +36,6 @@ def send_pending_notifications():
 
     for notification in Notification.objects.filter(sent_at__isnull=True):
         notification.send()
-
 
 
 @shared_task
@@ -51,8 +55,8 @@ def monitor_flw_balance():
 @shared_task
 def retry_failed_withdrawals():
     from kash.models import Transaction, WithdrawalHistory
-    qs = WithdrawalHistory.objects\
-        .filter(status=WithdrawalHistory.Status.withdrawn)\
+    qs = WithdrawalHistory.objects \
+        .filter(status=WithdrawalHistory.Status.withdrawn) \
         .prefetch_related("card", "card__profile", "card__profile__user")
 
     for withdrawal in qs:
