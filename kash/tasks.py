@@ -24,7 +24,7 @@ def check_txn_status():
     qs = Transaction.objects.filter(
         Q(status=TransactionStatus.pending) | Q(status=TransactionStatus.failed),
         transaction_type=TransactionType.payment,
-        created_at__gte=now() - timedelta(hours=1)
+        created__gte=now() - timedelta(hours=3)
     )
     for txn in qs:
         txn.check_status()
