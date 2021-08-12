@@ -37,3 +37,30 @@ def rates(request):
         }
     })
 
+
+@api_view(http_method_names=['GET'])
+def card_info(request):
+    return Response({
+        "usd_rate": {
+            "amount": Conversions.get_xof_from_usd(Money(1, 'USD')).amount,
+            "currency": "XOF"
+        },
+        "minimum_deposit": {
+            "amount": 5,
+            "currency": "USD"
+        },
+        "fees": {
+            "transaction": {
+                "amount": 0,
+                "is_percentage": True
+            },
+            "withdrawal": {
+                "amount": 3,
+                "is_percentage": True
+            },
+            "issuing": {
+                "amount": 1000,
+                "currency": "FCFA"
+            }
+        }
+    })

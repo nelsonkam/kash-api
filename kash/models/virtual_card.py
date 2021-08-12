@@ -167,7 +167,7 @@ class VirtualCard(BaseModel):
             phone, gateway = self.profile.get_momo_account()
 
         if phone and gateway:
-            txn = Transaction.objects.request(
+            txn = Transaction.objects.create(
                 obj=self,
                 name=self.profile.name,
                 amount=withdraw_amount,
@@ -176,11 +176,12 @@ class VirtualCard(BaseModel):
                 initiator=self.profile.user,
                 txn_type=TransactionType.payout
             )
-            if txn.status == TransactionStatusEnum.success.value:
+            history.txn_ref = txn.reference
+            history.save()
+            txn.payout()
+            if txn.status == TransactionStatus.success:
                 history.status = WithdrawalHistory.Status.paid_out
-                history.txn_ref = txn.reference
                 history.save()
-        return
 
     def terminate(self):
         if not self.external_id:

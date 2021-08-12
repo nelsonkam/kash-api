@@ -31,4 +31,5 @@ wallets_router.register(r'transactions', StellarTransactionViewSet, basename='wa
 urlpatterns = router.urls + wallets_router.urls + [
     path('version/', views.version, name='version'),
     path('rates/', views.rates, name='rates'),
+    path('info/cards/', views.card_info, name='card_info'),
 ]
