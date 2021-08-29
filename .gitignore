@@ -25,3 +25,5 @@ node_modules/
 celerybeat-schedule.db
 
 staticfiles/
+
+scratch.py

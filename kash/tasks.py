@@ -3,6 +3,7 @@ from datetime import timedelta
 from celery import shared_task
 from django.conf import settings
 from django.db.models import Q
+from django.db.models.aggregates import Count
 from django.utils.timezone import now
 
 from core.utils.notify import tg_bot, notify_telegram
@@ -90,3 +91,18 @@ def retry_failed_funding():
 
     for item in qs:
         item.fund()
+
+
+@shared_task
+def reward_referrer():
+    from kash.models import Referral
+
+    referrals = Referral.objects.annotate(
+        referred_card_count=Count('referred__virtualcard', filter=~Q(referred__virtualcard__external_id='')),
+    ).filter(
+        referred_card_count__gte=1,
+        rewarded_at__isnull=True
+    )
+
+    for referral in referrals:
+        referral.reward()

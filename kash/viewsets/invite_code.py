@@ -1,3 +1,5 @@
+from kash.models.invite_code import Referral
+from kash.models.user_profile import UserProfile
 from django.utils.timezone import now
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -23,6 +25,7 @@ class InviteCodeViewset(ModelViewSet):
     @action(detail=False, methods=['POST'])
     def verify(self, request):
         code = request.data.get('code')
+
 
         if InviteCode.objects.filter(invited=self.request.user.profile).exists():
             return Response(dict(message="Already invited"))

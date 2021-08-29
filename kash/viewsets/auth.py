@@ -1,3 +1,4 @@
+from kash.models.invite_code import Referral
 from django.contrib.auth import authenticate
 from django.http import HttpResponseForbidden
 from phone_verify.serializers import PhoneSerializer, SMSVerificationSerializer
@@ -28,11 +29,16 @@ class AuthViewSet(GenericViewSet):
             kashtag=data.get('kashtag')
         )
         refresh = RefreshToken.for_user(user)
+
+        if data.get("referral_code"):
+            Referral.objects.record_referral(profile, data.get('referral_code'))
+
         data = {
             "refresh": str(refresh),
             "access": str(refresh.access_token),
             "user": UserSerializer(instance=user).data,
         }
+        
         return Response(data)
 
     @action(detail=False, methods=['post'])

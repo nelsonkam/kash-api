@@ -22,7 +22,6 @@ class KashRequest(BaseModel):
         from kash.models import Notification
 
         amount = self.amount.amount
-        # sender_name = "Quelqu'un" if self.is_incognito else f"${self.initiator.kashtag}"
         sender_name = f"${self.initiator.kashtag}"
         notif = Notification.objects.create(
             title="Besoin de kash 💰",

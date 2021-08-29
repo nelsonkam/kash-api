@@ -16,7 +16,7 @@ from core.models.base import BaseModel
 from core.utils.notify import tg_bot, notify_telegram
 from core.utils.payment import rave_request, rave2_request
 from kash.card_providers import CardProvider, get_card_provider
-from kash.signals import transaction_status_changed
+from kash.signals import transaction_status_changed, virtual_card_issued, virtual_card_funded
 from kash.utils import TransactionStatusEnum, TransactionType, Conversions, TransactionStatus
 
 
@@ -102,7 +102,8 @@ class VirtualCard(BaseModel):
         return txn
 
     def create_external(self, usd_amount, **kwargs):
-        return self.provider.issue(self, usd_amount)
+        self.provider.issue(self, usd_amount)
+        virtual_card_issued.send(sender=self.__class__, card=self, amount=usd_amount)
 
     def fund_momo(self, amount, phone, gateway):
         from kash.models import Transaction
@@ -225,11 +226,6 @@ class FundingHistory(BaseModel):
             self.retries += 1
             self.status = FundingHistory.FundingStatus.success
             self.save()
-            card.profile.push_notify(
-                f"{'Création' if not external_id else 'Recharge'} de ta carte",
-                f"Ta carte a été {'créée' if not external_id else 'rechargée'} avec succès ✅.",
-                card
-            )
         except Exception as err:
             self.retries += 1
             self.save()
@@ -312,3 +308,23 @@ def fund_card(sender, **kwargs):
             item.status = FundingHistory.FundingStatus.paid
             item.save()
             item.fund()
+
+
+@receiver(virtual_card_issued)
+def notify_card_issued(sender, **kwargs):
+    card = kwargs.pop("card")
+    card.profile.push_notify(
+        f"Création de ta carte",
+        f"Ta carte a été créée avec succès ✅.",
+        card
+    )
+
+@receiver(virtual_card_funded)
+def notify_card_funded(sender, **kwargs):
+    card = kwargs.pop("card")
+    card.profile.push_notify(
+        f"Recharge de ta carte",
+        f"Ta carte a été rechargée avec succès ✅.",
+        card
+    )
+

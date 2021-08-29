@@ -17,10 +17,15 @@ from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from djmoney.contrib.exchange.models import convert_money
 from djmoney.money import Money
-
-from core.models.base import BaseModel
+from hashids import Hashids
+from core.models.base import BaseModel, generate_ref_id
 from core.utils.notify import tg_bot
 from kash.utils import TransactionStatusEnum, Conversions
+
+
+
+def generate_code():
+    return generate_ref_id(length=5)
 
 
 @deconstructible
@@ -39,6 +44,7 @@ class UserProfile(BaseModel):
     device_ids = ArrayField(models.CharField(max_length=255), default=list)
     avatar_url = models.URLField(blank=True)
     contacts = models.ManyToManyField('kash.UserProfile')
+    referral_code = models.CharField(max_length=10, default=generate_code, unique=True)
 
     def push_notify(self, title, description, obj=None):
         from kash.models import Notification

@@ -13,6 +13,8 @@ from kash.utils import Gateway, TransactionStatus, generate_reference_10, Transa
 class QosicProvider(BaseProvider):
 
     def process(self, transaction):
+        if transaction.transaction_type != TransactionType.payment:
+            return
         if transaction.gateway == Gateway.mtn:
             self._request_mtn_mobile_money(transaction)
         elif transaction.gateway == Gateway.moov:
@@ -105,7 +107,12 @@ class QosicProvider(BaseProvider):
         transaction.reference = generate_reference_10()
         transaction.save(update_fields=['reference'])
 
-        self.process(transaction)
+        if transaction.transaction_type == TransactionType.payment:
+            self.process(transaction)
+        elif transaction.transaction_type == TransactionType.payout:
+            self.payout(transaction)
+        else:
+            raise NotImplemented()
 
     @property
     def api_client(self):
