@@ -84,13 +84,52 @@ class VirtualCardViewSet(ModelViewSet):
         is_withdrawal = request.data.get('is_withdrawal', False)
         if currency.upper() == 'USD':
             amount = Money(request.data.get('amount'), "USD")
-            amount = Conversions.get_xof_from_usd(amount, is_withdrawal=is_withdrawal)
+            amount = Conversions.get_xof_from_usd(
+                amount, is_withdrawal=is_withdrawal)
         elif currency.upper() == 'XOF':
             amount = Money(request.data.get('amount'), 'XOF')
             amount = Conversions.get_usd_from_xof(amount)
         else:
             raise NotImplemented
         return Response({'amount': round(amount.amount), 'fees': 0})
+
+    @action(detail=True, methods=['post'], url_path="txn/preview")
+    def txn_preview(self, request, pk=None):
+        card = self.get_object()
+        operation = request.data.get("operation")
+        currency = request.data.get('currency', 'USD')
+        is_withdrawal = request.data.get('is_withdrawal', False)
+        if currency.upper() == 'USD':
+            amount = Money(request.data.get('amount'), "USD")
+            amount = Conversions.get_xof_from_usd(
+                amount, is_withdrawal=is_withdrawal)
+        elif currency.upper() == 'XOF':
+            amount = Money(request.data.get('amount'), 'XOF')
+            amount = Conversions.get_usd_from_xof(amount)
+        else:
+            raise NotImplemented
+        amount = round(amount.amount)
+        discount = min(card.profile.promo_balance,
+                       1000) if not is_withdrawal else 0
+
+        if operation == 'purchase':
+            amount += card.issuance_cost.amount
+
+        return Response({
+            'amount': {
+                'amount': amount,
+                'currency': "XOF"
+            },
+            'discount': {
+                'amount': discount,
+                'currency': "XOF"
+            },
+            'total': {
+                'amount': max(amount - discount, 0),
+                'currency': "XOF"
+            },
+            'fees': {'amount': 0, 'currency': "XOF"}
+        })
 
     @action(detail=True, methods=['get'])
     def transactions(self, request, pk=None):

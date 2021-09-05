@@ -1,7 +1,8 @@
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.db import models
+from django.db import models, transaction
+from django.utils import timezone
 from django.dispatch import receiver
 from djmoney.contrib.exchange.models import convert_money
 from djmoney.models.fields import MoneyField
@@ -20,15 +21,17 @@ class TransactionManager(models.Manager):
         assert gateway in Gateway.values, f"The gateway `{gateway}` is not supported."
         amount = amount if isinstance(amount, Money) else Money(amount, 'XOF')
         amount = round(convert_money(amount, "XOF"))
+        discount = kwargs.pop("discount", Money(0, amount.currency))
         transaction = self.model(
             content_object=obj,
             name=name or '',
             phone=phone,
-            amount=amount,
+            amount=amount - discount,
             gateway=gateway,
             initiator=initiator,
             transaction_type=txn_type,
-            provider_name=PaymentProvider.dummy if settings.DEBUG or settings.TESTING else PaymentProvider.qosic
+            provider_name=PaymentProvider.dummy if settings.DEBUG or settings.TESTING else PaymentProvider.qosic,
+            **kwargs
         )
         if 'reference' in kwargs:
             transaction.reference = kwargs['reference']
@@ -62,6 +65,8 @@ class Transaction(models.Model):
     status = models.CharField(max_length=40, default=TransactionStatus.pending,
                               choices=TransactionStatus.choices)
     amount = MoneyField(max_digits=17, decimal_places=2, default_currency='XOF')
+    discount = MoneyField(max_digits=17, decimal_places=2, default_currency='XOF', default=0)
+    discount_accounted_at = models.DateTimeField(null=True)
     name = models.CharField(max_length=255, blank=True)
     phone = models.CharField(max_length=45)
     transaction_type = models.CharField(max_length=10, choices=TransactionType.choices, default=TransactionType.payment)
@@ -128,3 +133,16 @@ Reference: {txn.reference}
 
 {"_Ceci est un message test._" if settings.DEBUG else ""}
 """)
+
+
+@receiver(transaction_status_changed)
+def account_discount(sender, **kwargs):
+    from kash.models import UserProfile
+    txn = kwargs.pop("transaction")
+    if txn.discount.amount > 0 and not txn.discount_accounted_at:
+        with transaction.atomic():
+            profile = UserProfile.objects.select_for_update().filter(user=txn.initiator).first()
+            profile.promo_balance -= txn.discount.amount
+            profile.save()
+            txn.discount_accounted_at = timezone.now()
+            txn.save()

@@ -45,6 +45,7 @@ class UserProfile(BaseModel):
     avatar_url = models.URLField(blank=True)
     contacts = models.ManyToManyField('kash.UserProfile')
     referral_code = models.CharField(max_length=10, default=generate_code, unique=True)
+    promo_balance = models.PositiveIntegerField(default=0)
 
     def push_notify(self, title, description, obj=None):
         from kash.models import Notification

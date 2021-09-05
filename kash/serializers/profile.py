@@ -57,8 +57,9 @@ class ProfileSerializer(ModelSerializer):
 
     class Meta:
         model = UserProfile
+        read_only_fields = ['referral_code', 'promo_balance']
         fields = ['kashtag', 'txn_summary', 'limits', 'avatar_url', 'device_ids', 'user', 'name', 'payout_methods',
-                  'momo_accounts', 'invite', 'kyc_level', 'phone_number', 'wallet', 'referral_code']
+                  'momo_accounts', 'invite', 'kyc_level', 'phone_number', 'wallet', 'referral_code', 'promo_balance']
 
 
 class LimitedProfileSerializer(ModelSerializer):

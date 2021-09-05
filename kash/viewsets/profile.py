@@ -1,3 +1,4 @@
+from kash.models.promo_code import PromoCode
 from uuid import uuid4
 
 import phonenumbers
@@ -140,7 +141,10 @@ class ProfileViewset(ModelViewSet):
         user.save()
         return Response({"message": "Security code is valid."})
 
-    @action(detail=True, methods=['post'])
-    def wallet(self, request, pk=None):
+    @action(detail=True, methods=['post'], url_path='promo/apply')
+    def apply_promo_code(self, request, pk=None):
         profile = self.get_object()
+        code = request.data.get("code")
+        promo_code = get_object_or_404(PromoCode, code=code)
+        promo_code.apply(profile)
         return Response(status=201)

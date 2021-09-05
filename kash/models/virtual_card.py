@@ -95,7 +95,8 @@ class VirtualCard(BaseModel):
             'amount': xof_amount + self.issuance_cost,
             'phone': phone,
             'gateway': gateway,
-            'initiator': self.profile.user
+            'initiator': self.profile.user,
+            'discount': Money(min(self.profile.promo_balance, 1000), "XOF")
         })
         FundingHistory.objects.create(txn_ref=txn.reference, card=self, amount=usd_amount, status='pending')
         txn.request()
@@ -125,7 +126,8 @@ class VirtualCard(BaseModel):
             'amount': total_amount,
             'phone': phone,
             'gateway': gateway,
-            'initiator': self.profile.user
+            'initiator': self.profile.user,
+            'discount': Money(min(self.profile.promo_balance, 1000), "XOF")
         })
         FundingHistory.objects.create(txn_ref=txn.reference, card=self, amount=amount, status='pending')
         txn.request()
@@ -218,7 +220,6 @@ class FundingHistory(BaseModel):
 
         card = self.card
         try:
-            external_id = card.external_id
             if card.external_id:
                 card.fund_external(self.amount)
             else:

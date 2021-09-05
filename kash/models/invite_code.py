@@ -2,7 +2,7 @@ from django.utils.timezone import now
 from djmoney.money import Money
 from rest_framework.exceptions import ValidationError
 from kash.models.transaction import Transaction
-from django.db import models
+from django.db import models, transaction
 
 
 from core.models.base import BaseModel, generate_ref_id
@@ -38,30 +38,24 @@ class ReferralManager(models.Manager):
 
 
 class Referral(BaseModel):
+    REWARD_AMOUNT = 500
     referred = models.OneToOneField('kash.UserProfile', on_delete=models.CASCADE)
     referrer = models.ForeignKey("kash.UserProfile", on_delete=models.CASCADE, related_name='referrals')
     rewarded_at = models.DateTimeField(null=True)
-    reward_reference = models.CharField(max_length=20, blank=True)
 
     objects = ReferralManager()
 
     def reward(self):
-        phone, gateway = self.referrer.get_momo_account()
-        txn = Transaction.objects.request(
-            name=self.referrer.name,
-            phone=phone,
-            gateway=gateway,
-            amount=Money(250, "XOF"),
-            initiator=self.referrer.user,
-            txn_type=TransactionType.payout
-        )
-
-        self.rewarded_at = now()
-        self.reward_reference = txn.reference
-        self.save()
+        from kash.models import UserProfile
+        with transaction.atomic():
+            profile = UserProfile.objects.select_for_update().filter(pk=self.referrer.pk).first()
+            profile.promo_balance += self.REWARD_AMOUNT
+            profile.save()
+            self.rewarded_at = now()
+            self.save()
 
         self.referrer.push_notify(
             "Nouvelle affiliation 💰",
-            "Vous venez de gagner 250 XOF pour avoir recommander Kash à une connaissance.",
+            f"Vous venez de gagner {self.REWARD_AMOUNT} XOF pour avoir recommander Kash à une connaissance.",
             self
         )
