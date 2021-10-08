@@ -23,10 +23,9 @@ class InviteCode(BaseModel):
 class ReferralManager(models.Manager):
     def record_referral(self, profile, referral_code):
         from kash.models import UserProfile
+        code = referral_code.split("REF-")[1] if "REF-" in referral_code else referral_code
 
-        print(profile, referral_code)
-
-        referrer = UserProfile.objects.get(referral_code=referral_code.split("REF-")[1])
+        referrer = UserProfile.objects.get(referral_code=code)
 
         if Referral.objects.filter(referred=profile).exists():
             raise ValidationError(dict(message="Already invited"))
