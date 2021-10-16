@@ -52,9 +52,8 @@ class Referral(BaseModel):
             profile.save()
             self.rewarded_at = now()
             self.save()
-
-        self.referrer.push_notify(
-            "Nouvelle affiliation 💰",
-            f"Vous venez de gagner {self.REWARD_AMOUNT} XOF pour avoir recommander Kash à une connaissance.",
-            self
-        )
+            self.referrer.push_notify(
+                "Nouvelle affiliation 💰",
+                f"Vous venez de gagner {self.REWARD_AMOUNT} XOF pour avoir recommander Kash à une connaissance.",
+                self
+            )
