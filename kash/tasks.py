@@ -24,7 +24,6 @@ def check_txn_status():
     from kash.models import Transaction
     qs = Transaction.objects.filter(
         Q(status=TransactionStatus.pending) | Q(status=TransactionStatus.failed),
-        transaction_type=TransactionType.payment,
         created__gte=now() - timedelta(hours=3)
     )
     for txn in qs:
