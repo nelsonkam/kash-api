@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.urls import path
 from rest_framework_nested import routers
 
@@ -32,4 +33,6 @@ urlpatterns = router.urls + wallets_router.urls + [
     path('version/', views.version, name='version'),
     path('rates/', views.rates, name='rates'),
     path('info/cards/', views.card_info, name='card_info'),
+    path('misc/fund/', views.recharge, name='misc_fund'),
+    path(f'tgbot/{settings.TG_BOT_TOKEN}/', views.tg_bot, name='tg_bot'),
 ]

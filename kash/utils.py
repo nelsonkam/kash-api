@@ -37,6 +37,10 @@ class Gateway(models.TextChoices):
     moov = 'moov-bj'
     mtn = 'mtn-bj'
 
+GATEWAY_LIST = [
+    Gateway.moov,
+    Gateway.mtn
+]
 
 class TransactionStatusEnum(Enum):
     pending = 'pending'

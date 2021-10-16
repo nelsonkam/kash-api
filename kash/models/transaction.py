@@ -30,7 +30,6 @@ class TransactionManager(models.Manager):
             gateway=gateway,
             initiator=initiator,
             transaction_type=txn_type,
-            provider_name=PaymentProvider.dummy if settings.DEBUG or settings.TESTING else PaymentProvider.qosic,
             **kwargs
         )
         if 'reference' in kwargs:
@@ -38,6 +37,8 @@ class TransactionManager(models.Manager):
 
         if 'provider_name' in kwargs:
             transaction.provider_name = kwargs['provider_name']
+        else:
+            transaction.provider_name = PaymentProvider.dummy if settings.DEBUG or settings.TESTING else PaymentProvider.qosic
 
         transaction.save()
         return transaction
@@ -122,7 +123,7 @@ New successful {txn.transaction_type} on Kash!💪🏾
 Type: {txn.content_type.model}
 Amount: {txn.amount}
 Reference: {txn.reference}
-User: {txn.initiator.profile}
+User: {txn.initiator}
 
 {"_Ceci est un message test._" if settings.DEBUG or settings.TESTING else ""}
 """, disable_notification=True)

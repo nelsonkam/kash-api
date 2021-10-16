@@ -4,6 +4,8 @@ from djmoney.contrib.exchange.models import convert_money
 from djmoney.money import Money
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from core.utils.notify import parse_command
+from core.utils.payment import rave_request
 
 from kash.utils import Conversions, StellarHelpers
 
@@ -64,3 +66,20 @@ def card_info(request):
             }
         }
     })
+
+
+@api_view(http_method_names=['GET'])
+def recharge(request):
+    ngn_balance = rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
+    usd_balance = rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
+    data = rave_request("GET", f'/rates?from=NGN&to=USD&amount={ngn_balance}').json()
+    amount = data.get('data').get('to').get('amount')
+    amount_to_charge = 1000 - (usd_balance + amount)
+    return Response({
+        'amount_to_fund': amount_to_charge
+    })
+
+@api_view(http_method_names=['POST'])
+def tg_bot(request):
+    parse_command(request.data)
+    return Response(status=200)

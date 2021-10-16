@@ -32,8 +32,9 @@ class QosicProvider(BaseProvider):
             print(response.text, response.status_code, response.status_code == 200)
             assert response.status_code == 200
             assert int(response.json()['responsecode']) == 0
-        except (AssertionError, ReadTimeout, ValueError) as e:
+        except (AssertionError, ValueError) as e:
             # todo; add logger to see more
+            print(e)
             transaction.change_status(TransactionStatus.failed)
         else:
             response_data = response.json()
