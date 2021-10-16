@@ -296,7 +296,7 @@ CELERY_BEAT_SCHEDULE = {
 } if APP_NAME == "api-server" else {}
 
 CONVERSION_RATES = {
-    'NGN_XOF': 1.125,
+    'NGN_XOF': 1.12,
     'MARGIN': 0.08
 }
 
@@ -325,3 +325,30 @@ LOGIN_URL = "/admin/"
 SILKY_PYTHON_PROFILER = True
 SILKY_AUTHENTICATION = True
 SILKY_AUTHORISATION = True
+
+PAYOUT_RECIPIENTS = {
+    'me-moov': {
+        'phone': '98801811',
+        'gateway': 'moov-bj'
+    },
+    'me-mtn': {
+        'phone': '90137010',
+        'gateway': 'mtn-bj'
+    },
+    'tino': {
+        'phone': '69739797',
+        'gateway': 'mtn-bj'
+    },
+    'camille-mtn': {
+        'phone': '67607629',
+        'gateway': 'mtn-bj'
+    },
+    'camille-moov': {
+        'phone': '64978775',
+        'gateway': 'moov-bj'
+    },
+    'harold': {
+        'phone': '62606333',
+        'gateway': 'mtn-bj'
+    }
+}
