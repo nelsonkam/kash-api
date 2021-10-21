@@ -16,7 +16,7 @@ class RaveCardProvider(BaseCardProvider):
 
         usd_balance = rave_request("GET", "/balances/USD").json().get('data').get('available_balance')
         debit_currency = 'NGN'
-        if initial_amount.amount <= usd_balance:
+        if initial_amount.amount <= usd_balance - 5:
             debit_currency = 'USD'
 
         resp = rave_request('POST', '/virtual-cards', {

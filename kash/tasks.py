@@ -42,7 +42,7 @@ def send_pending_notifications():
 def monitor_flw_balance():
     ngn_balance = rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
     usd_balance = rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
-    if ngn_balance < 90000 and usd_balance < 50:
+    if ngn_balance < 150000:
         notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"""
         ⚠️ Flutterwave balance too low!
         NGN Balance: {ngn_balance}
