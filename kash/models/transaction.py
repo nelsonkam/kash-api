@@ -30,6 +30,7 @@ class TransactionManager(models.Manager):
             gateway=gateway,
             initiator=initiator,
             transaction_type=txn_type,
+            discount=discount,
             **kwargs
         )
         if 'reference' in kwargs:
