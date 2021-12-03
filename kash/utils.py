@@ -223,3 +223,19 @@ def get_merchants():
             amount_result[merchant] += float(txn.get('amount'))
     for k, v in count_result.items():
         print(k, v, amount_result.get(k))
+        
+  
+def payout(amount, phone, gateway):
+    from core.models import User
+    from kash.models import Transaction
+
+    admin = User.objects.get(is_superuser=True)
+    return Transaction.objects.request(
+        obj=admin,
+        name="admin",
+        amount=Conversions.get_xof_from_usd(amount, is_withdrawal=True),
+        phone=phone,
+        gateway=gateway,
+        initiator=admin,
+        txn_type="payout",
+    )
