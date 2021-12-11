@@ -53,12 +53,10 @@ class KYCDocument(BaseModel):
 def notify(sender, instance, created, **kwargs):
     if created:
         notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"New KYC Document on Kash!🆔")
-        notify_telegram(chat_id="1409970291", text=f"New KYC Document on Kash!🆔")
-
+        
     if instance.doc_url and instance.selfie_url and instance.status == KYCDocument.Status.pending:
         notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"KYC Document uploaded on Kash!✅")
-        notify_telegram(chat_id="1409970291", text=f"KYC Document uploaded on Kash!✅")
-
+        
 
 @receiver(post_save, sender=KYCDocument, dispatch_uid="kyc_notify_status")
 def notify_status(sender, instance, created, **kwargs):
