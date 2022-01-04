@@ -68,6 +68,7 @@ class RaveCardProvider(BaseCardProvider):
         data = resp.json().get("data")
         masked_pan = data.get("masked_pan")
         card.last_4 = masked_pan[len(masked_pan) - 4:len(masked_pan)]
+        card.is_active = data.get("is_active")
         card.save()
         return data
 
