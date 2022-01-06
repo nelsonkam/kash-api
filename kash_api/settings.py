@@ -350,5 +350,9 @@ PAYOUT_RECIPIENTS = {
     'harold': {
         'phone': '62606333',
         'gateway': 'mtn-bj'
+    },
+    'jn-mtn': {
+        'phone': '52943035',
+        'gateway': 'mtn-bj'
     }
 }
