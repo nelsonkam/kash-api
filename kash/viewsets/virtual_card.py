@@ -173,26 +173,28 @@ class VirtualCardViewSet(ModelViewSet):
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
     def txn_callback(self, request):
-        print(request.data)
         card_id = request.data.get("CardId")
         card = VirtualCard.objects.get(external_id=card_id)
         amount = request.data.get("Amount")
         merchant_name = request.data.get("MerchantName")
         description = request.data.get("Description")
 
-        if request.data.get("Status").lower() == "failed":
-            card.profile.push_notify("⚠️ Échec de transaction",
-                                     f"Ta carte {card.nickname} n'a pas pu être débitée de ${amount} par {merchant_name}. Raison: {description}",
-                                     card)
+        if description and description.lower() == "otp":
+            card.profile.push_notify("Code OTP", f"Le code OTP pour votre transaction est: ${request.data.get('Otp')}")
         else:
-            if request.data.get("Type").lower() == "debit":
-                card.profile.push_notify("Nouvelle transaction 💳",
-                                         f"Ta carte {card.nickname} vient d'être débitée de ${amount} par {merchant_name}. {'Description: ' + description if description else ''}",
+            if request.data.get("Status").lower() == "failed":
+                card.profile.push_notify("⚠️ Échec de transaction",
+                                         f"Ta carte {card.nickname} n'a pas pu être débitée de ${amount} par {merchant_name}. Raison: {description}",
                                          card)
             else:
-                card.profile.push_notify("Nouvelle transaction 💳",
-                                         f"Ta carte {card.nickname} vient d'être créditée de ${amount} par {merchant_name}. {'Description: ' + description if description else ''}",
-                                         card)
+                if request.data.get("Type").lower() == "debit":
+                    card.profile.push_notify("Nouvelle transaction 💳",
+                                             f"Ta carte {card.nickname} vient d'être débitée de ${amount} par {merchant_name}. {'Description: ' + description if description else ''}",
+                                             card)
+                else:
+                    card.profile.push_notify("Nouvelle transaction 💳",
+                                             f"Ta carte {card.nickname} vient d'être créditée de ${amount} par {merchant_name}. {'Description: ' + description if description else ''}",
+                                             card)
         return Response(status=200)
 
     # Deprecated: Only available for legacy reasons
