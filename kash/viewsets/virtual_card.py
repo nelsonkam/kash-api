@@ -180,7 +180,7 @@ class VirtualCardViewSet(ModelViewSet):
         description = request.data.get("Description")
 
         if description and description.lower() == "otp":
-            card.profile.push_notify("Code OTP", f"Le code OTP pour votre transaction est: ${request.data.get('Otp')}", card)
+            card.profile.push_notify("Code OTP", f"Le code OTP pour votre transaction est: {request.data.get('Otp')}", card)
         else:
             if request.data.get("Status").lower() == "failed":
                 card.profile.push_notify("⚠️ Échec de transaction",
