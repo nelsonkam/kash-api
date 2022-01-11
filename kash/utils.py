@@ -28,6 +28,7 @@ class Enum(BaseEnum):
     def items(cls):
         return [(k.value, k.name) for k in cls]
 
+
 class GatewayEnum(Enum):
     moov = 'moov-bj'
     mtn = 'mtn-bj'
@@ -37,10 +38,12 @@ class Gateway(models.TextChoices):
     moov = 'moov-bj'
     mtn = 'mtn-bj'
 
+
 GATEWAY_LIST = [
     Gateway.moov,
     Gateway.mtn
 ]
+
 
 class TransactionStatusEnum(Enum):
     pending = 'pending'
@@ -54,6 +57,7 @@ class TransactionStatus(models.TextChoices):
     success = 'success'
     failed = 'failed'
     refunded = 'refunded'
+
 
 def generate_reference(digest_size=5):
     person = "".join(str(now().timestamp()).split('.'))[:16]
@@ -83,7 +87,8 @@ class Conversions:
         amount_to_charge = Money(rates.get('data').get('to').get('amount'), "NGN")
         amount_to_charge = (amount_to_charge * settings.CONVERSION_RATES['NGN_XOF']) / (
                 1 - settings.CONVERSION_RATES['MARGIN'])
-        amount_to_charge = amount_to_charge.amount - (20 if is_withdrawal else 0)
+        amount_to_charge = amount_to_charge.amount - (
+            amount_to_charge.amount * Decimal(settings.WITHDRAWAL_RATE) if is_withdrawal else 0)
         return Money(round(amount_to_charge * amount.amount), "XOF")
 
     @staticmethod
@@ -201,6 +206,7 @@ def vc_fill_txns():
                     timestamp=dateparse.parse_datetime(txn.get("created_at"))
                 )
 
+
 def fill_last4():
     from kash.models import VirtualCard
     for card in VirtualCard.objects.exclude(external_id='').filter(last_4=''):
@@ -208,6 +214,7 @@ def fill_last4():
         masked_pan = card.card_details.get("masked_pan")
         card.last_4 = masked_pan[len(masked_pan) - 4:len(masked_pan)]
         card.save()
+
 
 def get_merchants():
     from kash.models import VirtualCard
@@ -223,8 +230,8 @@ def get_merchants():
             amount_result[merchant] += float(txn.get('amount'))
     for k, v in count_result.items():
         print(k, v, amount_result.get(k))
-        
-  
+
+
 def payout(amount, phone, gateway):
     from core.models import User
     from kash.models import Transaction
@@ -239,3 +246,16 @@ def payout(amount, phone, gateway):
         initiator=admin,
         txn_type="payout",
     )
+
+
+def compute_funding_earnings(txn_amount, funding_amount, funding_currency):
+    if funding_currency == 'NGN':
+        rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount={funding_amount.amount}').json()
+        ngn_amount = Money(rates.get('data').get('to').get('amount'), "NGN")
+        xof_amount = Money(ngn_amount.amount, "XOF") * settings.CONVERSION_RATES['NGN_XOF']
+        return txn_amount - xof_amount
+    elif funding_currency == 'USD':
+        xof_amount = Conversions.get_xof_from_usd(funding_amount, is_withdrawal=True)
+        return txn_amount - xof_amount
+
+

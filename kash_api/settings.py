@@ -296,9 +296,12 @@ CELERY_BEAT_SCHEDULE = {
 } if APP_NAME == "api-server" else {}
 
 CONVERSION_RATES = {
-    'NGN_XOF': 610/578,
+    'NGN_XOF': 600/574.11,
     'MARGIN': 0.08
 }
+
+QOSIC_RATE = 0.017
+WITHDRAWAL_RATE = 0.04
 
 LOGGING = {
     'version': 1,
