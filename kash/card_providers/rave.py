@@ -127,8 +127,9 @@ class RaveCardProvider(BaseCardProvider):
         return resp.json().get('data')
 
     def is_balance_sufficient(self, amount):
+        from kash.models import Rate
         ngn_balance = rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
         usd_balance = rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
-        data = rave_request("GET", f'/rates?from=USD&to=NGN&amount={amount.amount}').json()
-        ngn_amount = Money(data.get('data').get('to').get('amount'), "NGN")
+        rate = Rate.objects.get(code=Rate.Codes.rave_usd_ngn)
+        ngn_amount = Money(rate.value, "NGN")
         return ngn_balance >= ngn_amount.amount or usd_balance >= amount.amount

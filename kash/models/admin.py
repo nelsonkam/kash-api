@@ -25,5 +25,8 @@ class AdminPayoutRequest(BaseModel):
 
 
 class Rate(BaseModel):
+    class Codes(models.TextChoices):
+        rave_usd_ngn = "rave-usd-ngn"
+
     code = models.CharField(max_length=100)
     value = models.DecimalField(max_digits=17, decimal_places=4)
