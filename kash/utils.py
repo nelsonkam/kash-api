@@ -250,7 +250,7 @@ def compute_funding_earnings(txn_amount, funding_amount, funding_currency):
     from kash.models import Rate
     if funding_currency == 'NGN':
         ngn_rate = Rate.objects.get(code=Rate.Codes.rave_usd_ngn)
-        xof_amount = Money(ngn_rate.value, "XOF") * settings.CONVERSION_RATES['NGN_XOF']
+        xof_amount = Money(ngn_rate.value * funding_amount.amount, "XOF") * settings.CONVERSION_RATES['NGN_XOF']
         return txn_amount - xof_amount
     elif funding_currency == 'USD':
         xof_amount = Conversions.get_xof_from_usd(funding_amount, is_withdrawal=True)

@@ -129,5 +129,5 @@ class RaveCardProvider(BaseCardProvider):
         ngn_balance = rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
         usd_balance = rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
         rate = Rate.objects.get(code=Rate.Codes.rave_usd_ngn)
-        ngn_amount = Money(rate.value, "NGN")
+        ngn_amount = Money(rate.value * amount.amount, "NGN")
         return ngn_balance >= ngn_amount.amount or usd_balance >= amount.amount
