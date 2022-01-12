@@ -12,9 +12,6 @@ from djmoney.contrib.exchange.models import convert_money
 from djmoney.money import Money
 from stellar_sdk import Server, Keypair, TransactionEnvelope, TransactionBuilder
 
-from core.utils.payment import rave_request
-
-
 class Enum(BaseEnum):
     @classmethod
     def keys(cls):

@@ -295,7 +295,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "fetch_rave_rate": {
         "task": "kash.tasks.fetch_rave_rate",
-        "schedule": crontab(minute='*'),
+        "schedule": crontab(minute='*/5'),
     },
 } if APP_NAME == "api-server" else {}
 
