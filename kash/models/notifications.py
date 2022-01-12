@@ -30,7 +30,7 @@ class Notification(BaseModel):
         notification_body = {
             'headings': {'en': self.title},
             'contents': {'en': self.description},
-            'include_player_ids': self.profile.device_ids
+            'include_player_ids': self.profile.device_ids or []
         }
         try:
             response = client.send_notification(notification_body)
