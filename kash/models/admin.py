@@ -22,3 +22,8 @@ class AdminPayoutRequest(BaseModel):
             initiator=admin,
             txn_type="payout",
         )
+
+
+class Rate(BaseModel):
+    code = models.CharField(max_length=100)
+    value = models.DecimalField(max_digits=17, decimal_places=4)

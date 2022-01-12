@@ -293,6 +293,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "kash.tasks.reward_referrer",
         "schedule": crontab(minute='*'),
     },
+    "fetch_rave_rate": {
+        "task": "kash.tasks.fetch_rave_rate",
+        "schedule": crontab(minute='*'),
+    },
 } if APP_NAME == "api-server" else {}
 
 CONVERSION_RATES = {

@@ -105,3 +105,11 @@ def reward_referrer():
 
     for referral in referrals:
         referral.reward()
+
+
+@shared_task
+def fetch_rave_rate():
+    from kash.models import Rate
+    rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount=1').json()
+    ngn_amount = rates.get('data').get('to').get('amount')
+    Rate.objects.get_or_create(code="rave-usd-ngn", defaults={'value': ngn_amount})
