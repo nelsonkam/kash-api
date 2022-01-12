@@ -170,10 +170,10 @@ class QosicProvider(BaseProvider):
         try:
             response = self.api_client.post(self.get_payment_endpoint(transaction), data)
             print(response.text, response.status_code, response.status_code == 200)
-            assert response.status_code == 200
+            assert response.status_code >= 200
         except (AssertionError, ReadTimeout) as e:
             # todo; add logger to see more
-            transaction.change_status(TransactionStatus.failed)
+            transaction.change_status(TransactionStatus.pending)
         else:
             response_data = response.json()
             if response_data['responsecode'] and int(response_data['responsecode']) == 0:
@@ -192,9 +192,10 @@ class QosicProvider(BaseProvider):
         try:
             response = self.api_client.post(self.get_payment_endpoint(transaction), data)
             print(response.text, response.status_code, response.status_code == 200)
-            assert response.status_code == 202
+            assert response.status_code >= 200
         except (AssertionError, ReadTimeout) as e:
-            transaction.change_status(TransactionStatus.failed)
+            print(e)
+            transaction.change_status(TransactionStatus.pending)
         else:
             response_data = response.json()
             transaction.change_status(

@@ -39,7 +39,7 @@ class TransactionManager(models.Manager):
         if 'provider_name' in kwargs:
             transaction.provider_name = kwargs['provider_name']
         else:
-            transaction.provider_name = PaymentProvider.dummy if settings.DEBUG or settings.TESTING else PaymentProvider.qosic
+            transaction.provider_name = PaymentProvider.qosic if settings.DEBUG or settings.TESTING else PaymentProvider.qosic
 
         transaction.save()
         return transaction
