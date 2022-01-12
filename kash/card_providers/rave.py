@@ -36,7 +36,6 @@ class RaveCardProvider(BaseCardProvider):
             raise Exception(f"Card creation failed: {resp.get('message')}")
         return {
             'debit_currency': debit_currency,
-            **resp.get('data')
         }
 
     def fund(self, card, amount):
@@ -50,10 +49,9 @@ class RaveCardProvider(BaseCardProvider):
             'debit_currency': debit_currency
         }
 
-        resp = rave_request("POST", f'/virtual-cards/{card.external_id}/fund', data).json()
+        rave_request("POST", f'/virtual-cards/{card.external_id}/fund', data).json()
         return {
             'debit_currency': debit_currency,
-            **resp.get('data')
         }
 
     def freeze(self, card):

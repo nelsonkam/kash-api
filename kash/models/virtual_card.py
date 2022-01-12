@@ -245,7 +245,6 @@ class FundingHistory(BaseModel):
             self.status = FundingHistory.FundingStatus.success
             self.save()
         except Exception as err:
-            raise err
             self.retries += 1
             self.save()
             notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"""
