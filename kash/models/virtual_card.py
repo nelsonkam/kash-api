@@ -103,7 +103,14 @@ class VirtualCard(BaseModel):
         return txn
 
     def create_external(self, usd_amount, txn, **kwargs):
+        from kash.models import Earning
         result = self.provider.issue(self, usd_amount)
+        Earning.objects.record_issuing_earning(
+            card=self,
+            txn=txn,
+            funding_amount=usd_amount,
+            funding_currency=result.get("debit_currency", "NGN")
+        )
         virtual_card_issued.send(sender=self.__class__, card=self, amount=usd_amount, txn=txn, provider_data=result)
 
     def fund_momo(self, amount, phone, gateway):
@@ -134,12 +141,17 @@ class VirtualCard(BaseModel):
         return txn
 
     def fund_external(self, amount, txn, **kwargs):
+        from kash.models import Earning
         if not self.external_id:
             return None
         result = self.provider.fund(self, amount)
+        Earning.objects.record_funding_earning(
+            txn=txn,
+            funding_amount=amount,
+            funding_currency=result.get("debit_currency", "NGN")
+        )
         virtual_card_funded.send(sender=self.__class__, card=self, amount=amount, txn=txn, provider_data=result)
         return result
-
 
     def freeze(self):
         if not self.external_id:
@@ -201,6 +213,7 @@ class VirtualCard(BaseModel):
 
 class FundingHistory(BaseModel):
     MAX_FUNDING_RETRIES = 4
+
     class FundingStatus(models.TextChoices):
         success = 'success'
         failed = 'failed'
@@ -324,6 +337,7 @@ def notify_card_issued(sender, **kwargs):
         card
     )
 
+
 @receiver(virtual_card_funded)
 def notify_card_funded(sender, **kwargs):
     card = kwargs.pop("card")
@@ -331,34 +345,4 @@ def notify_card_funded(sender, **kwargs):
         f"Recharge de ta carte",
         f"Ta carte a été rechargée avec succès ✅.",
         card
-    )
-
-
-
-@receiver(virtual_card_issued)
-def record_issuing_earning(sender, **kwargs):
-    from kash.models import Earning
-    card = kwargs.pop("card")
-    txn = kwargs.pop("txn")
-    provider_data = kwargs.pop("provider_data")
-    amount = kwargs.pop('amount')
-
-    Earning.objects.record_issuing_earning(
-        card=card,
-        txn=txn,
-        funding_amount=amount,
-        funding_currency=provider_data.get("debit_currency", "NGN")
-    )
-
-@receiver(virtual_card_funded)
-def record_funding_earning(sender, **kwargs):
-    from kash.models import Earning
-    txn = kwargs.pop("txn")
-    provider_data = kwargs.pop("provider_data")
-    amount = kwargs.pop('amount')
-
-    Earning.objects.record_funding_earning(
-        txn=txn,
-        funding_amount=amount,
-        funding_currency=provider_data.get("debit_currency", "NGN")
     )
