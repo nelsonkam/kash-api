@@ -4,6 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.timezone import now
 from onesignal_sdk.client import Client
+from onesignal_sdk.error import OneSignalHTTPError
 
 from core.models.base import BaseModel
 
@@ -31,7 +32,10 @@ class Notification(BaseModel):
             'contents': {'en': self.description},
             'include_player_ids': self.profile.device_ids
         }
-        response = client.send_notification(notification_body)
-        if response.status_code == 200 and response.body['recipients'] > 0:
-            self.sent_at = now()
-            self.save()
+        try:
+            response = client.send_notification(notification_body)
+            if response.status_code == 200 and response.body['recipients'] > 0:
+                self.sent_at = now()
+                self.save()
+        except OneSignalHTTPError as err:
+            print("OneSignalHTTPError", err.message)

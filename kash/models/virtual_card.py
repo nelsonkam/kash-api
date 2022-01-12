@@ -354,7 +354,6 @@ def record_issuing_earning(sender, **kwargs):
 @receiver(virtual_card_funded)
 def record_funding_earning(sender, **kwargs):
     from kash.models import Earning
-    card = kwargs.pop("card")
     txn = kwargs.pop("txn")
     provider_data = kwargs.pop("provider_data")
     amount = kwargs.pop('amount')
