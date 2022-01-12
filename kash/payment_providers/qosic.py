@@ -84,9 +84,9 @@ class QosicProvider(BaseProvider):
         try:
             response = self.api_client.post(self.get_payout_endpoint(transaction), data)
             print(response.text, response.status_code, response.status_code == 200)
-            assert response.status_code == 200
+            assert response.status_code >= 200
             assert int(response.json()['responsecode']) == 0
-        except (AssertionError, ReadTimeout, ValueError) as e:
+        except (AssertionError, ValueError) as e:
             print(e)
             return False
         else:
