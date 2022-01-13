@@ -24,7 +24,7 @@ def check_txn_status():
     from kash.models import Transaction
     qs = Transaction.objects.filter(
         Q(status=TransactionStatus.pending) | Q(status=TransactionStatus.failed),
-        created__gte=now() - timedelta(minutes=5)
+        created__gte=now() - timedelta(minutes=15)
     )
     for txn in qs:
         txn.check_status()
