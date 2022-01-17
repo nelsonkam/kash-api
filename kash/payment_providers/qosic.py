@@ -81,6 +81,8 @@ class QosicProvider(BaseProvider):
 
         data = self.get_request_data(transaction)
         data['transref'] = generate_reference_10()
+        transaction.refund_reference = data['transref']
+        transaction.save(update_fields=['refund_reference'])
         try:
             response = self.api_client.post(self.get_payout_endpoint(transaction), data)
             print(response.text, response.status_code, response.status_code == 200)
@@ -90,8 +92,6 @@ class QosicProvider(BaseProvider):
             print(e)
             return False
         else:
-            transaction.refund_reference = data['transref']
-            transaction.save(update_fields=['refund_reference'])
             transaction.change_status(TransactionStatus.refunded)
 
     def retry(self, transaction):
