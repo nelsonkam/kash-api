@@ -25,10 +25,10 @@ class ReferralManager(models.Manager):
         from kash.models import UserProfile
         code = referral_code.split("REF-")[1] if "REF-" in referral_code else referral_code
 
-        referrer = UserProfile.objects.get(referral_code=code)
+        referrer = UserProfile.objects.filter(referral_code=code).first()
 
-        if Referral.objects.filter(referred=profile).exists():
-            raise ValidationError(dict(message="Already invited"))
+        if not referrer or Referral.objects.filter(referred=profile).exists():
+            return None
 
         return Referral.objects.create(
             referrer=referrer,
