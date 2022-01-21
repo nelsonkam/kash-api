@@ -105,6 +105,10 @@ class VirtualCard(BaseModel):
     def create_external(self, usd_amount, txn, **kwargs):
         from kash.models import Earning
         result = self.provider.issue(self, usd_amount)
+        fh = FundingHistory.objects.filter(txn_ref=txn.reference).first()
+        if fh:
+            fh.status = FundingHistory.FundingStatus.success
+            fh.save()
         Earning.objects.record_issuing_earning(
             card=self,
             txn=txn,
@@ -145,6 +149,10 @@ class VirtualCard(BaseModel):
         if not self.external_id:
             return None
         result = self.provider.fund(self, amount)
+        fh = FundingHistory.objects.filter(txn_ref=txn.reference).first()
+        if fh:
+            fh.status = FundingHistory.FundingStatus.success
+            fh.save()
         Earning.objects.record_funding_earning(
             txn=txn,
             funding_amount=amount,
@@ -212,7 +220,7 @@ class VirtualCard(BaseModel):
 
 
 class FundingHistory(BaseModel):
-    MAX_FUNDING_RETRIES = 4
+    MAX_FUNDING_RETRIES = 2
 
     class FundingStatus(models.TextChoices):
         success = 'success'
