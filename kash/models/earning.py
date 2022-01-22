@@ -6,7 +6,7 @@ from kash.utils import compute_funding_earnings, Money
 
 class EarningManager(models.Manager):
     def record_issuing_earning(self, card, txn, funding_amount, funding_currency):
-        if self.filter(txn_ref=txn).first():
+        if self.filter(txn_ref=txn.reference).first():
             return None
         issuing_earning_amount = compute_funding_earnings(card.issuance_cost, Money(2, "USD"), funding_currency)
         funding_earning_amount = compute_funding_earnings(txn.amount - card.issuance_cost, funding_amount,
@@ -20,7 +20,7 @@ class EarningManager(models.Manager):
         return earning
 
     def record_funding_earning(self, txn, funding_amount, funding_currency):
-        if self.filter(txn_ref=txn).first():
+        if self.filter(txn_ref=txn.reference).first():
             return None
         earning_amount = compute_funding_earnings(txn.amount, funding_amount, funding_currency)
         earning = self.model(
