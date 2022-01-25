@@ -12,7 +12,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from core.models import User
 from core.serializers import UserSerializer
 from kash.models import UserProfile, Wallet
-from kash.serializers.auth import RegisterSerializer
+from kash.serializers.auth import RegisterSerializer, CustomPhoneSerializer, CustomSMSVerificationSerializer
 
 
 class AuthViewSet(GenericViewSet):
@@ -62,7 +62,7 @@ class AuthViewSet(GenericViewSet):
 
     @action(detail=False, methods=['post'])
     def recover(self, request):
-        serializer = PhoneSerializer(data=request.data)
+        serializer = CustomPhoneSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         phone = str(serializer.validated_data.get('phone_number'))
         user = User.objects.filter(phone_number=phone).first()
@@ -76,7 +76,7 @@ class AuthViewSet(GenericViewSet):
 
     @action(detail=False, methods=['post'], url_path='recover/password')
     def reset_password(self, request):
-        serializer = SMSVerificationSerializer(data=request.data)
+        serializer = CustomSMSVerificationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         phone = str(serializer.validated_data.get('phone_number'))
         user = User.objects.filter(phone_number=phone).first()

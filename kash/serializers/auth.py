@@ -1,3 +1,4 @@
+from phone_verify.serializers import SMSVerificationSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import BaseSerializer
@@ -22,3 +23,10 @@ class RegisterSerializer(serializers.Serializer):
         if data.get('password') != data.get("confirm"):
             raise ValidationError("Passwords do not match.")
         return data
+
+class CustomPhoneSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(required=True)
+
+
+class CustomSMSVerificationSerializer(SMSVerificationSerializer):
+    phone_number = serializers.CharField(required=True)
