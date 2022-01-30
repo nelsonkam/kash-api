@@ -229,7 +229,7 @@ class VirtualCardViewSet(ModelViewSet):
     def credit_withdrawal(self, request, pk=None):
         card = self.get_object()
         withdrawal = get_object_or_404(card.withdrawalhistory_set.all(), pk=request.data.get("withdrawal_id"))
-        if withdrawal.status == WithdrawalHistory.Status.withdrawn:
+        if withdrawal.status != WithdrawalHistory.Status.paid_out:
             card.provider.fund(card, withdrawal.amount)
             withdrawal.status = WithdrawalHistory.Status.failed
             withdrawal.save()
