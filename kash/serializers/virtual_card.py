@@ -2,7 +2,8 @@ from rest_framework.fields import SerializerMethodField
 from rest_framework.serializers import ModelSerializer, ListSerializer
 
 from core.utils import money_to_dict
-from kash.models import VirtualCard, FundingHistory
+from kash.models import VirtualCard, FundingHistory, WithdrawalHistory, Transaction
+from kash.serializers.transaction import QosicTransactionSerializer
 
 
 class VirtualCardSerializer(ModelSerializer):
@@ -22,3 +23,18 @@ class FundingHistorySerializer(ModelSerializer):
     class Meta:
         model = FundingHistory
         fields = ['id', 'txn_ref', 'amount', 'status', 'retries', 'card']
+
+
+class WithdrawalHistorySerializer(ModelSerializer):
+    card = VirtualCardSerializer(read_only=True)
+    txn = SerializerMethodField()
+
+    def get_txn(self, obj):
+        if obj.txn_ref:
+            txn = Transaction.objects.get(reference=obj.txn_ref)
+            return QosicTransactionSerializer(instance=txn).data
+        return None
+
+    class Meta:
+        model = WithdrawalHistory
+        fields = ['id', 'txn_ref', 'amount', 'status', 'card', 'txn']

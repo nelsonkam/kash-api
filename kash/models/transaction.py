@@ -117,7 +117,7 @@ class Transaction(models.Model):
 @receiver(transaction_status_changed)
 def notify(sender, **kwargs):
     txn = kwargs.pop("transaction")
-    if txn.status == TransactionStatusEnum.success.value:
+    if txn.status == TransactionStatus.success or txn.status == TransactionStatus.refunded:
         notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"""
 New successful {txn.transaction_type} on Kash!💪🏾
 
@@ -128,7 +128,7 @@ User: {txn.initiator}
 
 {"_Ceci est un message test._" if settings.DEBUG or settings.TESTING else ""}
 """, disable_notification=True)
-    elif txn.status == TransactionStatusEnum.failed.value and txn.transaction_type == TransactionType.payout:
+    elif txn.status == TransactionStatus.failed and txn.transaction_type == TransactionType.payout:
         notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"""
 ⚠️ Payout failed!
 Reference: {txn.reference}

@@ -4,14 +4,15 @@ from djmoney.contrib.exchange.models import convert_money
 from djmoney.money import Money
 from moneyed import Currency
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from core.utils.payment import rave_request
-from kash.models import Transaction, VirtualCard
-from kash.serializers.virtual_card import VirtualCardSerializer
+from kash.models import Transaction, VirtualCard, WithdrawalHistory
+from kash.serializers.virtual_card import VirtualCardSerializer, WithdrawalHistorySerializer
 from kash.utils import TransactionStatusEnum, Conversions, TransactionStatus
 
 logger = logging.getLogger(__name__)
@@ -196,6 +197,37 @@ class VirtualCardViewSet(ModelViewSet):
                                              f"Ta carte {card.nickname} vient d'être créditée de ${amount} par {merchant_name}. {'Description: ' + description if description else ''}",
                                              card)
         return Response(status=200)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated, IsAdminUser])
+    def search(self, request):
+        search = request.query_params.get("s")
+        cards = VirtualCard.objects.filter(last_4=search)
+        return Response(data=self.get_serializer(cards, many=True).data)
+
+    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated, IsAdminUser], url_path="history/withdrawal")
+    def withdrawal_history(self, request, pk=None):
+        card = self.get_object()
+        history = card.withdrawalhistory_set.all()
+        return Response(data=WithdrawalHistorySerializer(history, many=True).data)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminUser],
+            url_path="withdrawal/credit")
+    def credit_withdrawal(self, request, pk=None):
+        card = self.get_object()
+        withdrawal = get_object_or_404(card.withdrawalhistory_set.all(), pk=request.data.get("withdrawal_id"))
+        if withdrawal.status == WithdrawalHistory.Status.withdrawn:
+            card.provider.fund(card, withdrawal.amount)
+            withdrawal.status = WithdrawalHistory.Status.failed
+            withdrawal.save()
+        return Response(data=WithdrawalHistorySerializer(withdrawal).data)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminUser],
+            url_path="withdrawal/payout")
+    def payout_withdrawal(self, request, pk=None):
+        card = self.get_object()
+        withdrawal = get_object_or_404(card.withdrawalhistory_set.all(), pk=request.data.get("withdrawal_id"))
+        withdrawal.payout()
+        return Response(data=WithdrawalHistorySerializer(withdrawal).data)
 
     # Deprecated: Only available for legacy reasons
     @action(detail=True, methods=['post'], url_path='purchase/confirm')

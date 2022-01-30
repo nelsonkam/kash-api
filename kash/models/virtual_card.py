@@ -178,8 +178,6 @@ class VirtualCard(BaseModel):
         return
 
     def withdraw(self, amount, phone=None, gateway=None):
-        from kash.models import Transaction
-
         if not self.external_id:
             return None
 
@@ -187,27 +185,7 @@ class VirtualCard(BaseModel):
         self.provider.withdraw(self, amount)
         history.status = WithdrawalHistory.Status.withdrawn
         history.save(update_fields=['status'])
-
-        withdraw_amount = Conversions.get_xof_from_usd(amount, is_withdrawal=True)
-        if not (phone and gateway):
-            phone, gateway = self.profile.get_momo_account()
-
-        if phone and gateway:
-            txn = Transaction.objects.create(
-                obj=self,
-                name=self.profile.name,
-                amount=withdraw_amount,
-                phone=phone,
-                gateway=gateway,
-                initiator=self.profile.user,
-                txn_type=TransactionType.payout
-            )
-            history.txn_ref = txn.reference
-            history.save()
-            txn.payout()
-            if txn.status == TransactionStatus.success:
-                history.status = WithdrawalHistory.Status.paid_out
-                history.save()
+        history.payout(phone, gateway)
 
     def terminate(self):
         if not self.external_id:
@@ -302,6 +280,33 @@ class WithdrawalHistory(BaseModel):
     card = models.ForeignKey(VirtualCard, on_delete=models.CASCADE)
     amount = MoneyField(max_digits=17, decimal_places=2, default_currency="XOF")
     status = models.CharField(max_length=15, choices=Status.choices)
+
+    def payout(self, phone=None, gateway=None):
+        from kash.models import Transaction
+
+        if self.status != WithdrawalHistory.Status.withdrawn:
+            return
+
+        withdraw_amount = Conversions.get_xof_from_usd(self.amount, is_withdrawal=True)
+        if not (phone and gateway):
+            phone, gateway = self.card.profile.get_momo_account()
+
+        if phone and gateway:
+            txn = Transaction.objects.create(
+                obj=self.card,
+                name=self.card.profile.name,
+                amount=withdraw_amount,
+                phone=phone,
+                gateway=gateway,
+                initiator=self.card.profile.user,
+                txn_type=TransactionType.payout
+            )
+            self.txn_ref = txn.reference
+            self.save()
+            txn.payout()
+            if txn.status == TransactionStatus.success:
+                self.status = WithdrawalHistory.Status.paid_out
+                self.save()
 
 
 class CardTransaction(BaseModel):
