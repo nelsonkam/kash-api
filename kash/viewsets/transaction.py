@@ -50,7 +50,7 @@ class QosicTransactionViewSet(ReadOnlyModelViewSet):
             txns = Transaction.objects.filter(phone__icontains=phone)
         else:
             raise ValidationError("Invalid query param")
-        return Response(data=self.get_serializer(txns, many=True).data)
+        return Response(data=self.get_serializer(txns.order_by("-created"), many=True).data)
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminUser], url_path="check-status")
     def check_status(self, request, reference=None):
