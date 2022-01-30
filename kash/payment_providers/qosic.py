@@ -210,7 +210,7 @@ class QosicAPIClient:
     _base_url = settings.QOSIC_URL
 
     def __init__(self, username=settings.QOSIC_USERNAME,
-                 password=settings.QOSIC_PASSWORD, timeout=5, verify_ssl=False):
+                 password=settings.QOSIC_PASSWORD, timeout=30, verify_ssl=False):
         self.timeout = timeout
         self.verify_ssl = verify_ssl
         self.username = username

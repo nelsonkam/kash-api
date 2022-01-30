@@ -141,7 +141,7 @@ Reference: {txn.reference}
 def account_discount(sender, **kwargs):
     from kash.models import UserProfile
     txn = kwargs.pop("transaction")
-    if txn.discount.amount > 0 and not txn.discount_accounted_at:
+    if txn.status == TransactionStatus.success and txn.discount.amount > 0 and not txn.discount_accounted_at:
         with transaction.atomic():
             profile = UserProfile.objects.select_for_update().filter(user=txn.initiator).first()
             profile.promo_balance -= txn.discount.amount

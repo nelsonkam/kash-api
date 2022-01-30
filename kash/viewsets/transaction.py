@@ -1,14 +1,16 @@
+from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet, GenericViewSet, ViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from stellar_sdk.exceptions import BadRequestError
 
-from kash.models import Wallet
+from kash.models import Wallet, Transaction, FundingHistory
 from kash.serializers.transaction import QosicTransactionSerializer
+from kash.serializers.virtual_card import FundingHistorySerializer
 from kash.utils import StellarHelpers
 
 
@@ -20,6 +22,47 @@ class QosicTransactionViewSet(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return self.request.user.transaction_set.all()
+
+    def get_object(self):
+        if self.request.user and self.request.user.is_staff:
+            queryset = self.filter_queryset(Transaction.objects.all())
+        else:
+            queryset = self.filter_queryset(self.get_queryset())
+
+        # Perform the lookup filtering.
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+
+        filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
+        obj = get_object_or_404(queryset, **filter_kwargs)
+
+        # May raise a permission denied
+        self.check_object_permissions(self.request, obj)
+
+        return obj
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminUser], url_path="check-status")
+    def check_status(self, request, reference=None):
+        txn = get_object_or_404(Transaction, reference=reference)
+        txn.check_status()
+        return Response(data={'status': txn.status})
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminUser])
+    def retry(self, request, reference=None):
+        txn = get_object_or_404(Transaction, reference=reference)
+        txn.retry()
+        return Response(data={'status': txn.status})
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminUser])
+    def fund(self, request, reference=None):
+        history = get_object_or_404(FundingHistory, txn_ref=reference)
+        history.fund()
+        return Response(data={'status': history.status})
+
+    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated, IsAdminUser], url_path='funding/status')
+    def funding_status(self, request, reference=None):
+        history = get_object_or_404(FundingHistory, txn_ref=reference)
+        serializer = FundingHistorySerializer(instance=history)
+        return Response(data=serializer.data)
 
 
 class StellarTransactionViewSet(ViewSet):
