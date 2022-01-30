@@ -111,8 +111,8 @@ class UserProfile(BaseModel):
         payout_method = self.momo_accounts.first()
         if payout_method:
             return payout_method.phone, payout_method.gateway
-        elif Transaction.objects.filter(initiator=self.profile.user).exists():
-            txn = Transaction.objects.filter(initiator=self.profile.user).last()
+        elif Transaction.objects.filter(initiator=self.user, status="success").exists():
+            txn = Transaction.objects.filter(initiator=self.user, status="success").last()
             return txn.phone, txn.gateway
         else:
             raise Exception("User hasn't defined a momo account.")

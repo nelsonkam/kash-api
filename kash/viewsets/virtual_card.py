@@ -240,7 +240,11 @@ class VirtualCardViewSet(ModelViewSet):
     def payout_withdrawal(self, request, pk=None):
         card = self.get_object()
         withdrawal = get_object_or_404(card.withdrawalhistory_set.all(), pk=request.data.get("withdrawal_id"))
-        withdrawal.payout()
+        txn = get_object_or_404(Transaction, reference=withdrawal.txn_ref)
+        txn.retry()
+        withdrawal.txn_ref = txn.reference
+        withdrawal.status = WithdrawalHistory.Status.paid_out
+        withdrawal.save()
         return Response(data=WithdrawalHistorySerializer(withdrawal).data)
 
     # Deprecated: Only available for legacy reasons
