@@ -185,6 +185,7 @@ PHONE_VERIFICATION = {
 SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
     "REFRESH_TOKEN_LIFETIME": timedelta(days=60),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
