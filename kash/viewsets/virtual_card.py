@@ -1,8 +1,6 @@
 import logging
 
-from djmoney.contrib.exchange.models import convert_money
 from djmoney.money import Money
-from moneyed import Currency
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
@@ -10,10 +8,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from core.utils.payment import rave_request
 from kash.models import Transaction, VirtualCard, WithdrawalHistory
 from kash.serializers.virtual_card import VirtualCardSerializer, WithdrawalHistorySerializer
-from kash.utils import TransactionStatusEnum, Conversions, TransactionStatus
+from kash.utils import Conversions, TransactionStatus
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +22,23 @@ class VirtualCardViewSet(ModelViewSet):
 
     def get_queryset(self):
         return self.request.user.profile.virtualcard_set.all().order_by("-created_at")
+
+    def get_object(self):
+        if self.request.user and self.request.user.is_staff:
+            queryset = self.filter_queryset(VirtualCard.objects.all())
+        else:
+            queryset = self.filter_queryset(self.get_queryset())
+
+        # Perform the lookup filtering.
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+
+        filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
+        obj = get_object_or_404(queryset, **filter_kwargs)
+
+        # May raise a permission denied
+        self.check_object_permissions(self.request, obj)
+
+        return obj
 
     def perform_create(self, serializer):
         serializer.save(profile=self.request.user.profile)
