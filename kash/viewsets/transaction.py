@@ -40,6 +40,12 @@ class QosicTransactionViewSet(ReadOnlyModelViewSet):
 
         return obj
 
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated, IsAdminUser])
+    def search(self, request):
+        search = request.query_params.get("s")
+        txns = Transaction.objects.filter(reference__icontains=search)
+        return Response(data=self.get_serializer(txns, many=True).data)
+
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminUser], url_path="check-status")
     def check_status(self, request, reference=None):
         txn = get_object_or_404(Transaction, reference=reference)
