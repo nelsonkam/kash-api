@@ -260,7 +260,7 @@ class FundingHistory(BaseModel):
                 description = "Nous n'avons pas pu créer votre carte et nous vous avons remboursé. " \
                               "Veuillez réessayer avec au moins $5 ou dans 30 minutes." \
                     if not card.external_id \
-                    else "Nous n'avons pas pu recharger votre carte et nous vous avons rembourséd. " \
+                    else "Nous n'avons pas pu recharger votre carte et nous vous avons remboursé. " \
                          "Veuillez réessayer dans 30 minutes."
                 card.profile.push_notify(
                     title="Création de votre carte ⚠️" if not card.external_id else "Recharge de votre carte ⚠️",
