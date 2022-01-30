@@ -1,5 +1,5 @@
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
@@ -42,8 +42,14 @@ class QosicTransactionViewSet(ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated, IsAdminUser])
     def search(self, request):
-        search = request.query_params.get("s")
-        txns = Transaction.objects.filter(reference__icontains=search)
+        ref = request.query_params.get("ref")
+        phone = request.query_params.get("phone")
+        if ref:
+            txns = Transaction.objects.filter(reference__icontains=ref)
+        elif phone:
+            txns = Transaction.objects.filter(phone__icontains=phone)
+        else:
+            raise ValidationError("Invalid query param")
         return Response(data=self.get_serializer(txns, many=True).data)
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminUser], url_path="check-status")

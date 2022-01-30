@@ -7,4 +7,4 @@ class QosicTransactionSerializer(ModelSerializer):
 
     class Meta:
         model = Transaction
-        fields = ['reference', 'created', 'status', 'amount', 'amount_currency']
+        fields = ['reference', 'created', 'status', 'amount', 'amount_currency', 'name', 'phone', 'gateway']

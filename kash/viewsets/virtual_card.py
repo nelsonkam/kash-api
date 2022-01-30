@@ -9,7 +9,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from kash.models import Transaction, VirtualCard, WithdrawalHistory
-from kash.serializers.virtual_card import VirtualCardSerializer, WithdrawalHistorySerializer
+from kash.serializers.virtual_card import VirtualCardSerializer, WithdrawalHistorySerializer, FundingHistorySerializer
 from kash.utils import Conversions, TransactionStatus
 
 logger = logging.getLogger(__name__)
@@ -223,6 +223,13 @@ class VirtualCardViewSet(ModelViewSet):
         card = self.get_object()
         history = card.withdrawalhistory_set.all()
         return Response(data=WithdrawalHistorySerializer(history, many=True).data)
+
+    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated, IsAdminUser],
+            url_path="history/funding")
+    def funding_history(self, request, pk=None):
+        card = self.get_object()
+        history = card.fundinghistory_set.all()
+        return Response(data=FundingHistorySerializer(history, many=True).data)
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminUser],
             url_path="withdrawal/credit")
