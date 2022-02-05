@@ -65,6 +65,12 @@ class QosicTransactionViewSet(ReadOnlyModelViewSet):
         return Response(data={'status': txn.status})
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminUser])
+    def refund(self, request, reference=None):
+        txn = get_object_or_404(Transaction, reference=reference)
+        txn.refund()
+        return Response(data={'status': txn.status})
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminUser])
     def fund(self, request, reference=None):
         history = get_object_or_404(FundingHistory, txn_ref=reference)
         history.fund()
