@@ -20,10 +20,11 @@ class DummyCardProvider(BaseCardProvider):
         if "fail" in card.nickname.lower() or initial_amount.amount < 5 or not self.is_balance_sufficient(
                 initial_amount):
             raise Exception("Couldn't create card")
-        time.sleep(4)
+        time.sleep(1)
         card.external_id = secrets.token_urlsafe(20)
         card.last_4 = "".join(secrets.choice(string.digits) for i in range(4))
         card.save(update_fields=['last_4', 'external_id'])
+        print(f"Card issued: {initial_amount}")
         return {
             'debit_currency': 'USD',
         }
@@ -31,8 +32,8 @@ class DummyCardProvider(BaseCardProvider):
     def fund(self, card, amount):
         if "fail" in card.nickname.lower() or amount.amount < 5 or not self.is_balance_sufficient(amount):
             raise Exception("Couldn't fund card")
-        time.sleep(4)
-        print(f"Card funded: ${amount}")
+        time.sleep(1)
+        print(f"Card funded: {amount}")
         return {
             'debit_currency': 'USD',
         }

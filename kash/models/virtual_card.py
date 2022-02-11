@@ -103,19 +103,8 @@ class VirtualCard(BaseModel):
         return txn
 
     def create_external(self, usd_amount, txn, **kwargs):
-        from kash.models import Earning
         result = self.provider.issue(self, usd_amount)
-        fh = FundingHistory.objects.filter(txn_ref=txn.reference).first()
-        if fh:
-            fh.status = FundingHistory.FundingStatus.success
-            fh.save()
-        Earning.objects.record_issuing_earning(
-            card=self,
-            txn=txn,
-            funding_amount=usd_amount,
-            funding_currency=result.get("debit_currency", "NGN")
-        )
-        virtual_card_issued.send(sender=self.__class__, card=self, amount=usd_amount, txn=txn, provider_data=result)
+        return result
 
     def fund_momo(self, amount, phone, gateway):
         from kash.models import Transaction
@@ -145,20 +134,9 @@ class VirtualCard(BaseModel):
         return txn
 
     def fund_external(self, amount, txn, **kwargs):
-        from kash.models import Earning
         if not self.external_id:
             return None
         result = self.provider.fund(self, amount)
-        fh = FundingHistory.objects.filter(txn_ref=txn.reference).first()
-        if fh:
-            fh.status = FundingHistory.FundingStatus.success
-            fh.save()
-        Earning.objects.record_funding_earning(
-            txn=txn,
-            funding_amount=amount,
-            funding_currency=result.get("debit_currency", "NGN")
-        )
-        virtual_card_funded.send(sender=self.__class__, card=self, amount=amount, txn=txn, provider_data=result)
         return result
 
     def freeze(self):
@@ -211,22 +189,42 @@ class FundingHistory(BaseModel):
     amount = MoneyField(max_digits=17, decimal_places=2, default_currency="USD")
     status = models.CharField(max_length=15)
     retries = models.PositiveIntegerField(default=0)
+    is_funding = models.BooleanField(default=False)
 
     def fund(self):
         from kash.models import Transaction
         if self.status != FundingHistory.FundingStatus.paid:
             return
+        card = VirtualCard.objects.get(pk=self.card_id)
 
-        if self.retries > 0 and not self.card.provider.is_balance_sufficient(self.amount):
+        # if deposit is being funded skip
+        # else set deposit as being currently funded
+        self.refresh_from_db()
+        if self.is_funding:
+            return
+        else:
+            self.is_funding = True
+            self.save(update_fields=['is_funding'])
+
+        # if we've already tried to fund this deposit and the balance is still
+        # insufficient skip until balance is funded (i.e. sufficient)
+        if self.retries > 0 and not card.provider.is_balance_sufficient(self.amount):
+            self.is_funding = False
+            self.save(update_fields=['is_funding'])
             return
 
         card = self.card
         txn = Transaction.objects.get(reference=self.txn_ref)
+        result = {}
+        operation = 'funding' if card.external_id else 'issuing'
         try:
+            if not card.provider.is_balance_sufficient(self.amount):
+                raise Exception("Insufficient balance on FLW")
+
             if card.external_id:
-                card.fund_external(self.amount, txn)
+                result = card.fund_external(self.amount, txn)
             else:
-                card.create_external(self.amount, txn)
+                result = card.create_external(self.amount, txn)
             self.retries += 1
             self.status = FundingHistory.FundingStatus.success
             self.save()
@@ -267,6 +265,17 @@ class FundingHistory(BaseModel):
                     description=description,
                     obj=card
                 )
+        finally:
+            self.is_funding = False
+            self.save(update_fields=['is_funding'])
+
+        if self.status == FundingHistory.FundingStatus.success:
+            if operation == 'funding':
+                virtual_card_funded.send(sender=self.card.__class__, card=self.card, amount=self.amount, txn=txn,
+                                         provider_data=result)
+            elif operation == 'issuing':
+                virtual_card_issued.send(sender=self.card.__class__, card=self.card, amount=self.amount, txn=txn,
+                                         provider_data=result)
 
 
 class WithdrawalHistory(BaseModel):
@@ -358,4 +367,33 @@ def notify_card_funded(sender, **kwargs):
         f"Recharge de ta carte",
         f"Ta carte a été rechargée avec succès ✅.",
         card
+    )
+
+@receiver(virtual_card_issued)
+def record_issuing_earning(sender, **kwargs):
+    from kash.models import Earning
+    card = kwargs.pop("card")
+    txn = kwargs.pop("txn")
+    provider_data = kwargs.pop("provider_data")
+    amount = kwargs.pop('amount')
+
+    Earning.objects.record_issuing_earning(
+        card=card,
+        txn=txn,
+        funding_amount=amount,
+        funding_currency=provider_data.get("debit_currency", "NGN")
+    )
+
+@receiver(virtual_card_funded)
+def record_funding_earning(sender, **kwargs):
+    from kash.models import Earning
+    card = kwargs.pop("card")
+    txn = kwargs.pop("txn")
+    provider_data = kwargs.pop("provider_data")
+    amount = kwargs.pop('amount')
+
+    Earning.objects.record_funding_earning(
+        txn=txn,
+        funding_amount=amount,
+        funding_currency=provider_data.get("debit_currency", "NGN")
     )

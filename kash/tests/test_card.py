@@ -7,9 +7,9 @@ from django.test import override_settings
 from core.models import User
 from kash.card_providers import CardProvider
 from kash.card_providers.dummy import set_dummy_balance
-from kash.models import UserProfile, VirtualCard, Transaction, FundingHistory, WithdrawalHistory
+from kash.models import UserProfile, VirtualCard, Transaction, FundingHistory, WithdrawalHistory, Rate, Earning
+from kash.tests import test_concurrently
 from kash.utils import Gateway, TransactionStatus, TransactionType, Conversions
-from kash.tasks import retry_failed_funding
 
 
 @override_settings(TESTING=True, CELERY_TASK_ALWAYS_EAGER=True)
@@ -25,6 +25,7 @@ class CardTestCase(APITestCase):
             user=cls.user,
             kashtag='test'
         )
+        Rate.objects.get_or_create(code=Rate.Codes.rave_usd_ngn, defaults={'value': 590})
 
     def setUp(self) -> None:
         self.client.force_authenticate(user=self.user)
@@ -101,17 +102,12 @@ class CardTestCase(APITestCase):
         self.assertEqual(history_item.status, FundingHistory.FundingStatus.paid)
         self.assertEqual(history_item.retries, 1)
 
-        retry_failed_funding.delay()
-        history_item.refresh_from_db()
-        self.assertEqual(history_item.status, FundingHistory.FundingStatus.paid)
-        self.assertEqual(history_item.retries, 2)
-
         card.nickname = "Test Card"
         card.save(update_fields=['nickname'])
-        retry_failed_funding.delay()
+        history_item.fund()
         history_item.refresh_from_db()
         self.assertEqual(history_item.status, FundingHistory.FundingStatus.success)
-        self.assertEqual(history_item.retries, 3)
+        self.assertEqual(history_item.retries, 2)
 
     def test_card_issuing_fail_on_retry(self):
         response = self.client.post(reverse("virtual-cards-list"), {
@@ -135,17 +131,17 @@ class CardTestCase(APITestCase):
         self.assertEqual(history_item.retries, 1)
 
         for i in range(history_item.retries, FundingHistory.MAX_FUNDING_RETRIES - 1):
-            retry_failed_funding.delay()
+            history_item.fund()
             history_item.refresh_from_db()
             self.assertEqual(history_item.status, FundingHistory.FundingStatus.paid)
             self.assertEqual(history_item.retries, i + 1)
 
-        retry_failed_funding.delay()
+        history_item.fund()
         history_item.refresh_from_db()
         txn.refresh_from_db()
         self.assertEqual(txn.status, TransactionStatus.refunded)
         self.assertEqual(history_item.status, FundingHistory.FundingStatus.failed)
-        self.assertEqual(history_item.retries, 4)
+        self.assertEqual(history_item.retries, FundingHistory.MAX_FUNDING_RETRIES)
 
     def test_card_funding_success_on_retry(self):
         response = self.client.post(reverse("virtual-cards-list"), {
@@ -174,17 +170,12 @@ class CardTestCase(APITestCase):
         self.assertEqual(history_item.status, FundingHistory.FundingStatus.paid)
         self.assertEqual(history_item.retries, 1)
 
-        retry_failed_funding.delay()
-        history_item.refresh_from_db()
-        self.assertEqual(history_item.status, FundingHistory.FundingStatus.paid)
-        self.assertEqual(history_item.retries, 2)
-
         card.nickname = "Test Card"
         card.save(update_fields=['nickname'])
-        retry_failed_funding.delay()
+        history_item.fund()
         history_item.refresh_from_db()
         self.assertEqual(history_item.status, FundingHistory.FundingStatus.success)
-        self.assertEqual(history_item.retries, 3)
+        self.assertEqual(history_item.retries, 2)
 
     def test_card_funding_fail_on_retry(self):
         response = self.client.post(reverse("virtual-cards-list"), {
@@ -214,17 +205,17 @@ class CardTestCase(APITestCase):
         self.assertEqual(history_item.retries, 1)
 
         for i in range(history_item.retries, FundingHistory.MAX_FUNDING_RETRIES - 1):
-            retry_failed_funding.delay()
+            history_item.fund()
             history_item.refresh_from_db()
             self.assertEqual(history_item.status, FundingHistory.FundingStatus.paid)
             self.assertEqual(history_item.retries, i + 1)
 
-        retry_failed_funding.delay()
+        history_item.fund()
         history_item.refresh_from_db()
         txn.refresh_from_db()
         self.assertEqual(txn.status, TransactionStatus.refunded)
         self.assertEqual(history_item.status, FundingHistory.FundingStatus.failed)
-        self.assertEqual(history_item.retries, 4)
+        self.assertEqual(history_item.retries, FundingHistory.MAX_FUNDING_RETRIES)
 
     def test_card_withdraw_success(self):
         response = self.client.post(reverse("virtual-cards-list"), {
@@ -279,6 +270,7 @@ class CardTestCase(APITestCase):
             self.client.post(reverse("virtual-cards-withdraw", kwargs={'pk': card.pk}), data)
 
     def test_card_funding_balance_insufficient(self):
+        set_dummy_balance(100)
         response = self.client.post(reverse("virtual-cards-list"), {
             "nickname": 'Test Card',
             'category': VirtualCard.Category.general
@@ -303,18 +295,19 @@ class CardTestCase(APITestCase):
         self.assertEqual(history_item.status, FundingHistory.FundingStatus.paid)
         self.assertEqual(history_item.retries, 1)
 
-        retry_failed_funding.delay()
+        # test funding retry while balance hasn't been funded yet
+        history_item.fund()
         history_item.refresh_from_db()
         self.assertEqual(history_item.status, FundingHistory.FundingStatus.paid)
         self.assertEqual(history_item.retries, 1)
 
         set_dummy_balance(1100)
-        retry_failed_funding.delay()
+        history_item.fund()
         history_item.refresh_from_db()
         self.assertEqual(history_item.status, FundingHistory.FundingStatus.success)
         self.assertEqual(history_item.retries, 2)
 
-    def test_card_concurrent_funding(self):
+    def test_card_earning_recorded(self):
         response = self.client.post(reverse("virtual-cards-list"), {
             "nickname": 'Test Card',
             'category': VirtualCard.Category.general
@@ -325,16 +318,11 @@ class CardTestCase(APITestCase):
             'phone': '90137010',
             'gateway': Gateway.mtn
         })
-        set_dummy_balance(100)
-        response = self.client.post(reverse("virtual-cards-fund", kwargs={'pk': card.pk}), {
-            "amount": 300,
+        self.assertEqual(Earning.objects.count(), 1)
+
+        self.client.post(reverse("virtual-cards-fund", kwargs={'pk': card.pk}), {
+            "amount": 10,
             'phone': '90137010',
             'gateway': Gateway.mtn
         })
-        card.refresh_from_db()
-        txn = Transaction.objects.get(reference=response.data.get("txn_ref"))
-        history_item = FundingHistory.objects.get(txn_ref=txn.reference, card=card)
-        set_dummy_balance(1000)
-        retry_failed_funding.delay()
-        history_item.fund()
-        self.assertEqual(history_item.retries, 1)
+        self.assertEqual(Earning.objects.count(), 2)

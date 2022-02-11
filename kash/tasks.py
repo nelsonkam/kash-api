@@ -5,9 +5,11 @@ from django.conf import settings
 from django.db.models import Q
 from django.db.models.aggregates import Count
 from django.utils.timezone import now
+from djmoney.money import Money
 
 from core.utils.notify import tg_bot, notify_telegram
 from core.utils.payment import rave_request
+from kash.card_providers import RaveCardProvider
 from kash.utils import TransactionStatusEnum, TransactionType, Conversions, TransactionStatus
 
 
@@ -40,9 +42,10 @@ def send_pending_notifications():
 
 @shared_task
 def monitor_flw_balance():
+    provider = RaveCardProvider()
     ngn_balance = rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
     usd_balance = rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
-    if ngn_balance < 150000:
+    if not provider.is_balance_sufficient(Money(500, "USD")):
         notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"""
         ⚠️ Flutterwave balance too low!
         NGN Balance: {ngn_balance}
@@ -82,14 +85,14 @@ def retry_failed_withdrawals():
 @shared_task
 def retry_failed_funding():
     from kash.models import FundingHistory
-    qs = FundingHistory.objects.filter(
-        status=FundingHistory.FundingStatus.paid,
-        retries__gte=1, retries__lt=FundingHistory.MAX_FUNDING_RETRIES,
-        created_at__lte=now() - timedelta(minutes=5)
-    ).prefetch_related("card", "card__profile")
-
-    for item in qs:
-        item.fund()
+    # qs = FundingHistory.objects.filter(
+    #     status=FundingHistory.FundingStatus.paid,
+    #     retries__gte=1, retries__lt=FundingHistory.MAX_FUNDING_RETRIES,
+    #     created_at__lte=now() - timedelta(minutes=5)
+    # ).prefetch_related("card", "card__profile")
+    #
+    # for item in qs:
+    #     item.fund()
 
 
 @shared_task
@@ -113,3 +116,8 @@ def fetch_rave_rate():
     rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount=1').json()
     ngn_amount = rates.get('data').get('to').get('amount')
     Rate.objects.get_or_create(code=Rate.Codes.rave_usd_ngn, defaults={'value': ngn_amount})
+
+@shared_task
+def fund_fh(pk):
+    from kash.models import FundingHistory
+    FundingHistory.objects.get(pk=pk).fund()

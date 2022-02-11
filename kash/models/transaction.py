@@ -39,7 +39,7 @@ class TransactionManager(models.Manager):
         if 'provider_name' in kwargs:
             transaction.provider_name = kwargs['provider_name']
         else:
-            transaction.provider_name = PaymentProvider.qosic if settings.DEBUG or settings.TESTING else PaymentProvider.qosic
+            transaction.provider_name = PaymentProvider.dummy if settings.DEBUG or settings.TESTING else PaymentProvider.qosic
 
         transaction.save()
         return transaction
@@ -77,7 +77,7 @@ class Transaction(models.Model):
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
     initiator = models.ForeignKey('core.User', on_delete=models.CASCADE, null=True)
-    provider_name = models.CharField(max_length=20, choices=PaymentProvider.choices, default=PaymentProvider.qosic)
+    provider_name = models.CharField(max_length=20, choices=PaymentProvider.choices, default=PaymentProvider.dummy)
 
     objects = TransactionManager()
 

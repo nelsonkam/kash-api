@@ -12,8 +12,9 @@ tg_bot = telegram.Bot(token=settings.TG_BOT_TOKEN)
 
 
 def notify_telegram(*args, **kwargs):
-    # if settings.DEBUG or settings.TESTING:
-    #     return False
+    if settings.DEBUG or settings.TESTING:
+        print(kwargs.get("text"))
+        return
     return tg_bot.send_message(*args, **kwargs)
 
 
