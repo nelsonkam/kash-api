@@ -8,9 +8,9 @@ from rest_framework.viewsets import ReadOnlyModelViewSet, GenericViewSet, ViewSe
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from stellar_sdk.exceptions import BadRequestError
 
-from kash.models import Wallet, Transaction, FundingHistory
+from kash.models import Wallet, Transaction, FundingHistory, WithdrawalHistory
 from kash.serializers.transaction import QosicTransactionSerializer
-from kash.serializers.virtual_card import FundingHistorySerializer
+from kash.serializers.virtual_card import FundingHistorySerializer, WithdrawalHistorySerializer
 from kash.utils import StellarHelpers
 
 
@@ -80,6 +80,12 @@ class QosicTransactionViewSet(ReadOnlyModelViewSet):
     def funding_status(self, request, reference=None):
         history = get_object_or_404(FundingHistory, txn_ref=reference)
         serializer = FundingHistorySerializer(instance=history)
+        return Response(data=serializer.data)
+
+    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated, IsAdminUser], url_path='history/status')
+    def history_status(self, request, reference=None):
+        history = get_object_or_404(WithdrawalHistory, txn_ref=reference)
+        serializer = WithdrawalHistorySerializer(instance=history)
         return Response(data=serializer.data)
 
 

@@ -99,6 +99,10 @@ class Transaction(models.Model):
         return self.provider.payout(self)
 
     def refund(self):
+        from kash.models import FundingHistory
+        deposit = FundingHistory.objects.filter(txn_ref=self.reference).first()
+        if deposit and deposit.status == FundingHistory.FundingStatus.success:
+            return
         return self.provider.refund(self)
 
     def retry(self):

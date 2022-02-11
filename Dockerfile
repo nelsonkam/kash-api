@@ -23,4 +23,3 @@ RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction
 
 COPY ./ /usr/src/app
-RUN chmod +x docker-entrypoint.sh

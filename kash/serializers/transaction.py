@@ -4,7 +4,7 @@ from kash.models import Transaction
 
 
 class QosicTransactionSerializer(ModelSerializer):
-
     class Meta:
         model = Transaction
-        fields = ['reference', 'created', 'status', 'amount', 'amount_currency', 'name', 'phone', 'gateway']
+        fields = ['reference', 'created', 'status', 'amount', 'amount_currency', 'name', 'phone', 'gateway',
+                  'transaction_type']
