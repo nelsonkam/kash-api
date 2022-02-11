@@ -19,10 +19,18 @@ class VirtualCardSerializer(ModelSerializer):
 
 class FundingHistorySerializer(ModelSerializer):
     card = VirtualCardSerializer(read_only=True)
+    txn = SerializerMethodField()
+
+    def get_txn(self, obj):
+        if obj.txn_ref:
+            txn = Transaction.objects.filter(reference=obj.txn_ref).first()
+            if txn:
+                return QosicTransactionSerializer(instance=txn).data
+        return None
 
     class Meta:
         model = FundingHistory
-        fields = ['id', 'txn_ref', 'amount', 'status', 'retries', 'card']
+        fields = ['id', 'txn_ref', 'amount', 'status', 'retries', 'card', 'txn']
 
 
 class WithdrawalHistorySerializer(ModelSerializer):
@@ -31,8 +39,9 @@ class WithdrawalHistorySerializer(ModelSerializer):
 
     def get_txn(self, obj):
         if obj.txn_ref:
-            txn = Transaction.objects.get(reference=obj.txn_ref)
-            return QosicTransactionSerializer(instance=txn).data
+            txn = Transaction.objects.filter(reference=obj.txn_ref).first()
+            if txn:
+                return QosicTransactionSerializer(instance=txn).data
         return None
 
     class Meta:
