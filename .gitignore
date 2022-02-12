@@ -27,3 +27,4 @@ celerybeat-schedule.db
 staticfiles/
 
 scratch.py
+.history

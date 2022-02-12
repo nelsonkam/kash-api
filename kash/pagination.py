@@ -3,6 +3,8 @@ from rest_framework.response import Response
 
 
 class KashPagination(LimitOffsetPagination):
+    default_limit = 50
+    
     def paginate_queryset(self, queryset, request, view=None):
         self.paginate = request.query_params.get("paginate")
         if not self.paginate:
@@ -13,3 +15,10 @@ class KashPagination(LimitOffsetPagination):
         if not self.paginate:
             return Response(data)
         return super(KashPagination, self).get_paginated_response(data)
+
+
+class CustomPagination(LimitOffsetPagination):
+    default_limit = 50
+
+    def get_paginated_response(self, data):
+        return Response(data)

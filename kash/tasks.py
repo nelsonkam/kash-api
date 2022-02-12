@@ -16,7 +16,6 @@ from kash.utils import TransactionStatusEnum, TransactionType, Conversions, Tran
 @shared_task
 def request_transaction(txn_id=None):
     from kash.models import Transaction
-
     txn = Transaction.objects.get(pk=txn_id)
     txn.request()
 
@@ -85,14 +84,14 @@ def retry_failed_withdrawals():
 @shared_task
 def retry_failed_funding():
     from kash.models import FundingHistory
-    # qs = FundingHistory.objects.filter(
-    #     status=FundingHistory.FundingStatus.paid,
-    #     retries__gte=1, retries__lt=FundingHistory.MAX_FUNDING_RETRIES,
-    #     created_at__lte=now() - timedelta(minutes=5)
-    # ).prefetch_related("card", "card__profile")
-    #
-    # for item in qs:
-    #     item.fund()
+    qs = FundingHistory.objects.filter(
+        status=FundingHistory.FundingStatus.paid,
+        retries__gte=1, retries__lt=FundingHistory.MAX_FUNDING_RETRIES,
+        created_at__lte=now() - timedelta(minutes=5)
+    ).prefetch_related("card", "card__profile")
+    
+    for item in qs:
+        item.fund()
 
 
 @shared_task
@@ -116,8 +115,3 @@ def fetch_rave_rate():
     rates = rave_request("GET", f'/rates?from=USD&to=NGN&amount=1').json()
     ngn_amount = rates.get('data').get('to').get('amount')
     Rate.objects.get_or_create(code=Rate.Codes.rave_usd_ngn, defaults={'value': ngn_amount})
-
-@shared_task
-def fund_fh(pk):
-    from kash.models import FundingHistory
-    FundingHistory.objects.get(pk=pk).fund()

@@ -18,21 +18,16 @@ router = routers.SimpleRouter()
 router.register("profiles", ProfileViewset, "profiles")
 router.register("virtual-cards", VirtualCardViewSet, "virtual-cards")
 router.register("qosic-txn", QosicTransactionViewSet, "transaction")
-router.register("momo-accounts", MomoAccountViewset, "momo-accounts")
-router.register("requests", KashRequestViewSet, "request-kash")
 router.register("notifications", NotificationViewset, "notifications")
 router.register("invites", InviteCodeViewset, "invites")
 router.register("kyc", KYCDocumentViewSet, "kyc")
 router.register("auth", AuthViewSet, "auth")
-router.register("wallets", WalletViewSet, "wallets")
 
-wallets_router = routers.NestedSimpleRouter(router, 'wallets', lookup='wallet')
-wallets_router.register(r'transactions', StellarTransactionViewSet, basename='wallet-transactions')
 
-urlpatterns = router.urls + wallets_router.urls + [
-    path('version/', views.version, name='version'),
-    path('rates/', views.rates, name='rates'),
-    path('info/cards/', views.card_info, name='card_info'),
-    path('misc/fund/', views.recharge, name='misc_fund'),
-    path(f'tgbot/{settings.TG_BOT_TOKEN}/', views.tg_bot, name='tg_bot'),
+urlpatterns = router.urls + [
+    path("version/", views.version, name="version"),
+    path("rates/", views.rates, name="rates"),
+    path("info/cards/", views.card_info, name="card_info"),
+    path("misc/fund/", views.recharge, name="misc_fund"),
+    path(f"tgbot/{settings.TG_BOT_TOKEN}/", views.tg_bot, name="tg_bot"),
 ]
