@@ -23,15 +23,17 @@ from kash.models import UserProfile, Wallet
 from kash.serializers.profile import ProfileSerializer, LimitedProfileSerializer
 from kash.serializers.wallet import WalletSerializer
 
+from .base import BaseViewSet
 
-class ProfileViewset(ModelViewSet):
+
+class ProfileViewset(BaseViewSet):
     serializer_class = ProfileSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        if hasattr(self.request.user, 'profile'):
-            return UserProfile.objects.filter(pk=self.request.user.profile.pk)
+        if hasattr(self.request, "profile"):
+            return self.request.profile
         return UserProfile.objects.none()
 
     def perform_create(self, serializer):
@@ -43,8 +45,8 @@ class ProfileViewset(ModelViewSet):
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
 
         if self.kwargs[lookup_url_kwarg] == "current":
-            if hasattr(self.request.user, 'profile'):
-                obj = self.request.user.profile
+            if hasattr(self.request, "profile"):
+                obj = self.request.profile
             else:
                 raise Http404
         else:
@@ -54,75 +56,28 @@ class ProfileViewset(ModelViewSet):
         self.check_object_permissions(self.request, obj)
         return obj
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def device_ids(self, request, pk=None):
         profile = self.get_object()
-        device_id = request.data.get('device_id')
+        device_id = request.data.get("device_id")
         if device_id and device_id not in profile.device_ids:
             profile.device_ids.append(device_id)
             profile.save()
         return Response(self.get_serializer(profile).data)
 
-    # Deprecated. v1 legacy
-    @action(detail=True, methods=['get'])
-    def send_recipients(self, request, pk=None):
-        profile = self.get_object()
-        queryset = UserProfile.objects.exclude(pk=profile.pk).exclude(momo_accounts__isnull=True).order_by(
-            "-created_at")
-        serializer = self.get_serializer(queryset, many=True)
-
-        return Response(serializer.data)
-
-    # Deprecated. v1 legacy
-    @action(detail=True, methods=['get'])
-    def request_recipients(self, request, pk=None):
-        profile = self.get_object()
-        serializer = LimitedProfileSerializer(
-            UserProfile.objects.exclude(pk=profile.pk).exclude(momo_accounts__isnull=True), many=True)
-
-        return Response(serializer.data)
-
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def avatar(self, request, pk=None):
         profile = self.get_object()
-        image = request.data['avatar']
+        image = request.data["avatar"]
         profile.avatar_url = upload_content_file(image, f"{uuid4()}-{image.name}")
         profile.save()
         return Response(LimitedProfileSerializer(instance=profile).data)
 
-    @action(detail=True, methods=['post'], url_path="search/contacts")
-    def search_contacts(self, request, pk=None):
-        profile = self.get_object()
-        kashtag_vector = SearchVector('kashtag')
-        name_vector = SearchVector('user__name')
-        search = request.data['search']
-        vectors = kashtag_vector + name_vector
-        qs = UserProfile.objects.annotate(search=vectors)\
-            .filter(search=search)\
-            .exclude(pk=profile.pk)\
-            .exclude(momo_accounts__isnull=True)
-        return Response(LimitedProfileSerializer(qs, many=True).data)
-
-    @action(detail=True, methods=['post'])
-    def contacts(self, request, pk=None):
-        profile = self.get_object()
-        contacts = request.data['contacts']
-        query = Q()
-        for phone in contacts:
-            query |= Q(user__phone_number__icontains=phone)
-
-        profiles = UserProfile.objects.filter(query).exclude(pk=profile.pk)
-        contacts_pk = [contact.pk for contact in profile.contacts.all()]
-        new_contacts = profiles.filter(~Q(pk__in=contacts_pk))
-        profile.contacts.add(*new_contacts)
-
-        return Response(LimitedProfileSerializer(profile.contacts.all().exclude(pk=profile.pk), many=True).data)
-
-    @action(detail=True, methods=['post'], url_path='otp/phone')
+    @action(detail=True, methods=["post"], url_path="otp/phone")
     def otp_phone(self, request, pk=None):
         serializer = PhoneSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = User.objects.filter(username=serializer.validated_data['phone_number'])
+        user = User.objects.filter(username=serializer.validated_data["phone_number"])
         if user:
             raise PermissionDenied
         session_token = send_security_code_and_generate_session_token(
@@ -130,18 +85,18 @@ class ProfileViewset(ModelViewSet):
         )
         return Response({"session_token": session_token})
 
-    @action(detail=True, methods=['post'], url_path='otp/verify/phone')
+    @action(detail=True, methods=["post"], url_path="otp/verify/phone")
     def verify_phone(self, request, pk=None):
         profile = self.get_object()
         serializer = SMSVerificationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        phone = serializer.validated_data.get('phone_number')
+        phone = serializer.validated_data.get("phone_number")
         user = profile.user
         user.phone_number = phone
         user.save()
         return Response({"message": "Security code is valid."})
 
-    @action(detail=True, methods=['post'], url_path='promo/apply')
+    @action(detail=True, methods=["post"], url_path="promo/apply")
     def apply_promo_code(self, request, pk=None):
         profile = self.get_object()
         code = request.data.get("code")

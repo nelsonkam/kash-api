@@ -1,40 +1,40 @@
-  version: '3'
-    
-  services:
-    web:
-      build: .
-      command: sh ./docker-entrypoint.sh
-      volumes:
-        - .:/usr/src/app
-      ports:
-        - "5000:5000"
-      depends_on:
-        - "redis"
+version: '3'
 
-    celery:
-      build: .
-      command: celery -A kash_api worker -l info
-      volumes:
-        - .:/usr/src/app
-      depends_on:
-        - "web"
-        - "redis"
+services:
+  web:
+    build: .
+    command: sh ./docker-entrypoint.sh
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "5000:5000"
+    depends_on:
+      - "redis"
 
-    celery-beat:
-      build: .
-      command: celery -A kash_api beat -l info
-      volumes:
-        - .:/usr/src/app
-      depends_on:
-        - "web"
-        - "redis"
+  # celery:
+  #   build: .
+  #   command: celery -A kash_api worker -l info
+  #   volumes:
+  #     - .:/usr/src/app
+  #   depends_on:
+  #     - "web"
+  #     - "redis"
 
-    redis:
-      image: "redis:alpine"
-      ports:
-        - "6379:6379"
-      volumes:
-        - redis_data:/data
+  # celery-beat:
+  #   build: .
+  #   command: celery -A kash_api beat -l info
+  #   volumes:
+  #     - .:/usr/src/app
+  #   depends_on:
+  #     - "web"
+  #     - "redis"
 
-  volumes:
-    redis_data:
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:
