@@ -30,7 +30,7 @@ class FundingHistorySerializer(ModelSerializer):
 
     class Meta:
         model = FundingHistory
-        fields = ['id', 'txn_ref', 'amount', 'status', 'retries', 'card', 'txn']
+        fields = ['id', 'txn_ref', 'amount', 'status', 'retries', 'card', 'txn', 'created_at']
 
 
 class WithdrawalHistorySerializer(ModelSerializer):
@@ -46,4 +46,4 @@ class WithdrawalHistorySerializer(ModelSerializer):
 
     class Meta:
         model = WithdrawalHistory
-        fields = ['id', 'txn_ref', 'amount', 'status', 'card', 'txn']
+        fields = ['id', 'txn_ref', 'amount', 'status', 'card', 'txn', 'created_at']
