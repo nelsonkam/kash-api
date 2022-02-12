@@ -7,13 +7,10 @@ from kash.serializers.notification import NotificationSerializer
 from kash.models import Notification
 from .base import BaseViewSet
 
-
 class CustomPagination(LimitOffsetPagination):
-    default_limit = 50
-
     def get_paginated_response(self, data):
         return Response(data)
-
+ 
 
 class NotificationViewset(BaseViewSet):
     http_method_names = ["get"]
@@ -21,6 +18,7 @@ class NotificationViewset(BaseViewSet):
     authentication_classes = [JWTAuthentication]
     serializer_class = NotificationSerializer
     pagination_class = CustomPagination
+    limit = 1
     ordering = ["-created_at"]
 
     def get_queryset(self):

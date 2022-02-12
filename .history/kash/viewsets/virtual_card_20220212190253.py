@@ -11,23 +11,22 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from kash.models import Transaction, VirtualCard, WithdrawalHistory
 from kash.serializers.virtual_card import VirtualCardSerializer, WithdrawalHistorySerializer, FundingHistorySerializer
 from kash.utils import Conversions, TransactionStatus
-from .base import BaseViewSet
 
 logger = logging.getLogger(__name__)
 
 
-class VirtualCardViewSet(BaseViewSet):
+class VirtualCardViewSet(ModelViewSet):
     serializer_class = VirtualCardSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    ordering = ['-created_at']
+    ordering_field = []
 
     def get_queryset(self):
-        return VirtualCard.objects.filter(profile=self.request.profile)[:30]
+        return VirtualCard.objects.filter(profile=self.request.profile)
 
     def get_object(self):
-        if self.request.user.is_staff:
+        if self.request.user and self.request.user.is_staff:
             queryset = self.filter_queryset(VirtualCard.objects.all())
         else:
             queryset = self.filter_queryset(self.get_queryset())

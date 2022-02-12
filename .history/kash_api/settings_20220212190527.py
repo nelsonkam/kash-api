@@ -162,10 +162,11 @@ REST_FRAMEWORK = {
         'anon': '200/day',
         'deposit': "1/minute"
     },
-    "DEFAULT_FILTER_BACKENDS": [
+        "DEFAULT_FILTER_BACKENDS": [
+        "quatro.xlib.rest.filters.CreatedFilterBackend",
         "rest_framework.filters.OrderingFilter",
     ],
-    "PAGE_SIZE": 30
+    "PAGE_SIZE": 20
 }
 
 SMS_BACKEND = (

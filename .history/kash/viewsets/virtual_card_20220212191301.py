@@ -27,7 +27,7 @@ class VirtualCardViewSet(BaseViewSet):
         return VirtualCard.objects.filter(profile=self.request.profile)[:30]
 
     def get_object(self):
-        if self.request.user.is_staff:
+        if self.request.user and self.request.user.is_staff:
             queryset = self.filter_queryset(VirtualCard.objects.all())
         else:
             queryset = self.filter_queryset(self.get_queryset())

@@ -9,7 +9,7 @@ from .base import BaseViewSet
 
 
 class CustomPagination(LimitOffsetPagination):
-    default_limit = 50
+    default_limit = 1
 
     def get_paginated_response(self, data):
         return Response(data)
