@@ -46,4 +46,4 @@ class WithdrawalHistorySerializer(ModelSerializer):
 
     class Meta:
         model = WithdrawalHistory
-        fields = ['id', 'txn_ref', 'amount', 'status', 'card', 'txn']
+        fields = ['id', 'txn_ref', 'amount', 'status', 'card', 'txn', 'created_at']
