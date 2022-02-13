@@ -29,3 +29,4 @@ staticfiles/
 scratch.py
 .history
 .env.*
+.env.prod

@@ -163,7 +163,10 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {"anon": "200/day", "deposit": "1/minute"},
-    "PAGE_SIZE": 20,
+    "DEFAULT_FILTER_BACKENDS": [
+        "rest_framework.filters.OrderingFilter",
+    ],
+    "PAGE_SIZE": 30,
 }
 
 SMS_BACKEND = (

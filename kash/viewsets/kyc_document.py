@@ -8,19 +8,22 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from core.utils import upload_content_file
+from kash.models.kyc_document import KYCDocument
 from kash.serializers.kyc_document import KYCDocumentSerializer
+from .base import BaseViewSet
 
 
-class KYCDocumentViewSet(ModelViewSet):
+class KYCDocumentViewSet(BaseViewSet):
     serializer_class = KYCDocumentSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+    ordering = ["-created_at"]
 
     def get_queryset(self):
-        return self.request.user.profile.kycdocument_set.all().order_by("-created_at")
+        return KYCDocument.objects.filter(profile=self.request.profile)
 
     def perform_create(self, serializer):
-        serializer.save(profile=self.request.user.profile)
+        serializer.save(profile=self.request.profile)
 
     @action(detail=True, methods=['post'])
     def document(self, request, pk=None):

@@ -21,7 +21,7 @@ class QosicTransactionViewSet(ReadOnlyModelViewSet):
     lookup_field = 'reference'
 
     def get_queryset(self):
-        return self.request.user.transaction_set.all()
+        return Transaction.objects.filter(user=self.request.user)
 
     def get_object(self):
         if self.request.user and self.request.user.is_staff:

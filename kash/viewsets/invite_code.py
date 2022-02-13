@@ -10,30 +10,32 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from kash.models import InviteCode
 from kash.serializers.invite_code import InviteCodeSerializer
 
+from .base import BaseViewSet
 
-class InviteCodeViewset(ModelViewSet):
+
+class InviteCodeViewset(BaseViewSet):
     serializer_class = InviteCodeSerializer
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
-        return self.request.user.profile.invite_codes.all()
+        return InviteCode.objects.filter(profile=self.request.profile)
 
     def perform_create(self, serializer):
-        serializer.save(inviter=self.request.user.profile)
+        serializer.save(inviter=self.request.profile)
 
     @action(detail=False, methods=['POST'])
     def verify(self, request):
         code = request.data.get('code')
 
 
-        if InviteCode.objects.filter(invited=self.request.user.profile).exists():
+        if InviteCode.objects.filter(invited=self.request.profile).exists():
             return Response(dict(message="Already invited"))
 
         if code in ["$$$$", "100$"]:
             InviteCode.objects.create(
-                inviter=self.request.user.profile,
-                invited=self.request.user.profile,
+                inviter=self.request.profile,
+                invited=self.request.profile,
                 used_at=now()
             )
             return Response(dict(message="Code verified"))
@@ -46,6 +48,6 @@ class InviteCodeViewset(ModelViewSet):
             return Response({'code': 'used'}, status=400)
 
         invite.used_at = now()
-        invite.invited = self.request.user.profile
+        invite.invited = self.request.profile
         invite.save()
         return Response(dict(message="Code verified"))
