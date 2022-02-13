@@ -58,12 +58,10 @@ INSTALLED_APPS = [
     "djmoney",
     "djmoney.contrib.exchange",
     "storages",
-    "silk",
 ]
 
 MIDDLEWARE = [
     "django_hosts.middleware.HostsRequestMiddleware",
-    "silk.middleware.SilkyMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",

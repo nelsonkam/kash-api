@@ -21,5 +21,4 @@ urlpatterns = [
     path("", include("core.urls")),
     path("kash/", include("kash.urls")),
     path("", include("kash.urls")),
-    path("hermes/", include('silk.urls', namespace='silk')),
 ]
