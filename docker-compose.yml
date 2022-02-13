@@ -10,7 +10,7 @@ services:
       - "5000:5000"
     depends_on:
       - "redis"
-      -
+
   celery:
     build: .
     command: celery -A kash_api worker -l info
