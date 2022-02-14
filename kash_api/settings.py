@@ -317,17 +317,34 @@ LOGGING = {
         "console": {
             "class": "logging.StreamHandler",
         },
+        "logtail": {
+            "class": "kash.logging.CustomLogtailHandler",
+            "formatter": "app",
+            "level": "INFO",
+        }
     },
     "loggers": {
         "django.request": {
-            "handlers": ["console"],
-            "level": "DEBUG",  # change debug level as appropiate
+            "handlers": ["console", "logtail"],
+            "level": "INFO",  # change debug level as appropiate
             "propagate": False,
+        },
+        "django.db.backends": {
+            "level": "DEBUG",
+            "handlers": ["console"],
         },
     },
     "root": {
-        "handlers": ["console"],
+        "handlers": ["console", "logtail"],
         "level": "INFO",
+    },
+    "formatters": {
+        "app": {
+            "format": (
+                u"%(asctime)s [%(levelname)-8s] (%(module)s.%(funcName)s) %(message)s"
+            ),
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
     },
 }
 LOGIN_URL = "/admin/"

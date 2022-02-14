@@ -13,21 +13,21 @@ services:
 
   celery:
     build: .
-    command: celery -A kash_api worker -l info
+    command: celery -A kash_api worker -l warning
     volumes:
-     - .:/usr/src/app
+      - .:/usr/src/app
     depends_on:
-     - "web"
-     - "redis"
+      - "web"
+      - "redis"
 
   celery-beat:
     build: .
-    command: celery -A kash_api beat -l info
+    command: celery -A kash_api beat -l warning
     volumes:
-     - .:/usr/src/app
+      - .:/usr/src/app
     depends_on:
-     - "web"
-     - "redis"
+      - "web"
+      - "redis"
 
   redis:
     image: "redis:alpine"
