@@ -1,18 +1,16 @@
 from django.conf import settings
 from django.urls import path
+
 from rest_framework_nested import routers
 
 from kash import views
-from kash.viewsets.auth import AuthViewSet
-from kash.viewsets.invite_code import InviteCodeViewset
-from kash.viewsets.kash_request import KashRequestViewSet
-from kash.viewsets.kyc_document import KYCDocumentViewSet
-from kash.viewsets.notification import NotificationViewset
-from kash.viewsets.payout_method import MomoAccountViewset
-from kash.viewsets.profile import ProfileViewset
-from kash.viewsets.transaction import QosicTransactionViewSet, StellarTransactionViewSet
-from kash.viewsets.virtual_card import VirtualCardViewSet
-from kash.viewsets.wallet import WalletViewSet
+from kash.auth.viewsets import AuthViewSet
+from kash.kyc.viewsets import KYCDocumentViewSet
+from kash.notification.viewsets import NotificationViewset
+from kash.user.viewsets import ProfileViewset
+from kash.transaction.viewsets import QosicTransactionViewSet
+from kash.card.viewsets import VirtualCardViewSet
+from kash.invite.viewsets import InviteCodeViewset
 
 router = routers.SimpleRouter()
 router.register("profiles", ProfileViewset, "profiles")

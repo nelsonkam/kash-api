@@ -30,3 +30,5 @@ scratch.py
 .history
 .env.*
 .env.prod
+venv
+_local

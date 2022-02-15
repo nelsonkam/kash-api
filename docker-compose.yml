@@ -13,7 +13,7 @@ services:
 
   # celery:
   #   build: .
-  #   command: celery -A kash_api worker -l info
+  #   command: celery -A AppMain worker -l info
   #   volumes:
   #     - .:/usr/src/app
   #   depends_on:
@@ -22,7 +22,7 @@ services:
 
   # celery-beat:
   #   build: .
-  #   command: celery -A kash_api beat -l info
+  #   command: celery -A AppMain beat -l info
   #   volumes:
   #     - .:/usr/src/app
   #   depends_on:
