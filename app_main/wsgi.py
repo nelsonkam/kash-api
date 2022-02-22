@@ -1,5 +1,5 @@
 """
-WSGI config for AppMain project.
+WSGI config for app_main project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'AppMain.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "app_main.settings")
 
 application = get_wsgi_application()

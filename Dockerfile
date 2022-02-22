@@ -6,7 +6,7 @@ RUN apk update \
   && apk add jpeg-dev zlib-dev libjpeg \
   && apk add --update py-pip
 
-ENV DJANGO_SETTINGS_MODULE AppMain.settings
+ENV DJANGO_SETTINGS_MODULE app_main.settings
 ENV CRYPTOGRAPHY_DONT_BUILD_RUST 1
 
 RUN apk add --no-cache tzdata

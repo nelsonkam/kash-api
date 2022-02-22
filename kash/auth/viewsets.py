@@ -30,8 +30,8 @@ class AuthViewSet(GenericViewSet):
         profile = UserProfile.objects.create(user=user, kashtag=data.get("kashtag"))
         refresh = RefreshToken.for_user(user)
 
-        if data.get("referral_code"):
-            Referral.objects.record_referral(profile, data.get("referral_code"))
+        if referral_code := data.get("referral_code"):
+            Referral.objects.record_referral(profile, referral_code)
 
         data = {
             "refresh": str(refresh),
@@ -47,7 +47,7 @@ class AuthViewSet(GenericViewSet):
         password = request.data.get("password")
         user = authenticate(request, username=username, password=password)
         if not user:
-            raise AuthenticationFailed
+            raise AuthenticationFailed("Invalid username/password")
         refresh = RefreshToken.for_user(user)
         data = {
             "refresh": str(refresh),
