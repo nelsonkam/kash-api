@@ -1,4 +1,3 @@
-from kash.models.promo_code import PromoCode
 from uuid import uuid4
 
 from django.http import Http404
@@ -11,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from kash.promo.models import PromoCode
 from kash.user.models import User
 from kash.xlib.utils import upload_content_file
 from kash.user.models import UserProfile

@@ -15,16 +15,19 @@ def generate_code():
 
 class UserProfile(BaseModel):
     user = models.OneToOneField(
-        "core.User", on_delete=models.CASCADE, related_name="profile"
+        "kash_user.User", on_delete=models.CASCADE, related_name="profile"
     )
     kashtag = models.CharField(
         max_length=30, unique=True, validators=[KashtagValidator, MinLengthValidator(3)]
     )
     device_ids = ArrayField(models.CharField(max_length=255), default=list)
     avatar_url = models.URLField(blank=True)
-    contacts = models.ManyToManyField("kash.UserProfile")
+    contacts = models.ManyToManyField("kash_user.UserProfile")
     referral_code = models.CharField(max_length=10, default=generate_code, unique=True)
     promo_balance = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        db_table = "kash_userprofile"
 
     def push_notify(self, title, description, obj=None):
         from kash.notification.models import Notification
@@ -87,3 +90,5 @@ class UserProfile(BaseModel):
 
     def __str__(self):
         return f"${self.kashtag}"
+
+

@@ -10,12 +10,12 @@ def generate_code():
 
 class InviteCode(BaseModel):
     inviter = models.ForeignKey(
-        "kash.UserProfile", on_delete=models.CASCADE, related_name="invite_codes"
+        "kash_user.UserProfile", on_delete=models.CASCADE, related_name="invite_codes"
     )
     code = models.CharField(max_length=10, default=generate_code, unique=True)
     used_at = models.DateTimeField(null=True)
     invited = models.OneToOneField(
-        "kash.UserProfile", on_delete=models.CASCADE, null=True, related_name="invite"
+        "kash_user.UserProfile", on_delete=models.CASCADE, null=True, related_name="invite"
     )
 
 
@@ -40,9 +40,9 @@ class ReferralManager(models.Manager):
 
 class Referral(BaseModel):
     REWARD_AMOUNT = 500
-    referred = models.OneToOneField("kash.UserProfile", on_delete=models.CASCADE)
+    referred = models.OneToOneField("kash_user.UserProfile", on_delete=models.CASCADE)
     referrer = models.ForeignKey(
-        "kash.UserProfile", on_delete=models.CASCADE, related_name="referrals"
+        "kash_user.UserProfile", on_delete=models.CASCADE, related_name="referrals"
     )
     rewarded_at = models.DateTimeField(null=True)
 

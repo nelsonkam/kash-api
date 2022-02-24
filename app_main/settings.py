@@ -57,8 +57,6 @@ INSTALLED_APPS = [
     "djmoney",
     "djmoney.contrib.exchange",
     "storages",
-    "silk",
-    #apps
     "kash",
     "kash.abstract",
     "kash.auth",
@@ -76,7 +74,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django_hosts.middleware.HostsRequestMiddleware",
-    "silk.middleware.SilkyMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -158,11 +155,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
-AUTH_USER_MODEL = "core.User"
+AUTH_USER_MODEL = "kash_user.User"
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
-    "core.backends.auth.SMSAuthBackend",
+    # "core.backends.auth.SMSAuthBackend",
 ]
 
 REST_FRAMEWORK = {

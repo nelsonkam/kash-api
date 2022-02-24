@@ -45,7 +45,7 @@ class VirtualCard(BaseModel):
     is_active = models.BooleanField(default=True)
     nickname = models.CharField(max_length=255)
     category = models.CharField(max_length=255, blank=True)
-    profile = models.ForeignKey("kash.UserProfile", on_delete=models.CASCADE)
+    profile = models.ForeignKey("kash_user.UserProfile", on_delete=models.CASCADE)
     last_4 = models.CharField(max_length=4, blank=True)
     provider_name = models.CharField(
         max_length=20, choices=CardProvider.choices, default=CardProvider.rave

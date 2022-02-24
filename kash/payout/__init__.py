@@ -1,1 +1,1 @@
-default_app_config = "kash.promo.apps.KashPayoutConfig"
+default_app_config = "kash.payout.apps.KashPayoutConfig"

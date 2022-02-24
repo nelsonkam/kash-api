@@ -25,7 +25,7 @@ class KYCDocument(BaseModel):
     doc_url = models.URLField(blank=True, null=True)
     document_type = models.CharField(max_length=25)
     selfie_url = models.URLField(blank=True, null=True)
-    profile = models.ForeignKey("kash.UserProfile", on_delete=models.CASCADE)
+    profile = models.ForeignKey("kash_user.UserProfile", on_delete=models.CASCADE)
     status = models.CharField(
         max_length=30, choices=Status.choices, default=Status.pending
     )

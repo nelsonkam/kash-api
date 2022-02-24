@@ -10,7 +10,7 @@ class PromoCode(BaseModel):
     value = models.PositiveIntegerField()
     expires_at = models.DateTimeField(null=True)
     is_valid = models.BooleanField(default=True)
-    applied_to = models.ManyToManyField("kash.UserProfile")
+    applied_to = models.ManyToManyField("kash_user.UserProfile")
 
     @property
     def appliable(self):
