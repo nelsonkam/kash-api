@@ -358,6 +358,7 @@ PAYOUT_RECIPIENTS = {
     "me-mtn": {"phone": "90137010", "gateway": "mtn-bj"},
     "tino": {"phone": "69739797", "gateway": "mtn-bj"},
     "camille-mtn": {"phone": "67607629", "gateway": "mtn-bj"},
+    "camille-mtn2": {"phone": "52286826", "gateway": "mtn-bj"},
     "camille-moov": {"phone": "64978775", "gateway": "moov-bj"},
     "harold": {"phone": "62606333", "gateway": "mtn-bj"},
     "tino2": {"phone": "62814106", "gateway": "mtn-bj"},
