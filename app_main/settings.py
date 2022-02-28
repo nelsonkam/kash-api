@@ -12,9 +12,9 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 import os
 from datetime import timedelta
 from pathlib import Path
+
 import environ
 import sentry_sdk
-import stripe
 from celery.schedules import crontab
 from django.utils.translation import gettext_lazy as _
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -235,15 +235,8 @@ AWS_REGION_NAME = "us-east-1"
 
 MESSAGEBIRD_ACCESS_KEY = env("MESSAGEBIRD_ACCESS_KEY")
 
-FEDAPAY_API_KEY = env("FEDAPAY_API_KEY")
-
-KKIAPAY_PUBLIC_KEY = env("KKIAPAY_PUBLIC_KEY")
-KKIAPAY_PRIVATE_KEY = env("KKIAPAY_PRIVATE_KEY")
-KKIAPAY_SECRET_KEY = env("KKIAPAY_SECRET_KEY")
 RAVE_SECRET_KEY = env("RAVE_SECRET_KEY")
 RAVE_PUBLIC_KEY = env("RAVE_PUBLIC_KEY")
-STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY")
-stripe.api_key = STRIPE_SECRET_KEY
 
 CLIENT_VERSION = "1.0.0"
 
@@ -274,14 +267,6 @@ EXCHANGE_BACKEND = "djmoney.contrib.exchange.backends.OpenExchangeRatesBackend"
 ONESIGNAL_APP_ID = env("ONESIGNAL_APP_ID")
 ONESIGNAL_REST_API_KEY = env("ONESIGNAL_REST_API_KEY")
 
-USDC_ASSET = Asset(issuer=env("STELLAR_USDC_ISSUER"), code=env("STELLAR_USDC_CODE"))
-STELLAR_MASTER_WALLET_SK = env("STELLAR_MASTER_WALLET_SK")
-STELLAR_HORIZON_URL = env("STELLAR_HORIZON_URL")
-STELLAR_NETWORK_PASSPHRASE = (
-    Network.PUBLIC_NETWORK_PASSPHRASE
-    if not DEBUG
-    else Network.TESTNET_NETWORK_PASSPHRASE
-)
 
 CELERY_BROKER_URL = env("REDIS_URL")
 CELERY_RESULT_BACKEND = env("REDIS_URL")

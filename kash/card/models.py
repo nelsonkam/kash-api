@@ -8,7 +8,7 @@ from djmoney.money import Money, Currency
 from rest_framework.exceptions import ValidationError
 
 from kash.abstract.models import BaseModel
-from kash.xlib.utils.notify import tg_bot, notify_telegram
+from kash.xlib.utils.notify import notify_telegram
 from kash.xlib.signals import (
     transaction_status_changed,
     virtual_card_issued,

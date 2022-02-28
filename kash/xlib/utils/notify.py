@@ -8,7 +8,7 @@ from .payment import rave_request
 from .utils import GATEWAY_LIST, Gateway
 
 sc = SlackClient(settings.SLACK_TOKEN)
-tg_bot = telegram.Bot(token=settings.TG_BOT_TOKEN)
+
 
 
 def notify_telegram(*args, **kwargs):
@@ -42,6 +42,7 @@ def check_funding_status():
 
 def parse_command(data):
     from kash.models import AdminPayoutRequest
+    tg_bot = telegram.Bot(token=settings.TG_BOT_TOKEN)
 
     try:
         update = telegram.Update.de_json(data, tg_bot)
