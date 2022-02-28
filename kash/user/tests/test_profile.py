@@ -38,6 +38,7 @@ class ProfileViewsetTestCase(APITestCase):
             "device_ids": self.profile.device_ids,
             "referral_code": self.profile.referral_code,
             "promo_balance": self.profile.promo_balance,
+            "kyc_level": self.profile.kyc_level,
         })
 
     def test_add_device_id(self):

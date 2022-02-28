@@ -28,6 +28,7 @@ class ProfileSerializer(ModelSerializer):
             "phone_number",
             "referral_code",
             "promo_balance",
+            "kyc_level"
         ]
 
 
