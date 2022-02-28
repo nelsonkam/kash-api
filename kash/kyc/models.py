@@ -22,6 +22,9 @@ class KYCDocument(BaseModel):
         approved = "approved"
         rejected = "rejected"
 
+    class Meta:
+        db_table = 'kash_kycdocument'
+
     doc_url = models.URLField(blank=True, null=True)
     document_type = models.CharField(max_length=25)
     selfie_url = models.URLField(blank=True, null=True)

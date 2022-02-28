@@ -20,6 +20,9 @@ class Notification(BaseModel):
     description = models.TextField()
     sent_at = models.DateTimeField(null=True)
 
+    class Meta:
+        db_table = 'kash_notification'
+
     def send(self):
         if settings.DEBUG or settings.TESTING:
             self.sent_at = now()

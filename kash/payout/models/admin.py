@@ -9,6 +9,9 @@ class AdminPayoutRequest(BaseModel):
     gateway = models.CharField(max_length=255)
     amount = models.IntegerField()
 
+    class Meta:
+        db_table = 'kash_adminpayoutrequest'
+
     def execute(self):
         from kash.transaction.models import Transaction
         from kash.user.models import User
@@ -28,6 +31,9 @@ class AdminPayoutRequest(BaseModel):
 class Rate(BaseModel):
     class Codes(models.TextChoices):
         rave_usd_ngn = "rave-usd-ngn"
+
+    class Meta:
+        db_table = 'kash_rate'
 
     code = models.CharField(max_length=100)
     value = models.DecimalField(max_digits=17, decimal_places=4)

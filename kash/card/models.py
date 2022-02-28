@@ -41,6 +41,9 @@ class VirtualCard(BaseModel):
         general = "general", "General"
         ads = "ads", "Ads"
 
+    class Meta:
+        db_table = 'kash_virtualcard'
+
     external_id = models.CharField(max_length=255, blank=True)
     is_active = models.BooleanField(default=True)
     nickname = models.CharField(max_length=255)
@@ -212,6 +215,9 @@ class FundingHistory(BaseModel):
         paid = "paid"
         pending = "pending"
 
+    class Meta:
+        db_table = 'kash_fundinghistory'
+
     txn_ref = models.CharField(max_length=255, unique=True)
     card = models.ForeignKey(VirtualCard, on_delete=models.CASCADE)
     amount = MoneyField(max_digits=17, decimal_places=2, default_currency="USD")
@@ -334,6 +340,9 @@ class WithdrawalHistory(BaseModel):
         pending = "pending"
         withdrawn = "withdrawn"
 
+    class Meta:
+        db_table = 'kash_withdrawalhistory'
+
     txn_ref = models.CharField(max_length=255, blank=True)
     card = models.ForeignKey(VirtualCard, on_delete=models.CASCADE)
     amount = MoneyField(max_digits=17, decimal_places=2, default_currency="XOF")
@@ -365,18 +374,6 @@ class WithdrawalHistory(BaseModel):
             if txn.status == TransactionStatus.success:
                 self.status = WithdrawalHistory.Status.paid_out
                 self.save()
-
-
-class CardTransaction(BaseModel):
-    card = models.ForeignKey(VirtualCard, on_delete=models.CASCADE)
-    amount = MoneyField(max_digits=17, decimal_places=2, default_currency="USD")
-    product = models.TextField(null=True)
-    reference_details = models.TextField(null=True)
-    narration = models.TextField(null=True)
-    external_id = models.CharField(max_length=255, unique=True)
-    txn_type = models.CharField(max_length=10, null=True)
-    status = models.CharField(max_length=255, null=True)
-    timestamp = models.DateTimeField(null=True)
 
 
 @receiver(transaction_status_changed)

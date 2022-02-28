@@ -67,7 +67,6 @@ INSTALLED_APPS = [
     "kash.notification",
     "kash.payout",
     "kash.promo",
-    "kash.send",
     "kash.transaction",
     "kash.user",
 ]
@@ -180,9 +179,9 @@ REST_FRAMEWORK = {
 }
 
 SMS_BACKEND = (
-    "core.backends.sms.ConsoleSMSBackend"
+    "kash.auth.backends.sms.ConsoleSMSBackend"
     if DEBUG
-    else "core.backends.sms.MessageBirdSMSBackend"
+    else "kash.auth.backends.sms.MessageBirdSMSBackend"
 )
 
 PHONE_VERIFICATION = {

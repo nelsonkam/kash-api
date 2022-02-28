@@ -77,7 +77,7 @@ class Conversions:
 
     @staticmethod
     def get_xof_from_usd(amount, is_withdrawal=False):
-        from kash.models import Rate
+        from kash.payout.models import Rate
         rate = Rate.objects.get(code=Rate.Codes.rave_usd_ngn)
         ngn_rate = Money(rate.value, "NGN")
         rate_to_charge = (ngn_rate * settings.CONVERSION_RATES['NGN_XOF']) / (
@@ -93,20 +93,8 @@ class Conversions:
         return Money(amount.amount / rate.amount, "USD")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 def compute_funding_earnings(txn_amount, funding_amount, funding_currency):
-    from kash.models import Rate
+    from kash.payout.models import Rate
     if funding_currency == 'NGN':
         ngn_rate = Rate.objects.get(code=Rate.Codes.rave_usd_ngn)
         xof_amount = Money(ngn_rate.value * funding_amount.amount, "XOF") * settings.CONVERSION_RATES['NGN_XOF']

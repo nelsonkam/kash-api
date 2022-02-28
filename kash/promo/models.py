@@ -12,6 +12,9 @@ class PromoCode(BaseModel):
     is_valid = models.BooleanField(default=True)
     applied_to = models.ManyToManyField("kash_user.UserProfile")
 
+    class Meta:
+        db_table = 'kash_promocode'
+
     @property
     def appliable(self):
         return timezone.now() < self.expires_at and self.is_valid

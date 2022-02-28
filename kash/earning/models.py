@@ -50,3 +50,6 @@ class Earning(BaseModel):
     txn_ref = models.CharField(max_length=255, unique=True)
 
     objects = EarningManager()
+
+    class Meta:
+        db_table = 'kash_earning'
