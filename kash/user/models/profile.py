@@ -49,28 +49,8 @@ class UserProfile(BaseModel):
         return self.user.phone_number
 
     @property
-    def txn_summary(self):
-
-        return {"30-days": {"sent": 0, "received": 0}}
-
-    @property
     def kyc_level(self):
         return 2 if self.kycdocument_set.filter(status="approved").exists() else 1
-
-    @property
-    def limits(self):
-        xof_amount = self.wallet.xof_amount.amount
-        withdrawal_fees = max(100, round(xof_amount * Decimal(0.02)))
-        return {
-            "sendkash": {"min": 25, "max": max(self.wallet.xof_amount.amount - 25, 0)},
-            "deposit": {"min": 25, "max": 500000},
-            "withdraw": {"min": 0, "max": xof_amount},
-            "purchase-card": {
-                "min": 5,
-                "max": 1000,
-            },
-            "fund-card": {"min": 5, "max": 1000},
-        }
 
     def get_momo_account(self):
         from kash.transaction.models import Transaction
