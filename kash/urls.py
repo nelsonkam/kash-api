@@ -2,6 +2,7 @@ from django.conf import settings
 from django.urls import path
 
 from rest_framework_nested import routers
+from rest_framework_simplejwt.views import TokenRefreshView
 
 from kash import views
 from kash.auth.viewsets import AuthViewSet
@@ -24,6 +25,7 @@ router.register("auth", AuthViewSet, "auth")
 
 urlpatterns = router.urls + [
     path("version/", views.version, name="version"),
+    path("token/refresh", TokenRefreshView.as_view(), name="token_refresh"),
     path("rates/", views.rates, name="rates"),
     path("info/cards/", views.card_info, name="card_info"),
     path("misc/fund/", views.recharge, name="misc_fund"),
