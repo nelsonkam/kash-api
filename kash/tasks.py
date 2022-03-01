@@ -40,7 +40,7 @@ def check_txn_status():
 
 @shared_task
 def send_pending_notifications():
-    from kash.transaction.models import Notification
+    from kash.notification.models import Notification
 
     for notification in Notification.objects.filter(sent_at__isnull=True):
         notification.send()
@@ -48,6 +48,8 @@ def send_pending_notifications():
 
 @shared_task
 def monitor_flw_balance():
+    if settings.DEBUG:
+        return
     provider = RaveCardProvider()
     ngn_balance = (
         rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")

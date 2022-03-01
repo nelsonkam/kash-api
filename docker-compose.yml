@@ -11,23 +11,23 @@ services:
     depends_on:
       - "redis"
 
-  # celery:
-  #   build: .
-  #   command: celery -A app_main worker -l info
-  #   volumes:
-  #     - .:/usr/src/app
-  #   depends_on:
-  #     - "web"
-  #     - "redis"
+  celery:
+    build: .
+    command: celery -A app_main worker -l info
+    volumes:
+     - .:/usr/src/app
+    depends_on:
+     - "web"
+     - "redis"
 
-  # celery-beat:
-  #   build: .
-  #   command: celery -A app_main beat -l info
-  #   volumes:
-  #     - .:/usr/src/app
-  #   depends_on:
-  #     - "web"
-  #     - "redis"
+  celery-beat:
+    build: .
+    command: celery -A app_main beat -l info
+    volumes:
+     - .:/usr/src/app
+    depends_on:
+     - "web"
+     - "redis"
 
   redis:
     image: "redis:alpine"
