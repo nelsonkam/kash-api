@@ -154,7 +154,7 @@ class QosicProvider(BaseProvider):
             "clientid": self._get_client_id(transaction),
         }
 
-        if settings.DEBUG:
+        if settings.DEBUG or settings.APP_ENV == 'beta':
             data["amount"] = "1"
         return data
 
