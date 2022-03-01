@@ -20,7 +20,7 @@ jobs:
         env:
           HOST: ${{ secrets.BETA_SSH_HOST }}
           USERNAME: ${{ secrets.BETA_SSH_USERNAME }}
-          KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          KEY: ${{ secrets.BETA_SSH_PRIVATE_KEY }}
         with:
           source: "."
           target: "~/apps/kash-api"
@@ -31,7 +31,7 @@ jobs:
           ENV_VAR: ${{secrets.BETA_ENV_VAR}}
         with:
           host: ${{ secrets.BETA_SSH_HOST }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key: ${{ secrets.BETA_SSH_PRIVATE_KEY }}
           username: ${{ secrets.BETA_SSH_USERNAME }}
           script: |
             cd ~/apps/kash-api
