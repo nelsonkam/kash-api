@@ -8,30 +8,23 @@ from djmoney.money import Money
 from kash.xlib.utils.payment import rave_request, rave2_request
 from .base import BaseCardProvider
 
+CALLBACK_URL = "https://beta.mykash.africa/virtual-cards/txn_callback/" \
+    if settings.APP_ENV == 'beta' else "https://prod.mykash.africa/virtual-cards/txn_callback/"
+
 
 class RaveCardProvider(BaseCardProvider):
     def issue(self, card, initial_amount):
         if card.external_id:
             return
-
-        usd_balance = (
-            rave_request("GET", "/balances/USD")
-            .json()
-            .get("data")
-            .get("available_balance")
-        )
-        debit_currency = "NGN"
-        if initial_amount.amount <= usd_balance - 5:
-            debit_currency = "USD"
-
+        currency = "NGN" if settings.APP_ENV == 'beta' else "USD"
         resp = rave_request(
             "POST",
             "/virtual-cards",
             {
-                "currency": "USD",
+                "currency": currency,
                 "amount": float(initial_amount.amount),
                 "billing_name": card.profile.name,
-                "debit_currency": debit_currency,
+                "debit_currency": currency,
                 "callback_url": "https://prod.mykash.africa/kash/virtual-cards/txn_callback/",
             },
         ).json()
@@ -39,30 +32,21 @@ class RaveCardProvider(BaseCardProvider):
         if resp.get("data"):
             card.external_id = resp.get("data").get("id")
             masked_pan = resp.get("data").get("masked_pan")
-            card.last_4 = masked_pan[len(masked_pan) - 4 : len(masked_pan)]
+            card.last_4 = masked_pan[len(masked_pan) - 4: len(masked_pan)]
             card.save()
         else:
             raise Exception(f"Card creation failed: {resp.get('message')}")
         return {
-            "debit_currency": debit_currency,
+            "debit_currency": currency,
         }
 
     def fund(self, card, amount):
-        usd_balance = (
-            rave_request("GET", "/balances/USD")
-            .json()
-            .get("data")
-            .get("available_balance")
-        )
-        debit_currency = "NGN"
-        if amount.amount <= usd_balance - 5:
-            debit_currency = "USD"
-
-        data = {"amount": float(amount.amount), "debit_currency": debit_currency}
+        currency = "NGN" if settings.APP_ENV == 'beta' else "USD"
+        data = {"amount": float(amount.amount), "debit_currency": currency}
 
         rave_request("POST", f"/virtual-cards/{card.external_id}/fund", data).json()
         return {
-            "debit_currency": debit_currency,
+            "debit_currency": currency,
         }
 
     def freeze(self, card):
@@ -89,7 +73,7 @@ class RaveCardProvider(BaseCardProvider):
         resp = rave_request("GET", f"/virtual-cards/{card.external_id}")
         data = resp.json().get("data")
         masked_pan = data.get("masked_pan")
-        card.last_4 = masked_pan[len(masked_pan) - 4 : len(masked_pan)]
+        card.last_4 = masked_pan[len(masked_pan) - 4: len(masked_pan)]
         card.is_active = data.get("is_active")
         card.save()
         return data
@@ -109,8 +93,8 @@ class RaveCardProvider(BaseCardProvider):
     def get_transactions(self, card):
         def format_reference(ref):
             if re.match(
-                r"^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$",
-                ref.upper(),
+                    r"^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$",
+                    ref.upper(),
             ):
                 return "Kash"
             return ref
@@ -164,15 +148,15 @@ class RaveCardProvider(BaseCardProvider):
 
         ngn_balance = (
             rave_request("GET", "/balances/NGN")
-            .json()
-            .get("data")
-            .get("available_balance")
+                .json()
+                .get("data")
+                .get("available_balance")
         )
         usd_balance = (
             rave_request("GET", "/balances/USD")
-            .json()
-            .get("data")
-            .get("available_balance")
+                .json()
+                .get("data")
+                .get("available_balance")
         )
         rate = Rate.objects.get(code=Rate.Codes.rave_usd_ngn)
         ngn_amount = Money(rate.value * amount.amount, "NGN")
