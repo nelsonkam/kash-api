@@ -37,22 +37,6 @@ class ConsoleSMSBackend(BaseSMSBackend):
             self.send_sms(number, message)
 
 
-class AmazonSMSBackend(BaseSMSBackend):
-
-    def send_sms(self, number, message):
-        client = boto3.client(
-            "sns",
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            region_name=settings.AWS_REGION_NAME,
-        )
-        return client.publish(PhoneNumber=number, Message=message)
-
-    def send_bulk_sms(self, numbers, message):
-        for number in numbers:
-            self.send_sms(number, message)
-
-
 class MessageBirdSMSBackend(BaseSMSBackend):
 
     def send_sms(self, number, message):
