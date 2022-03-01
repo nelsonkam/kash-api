@@ -243,7 +243,7 @@ INTERNAL_IPS = "127.0.0.1"
 
 if not DEBUG:
     sentry_sdk.init(
-        dsn="https://1dcbf0b1f34c4a4f9304d0d54c534783@o875363.ingest.sentry.io/5825286",
+        dsn=env("SENTRY_KEY"),
         integrations=[DjangoIntegration()],
         traces_sample_rate=1.0,
         # If you wish to associate users to errors (assuming you are using
