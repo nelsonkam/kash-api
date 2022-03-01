@@ -144,7 +144,7 @@ class RaveCardProvider(BaseCardProvider):
         return resp.json().get("data")
 
     def is_balance_sufficient(self, amount):
-        from kash.models import Rate
+        from kash.payout.models import Rate
 
         ngn_balance = (
             rave_request("GET", "/balances/NGN")
