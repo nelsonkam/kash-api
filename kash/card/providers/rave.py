@@ -16,13 +16,13 @@ class RaveCardProvider(BaseCardProvider):
     def issue(self, card, initial_amount):
         if card.external_id:
             return
-        currency = "NGN" if settings.APP_ENV == 'beta' else "USD"
+        currency = "NGN" if settings.IS_BETA else "USD"
         resp = rave_request(
             "POST",
             "/virtual-cards",
             {
                 "currency": currency,
-                "amount": float(initial_amount.amount),
+                "amount": 100 if settings.IS_BETA else float(initial_amount.amount),
                 "billing_name": card.profile.name,
                 "debit_currency": currency,
                 "callback_url": "https://prod.mykash.africa/kash/virtual-cards/txn_callback/",
@@ -42,7 +42,7 @@ class RaveCardProvider(BaseCardProvider):
 
     def fund(self, card, amount):
         currency = "NGN" if settings.APP_ENV == 'beta' else "USD"
-        data = {"amount": float(amount.amount), "debit_currency": currency}
+        data = {"amount": 100 if settings.IS_BETA else float(amount.amount), "debit_currency": currency}
 
         rave_request("POST", f"/virtual-cards/{card.external_id}/fund", data).json()
         return {
