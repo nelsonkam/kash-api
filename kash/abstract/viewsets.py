@@ -1,9 +1,10 @@
 from rest_framework.viewsets import ModelViewSet
 
-from kash.user.models import UserProfile
+from kash.user.models import UserProfile, User
 
 
 class BaseViewSet(ModelViewSet):
     def perform_authentication(self, request):
         super().perform_authentication(request)
-        self.request.profile = UserProfile.objects.get(user=self.request.user)  # qc: 1
+        if isinstance(self.request.user, User):
+            self.request.profile = UserProfile.objects.get(user=self.request.user)  # qc: 1
