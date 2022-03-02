@@ -12,29 +12,26 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.SeparateDatabaseAndState(
-            state_operations=[
-                migrations.CreateModel(
-                    name='KYCDocument',
-                    fields=[
-                        ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                        ('created_at', models.DateTimeField(auto_now_add=True)),
-                        ('updated_at', models.DateTimeField(auto_now=True)),
-                        ('doc_url', models.URLField(blank=True, null=True)),
-                        ('document_type', models.CharField(max_length=25)),
-                        ('selfie_url', models.URLField(blank=True, null=True)),
-                        ('status', models.CharField(
-                            choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')],
-                            default='pending', max_length=30)),
-                        ('rejection_reason', models.TextField(blank=True)),
-                        ('profile',
-                         models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='kash_user.userprofile')),
-                    ],
-                    options={
-                        'abstract': False,
-                        'db_table': 'kash_kycdocument'
-                    },
-                ),
+
+        migrations.CreateModel(
+            name='KYCDocument',
+            fields=[
+                ('id', models.BigAutoField(primary_key=True, serialize=False)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
+                ('doc_url', models.URLField(blank=True, null=True)),
+                ('document_type', models.CharField(max_length=25)),
+                ('selfie_url', models.URLField(blank=True, null=True)),
+                ('status', models.CharField(
+                    choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')],
+                    default='pending', max_length=30)),
+                ('rejection_reason', models.TextField(blank=True)),
+                ('profile',
+                 models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='kash_user.userprofile')),
             ],
-            database_operations=[])
+            options={
+                'abstract': False,
+                'db_table': 'kash_kycdocument'
+            },
+        ),
     ]
