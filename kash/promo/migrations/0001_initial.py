@@ -11,25 +11,22 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.SeparateDatabaseAndState(
-            state_operations=[
-                migrations.CreateModel(
-                    name='PromoCode',
-                    fields=[
-                        ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                        ('created_at', models.DateTimeField(auto_now_add=True)),
-                        ('updated_at', models.DateTimeField(auto_now=True)),
-                        ('code', models.CharField(max_length=10, unique=True)),
-                        ('value', models.PositiveIntegerField()),
-                        ('expires_at', models.DateTimeField(null=True)),
-                        ('is_valid', models.BooleanField(default=True)),
-                        ('applied_to', models.ManyToManyField(to='kash_user.UserProfile')),
-                    ],
-                    options={
-                        'abstract': False,
-                        'db_table': "kash_promocode"
-                    },
-                ),
+        migrations.CreateModel(
+            name='PromoCode',
+            fields=[
+                ('id', models.BigAutoField(primary_key=True, serialize=False)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
+                ('code', models.CharField(max_length=10, unique=True)),
+                ('value', models.PositiveIntegerField()),
+                ('expires_at', models.DateTimeField(null=True)),
+                ('is_valid', models.BooleanField(default=True)),
+                ('applied_to', models.ManyToManyField(to='kash_user.UserProfile')),
             ],
-            database_operations=[])
+            options={
+                'abstract': False,
+                'db_table': "kash_promocode"
+            },
+        ),
+
     ]

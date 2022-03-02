@@ -13,29 +13,25 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.SeparateDatabaseAndState(
-            state_operations=[
-                migrations.CreateModel(
-                    name='Notification',
-                    fields=[
-                        ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                        ('created_at', models.DateTimeField(auto_now_add=True)),
-                        ('updated_at', models.DateTimeField(auto_now=True)),
-                        ('object_id', models.IntegerField()),
-                        ('title', models.CharField(max_length=255)),
-                        ('description', models.TextField()),
-                        ('sent_at', models.DateTimeField(null=True)),
-                        ('content_type',
-                         models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contenttypes.contenttype')),
-                        ('profile',
-                         models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='notifications',
-                                           to='kash_user.userprofile')),
-                    ],
-                    options={
-                        'abstract': False,
-                        'db_table': 'kash_notification'
-                    },
-                ),
+        migrations.CreateModel(
+            name='Notification',
+            fields=[
+                ('id', models.BigAutoField(primary_key=True, serialize=False)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
+                ('object_id', models.IntegerField()),
+                ('title', models.CharField(max_length=255)),
+                ('description', models.TextField()),
+                ('sent_at', models.DateTimeField(null=True)),
+                ('content_type',
+                 models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contenttypes.contenttype')),
+                ('profile',
+                 models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='notifications',
+                                   to='kash_user.userprofile')),
             ],
-            database_operations=[])
+            options={
+                'abstract': False,
+                'db_table': 'kash_notification'
+            },
+        ),
     ]

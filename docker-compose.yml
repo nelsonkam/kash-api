@@ -13,7 +13,7 @@ services:
 
   celery:
     build: .
-    command: celery -A app_main worker -l info
+    command: celery -A app_main worker -l warning
     volumes:
      - .:/usr/src/app
     depends_on:
@@ -22,7 +22,7 @@ services:
 
   celery-beat:
     build: .
-    command: celery -A app_main beat -l info
+    command: celery -A app_main beat -l warning
     volumes:
      - .:/usr/src/app
     depends_on:
