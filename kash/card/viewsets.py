@@ -2,6 +2,7 @@ import logging
 
 from djmoney.money import Money
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
@@ -93,7 +94,7 @@ class VirtualCardViewSet(BaseViewSet):
                 "à la création de ta carte ($5 minimum)",
                 card,
             )
-            raise NotImplementedError()
+            raise ValidationError("Invalid amount")
 
         txn = card.purchase_momo(
             amount=amount,
