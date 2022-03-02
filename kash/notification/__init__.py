@@ -1,1 +1,1 @@
-default_app_config = "kash.earning.apps.KashNotificationConfig"
+default_app_config = "kash.notification.apps.KashNotificationConfig"

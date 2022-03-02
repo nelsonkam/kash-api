@@ -1,5 +1,3 @@
-from kash.models.invite_code import Referral
-from kash.models.user_profile import UserProfile
 from django.utils.timezone import now
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -7,10 +5,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from kash.models import InviteCode
-from kash.serializers.invite_code import InviteCodeSerializer
-
-from .base import BaseViewSet
+from kash.abstract.viewsets import BaseViewSet
+from kash.invite.models import InviteCode
+from kash.invite.serializers import InviteCodeSerializer
 
 
 class InviteCodeViewset(BaseViewSet):

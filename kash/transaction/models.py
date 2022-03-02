@@ -103,7 +103,7 @@ class Transaction(models.Model):
     last_status_checked = models.DateTimeField(null=True)
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
-    initiator = models.ForeignKey("core.User", on_delete=models.CASCADE, null=True)
+    initiator = models.ForeignKey("kash_user.User", on_delete=models.CASCADE, null=True)
     provider_name = models.CharField(
         max_length=20, choices=PaymentProvider.choices, default=PaymentProvider.dummy
     )

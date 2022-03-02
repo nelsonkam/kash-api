@@ -1,16 +1,16 @@
-from kash.models.promo_code import PromoCode
 from uuid import uuid4
 
 from django.http import Http404
 from phone_verify.serializers import PhoneSerializer, SMSVerificationSerializer
 from phone_verify.services import send_security_code_and_generate_session_token
 from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, MethodNotAllowed
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from kash.promo.models import PromoCode
 from kash.user.models import User
 from kash.xlib.utils import upload_content_file
 from kash.user.models import UserProfile
@@ -29,8 +29,10 @@ class ProfileViewset(BaseViewSet):
             return self.request.profile
         return UserProfile.objects.none()
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def create(self, request, *args, **kwargs):
+        # user cannot create a profile (i.e. POST /profile/)
+        # it is automatically done on auth/register/
+        raise MethodNotAllowed("POST")
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())

@@ -14,7 +14,7 @@ class Notification(BaseModel):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     content_object = GenericForeignKey("content_type", "object_id")
     profile = models.ForeignKey(
-        "kash.UserProfile", on_delete=models.CASCADE, related_name="notifications"
+        "kash_user.UserProfile", on_delete=models.CASCADE, related_name="notifications"
     )
     title = models.CharField(max_length=255)
     description = models.TextField()

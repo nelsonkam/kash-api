@@ -8,7 +8,7 @@ from djmoney.money import Money, Currency
 from rest_framework.exceptions import ValidationError
 
 from kash.abstract.models import BaseModel
-from kash.xlib.utils.notify import tg_bot, notify_telegram
+from kash.xlib.utils.notify import notify_telegram
 from kash.xlib.signals import (
     transaction_status_changed,
     virtual_card_issued,
@@ -45,7 +45,7 @@ class VirtualCard(BaseModel):
     is_active = models.BooleanField(default=True)
     nickname = models.CharField(max_length=255)
     category = models.CharField(max_length=255, blank=True)
-    profile = models.ForeignKey("kash.UserProfile", on_delete=models.CASCADE)
+    profile = models.ForeignKey("kash_user.UserProfile", on_delete=models.CASCADE)
     last_4 = models.CharField(max_length=4, blank=True)
     provider_name = models.CharField(
         max_length=20, choices=CardProvider.choices, default=CardProvider.rave
