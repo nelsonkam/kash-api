@@ -15,6 +15,7 @@ def notify_telegram(*args, **kwargs):
     if settings.DEBUG or settings.TESTING:
         print(kwargs.get("text"))
         return
+    tg_bot = telegram.Bot(token=settings.TG_BOT_TOKEN)
     return tg_bot.send_message(*args, **kwargs)
 
 
@@ -41,7 +42,7 @@ def check_funding_status():
 
 
 def parse_command(data):
-    from kash.models import AdminPayoutRequest
+    from kash.payout.models import AdminPayoutRequest
     tg_bot = telegram.Bot(token=settings.TG_BOT_TOKEN)
 
     try:

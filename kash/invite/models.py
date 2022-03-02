@@ -18,6 +18,9 @@ class InviteCode(BaseModel):
         "kash_user.UserProfile", on_delete=models.CASCADE, null=True, related_name="invite"
     )
 
+    class Meta:
+        db_table = 'kash_invitecode'
+
 
 class ReferralManager(models.Manager):
     def record_referral(self, profile, referral_code):
@@ -47,6 +50,9 @@ class Referral(BaseModel):
     rewarded_at = models.DateTimeField(null=True)
 
     objects = ReferralManager()
+
+    class Meta:
+        db_table = 'kash_referral'
 
     def reward(self):
         from kash.user.models import UserProfile

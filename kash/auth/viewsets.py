@@ -29,8 +29,9 @@ class AuthViewSet(GenericViewSet):
         )
         profile = UserProfile.objects.create(user=user, kashtag=data.get("kashtag"))
         refresh = RefreshToken.for_user(user)
+        referral_code = data.get("referral_code")
 
-        if referral_code := data.get("referral_code"):
+        if referral_code:
             Referral.objects.record_referral(profile, referral_code)
 
         data = {

@@ -67,7 +67,6 @@ INSTALLED_APPS = [
     "kash.notification",
     "kash.payout",
     "kash.promo",
-    "kash.send",
     "kash.transaction",
     "kash.user",
 ]
@@ -180,9 +179,9 @@ REST_FRAMEWORK = {
 }
 
 SMS_BACKEND = (
-    "core.backends.sms.ConsoleSMSBackend"
+    "kash.auth.backends.sms.ConsoleSMSBackend"
     if DEBUG
-    else "core.backends.sms.MessageBirdSMSBackend"
+    else "kash.auth.backends.sms.MessageBirdSMSBackend"
 )
 
 PHONE_VERIFICATION = {
@@ -218,6 +217,8 @@ CORS_ALLOW_HEADERS = [
 ]
 
 APP_NAME = env("APP_NAME")
+APP_ENV = env("APP_ENV")
+IS_BETA = APP_ENV == 'beta'
 
 DO_SPACES_KEY = env("DO_SPACES_KEY")
 DO_SPACES_SECRET = env("DO_SPACES_SECRET")
@@ -228,10 +229,6 @@ DO_SPACES_ENDPOINT_URL = env("DO_SPACES_ENDPOINT_URL")
 SLACK_TOKEN = env("SLACK_TOKEN")
 TG_CHAT_ID = env("TG_CHAT_ID")
 TG_BOT_TOKEN = env("TG_BOT_TOKEN")
-
-AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
-AWS_REGION_NAME = "us-east-1"
 
 MESSAGEBIRD_ACCESS_KEY = env("MESSAGEBIRD_ACCESS_KEY")
 
@@ -248,7 +245,7 @@ INTERNAL_IPS = "127.0.0.1"
 
 if not DEBUG:
     sentry_sdk.init(
-        dsn="https://1dcbf0b1f34c4a4f9304d0d54c534783@o875363.ingest.sentry.io/5825286",
+        dsn=env("SENTRY_KEY"),
         integrations=[DjangoIntegration()],
         traces_sample_rate=1.0,
         # If you wish to associate users to errors (assuming you are using

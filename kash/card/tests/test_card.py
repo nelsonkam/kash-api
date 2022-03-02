@@ -4,19 +4,14 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 from django.test import override_settings
 
-from core.models import User
-from kash.card_providers import CardProvider
-from kash.card_providers.dummy import set_dummy_balance
-from kash.models import (
-    UserProfile,
-    VirtualCard,
-    Transaction,
-    FundingHistory,
-    WithdrawalHistory,
-    Rate,
-    Earning,
-)
-from kash.tests import test_concurrently
+from kash.user.models import User, UserProfile
+from kash.card.providers import CardProvider
+from kash.card.providers.dummy import set_dummy_balance
+from kash.card.models import VirtualCard, FundingHistory, WithdrawalHistory
+from kash.transaction.models import Transaction
+from kash.earning.models import Earning
+from kash.payout.models import Rate
+
 from kash.xlib.utils.utils import (
     Gateway,
     TransactionStatus,
