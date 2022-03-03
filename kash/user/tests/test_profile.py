@@ -84,3 +84,10 @@ class ProfileViewsetTestCase(APITestCase):
             )
         self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
 
+    def test_send_phone_verification_code_blacklist(self):
+        response = self.client.post(
+            reverse("profiles-otp-phone", kwargs={"pk": 'current'}),
+            data={'phone_number': "0023411111111"}
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+

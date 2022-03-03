@@ -7,6 +7,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from kash.user.models import User, UserProfile
 from kash.user.serializers import UserSerializer
 
+PHONE_PREFIX_BLACKLIST = [
+    "00234", "+234", "234"
+]
+
 
 class AuthService:
 
@@ -32,7 +36,11 @@ class AuthService:
             "user": UserSerializer(instance=user).data,
         }
 
-    def send_phone_verification_code(self, phone_number):
+    def send_phone_verification_code(self, phone_number: str):
+        for prefix in PHONE_PREFIX_BLACKLIST:
+            if phone_number.startswith(prefix):
+                raise PermissionDenied
+
         return send_security_code_and_generate_session_token(str(phone_number))
 
     def link_phone_number(self, user, security_code, phone_number, session_token):
