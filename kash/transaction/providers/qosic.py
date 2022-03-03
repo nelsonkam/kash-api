@@ -40,6 +40,9 @@ class QosicProvider(BaseProvider):
             # todo; add logger to see more
             print(e)
             transaction.change_status(TransactionStatus.failed)
+        except ReadTimeout as e:
+            print(e)
+            return False
         else:
             response_data = response.json()
             transaction.change_status(
@@ -49,16 +52,18 @@ class QosicProvider(BaseProvider):
             )
 
     def check_status(self, transaction):
-        response = self.api_client.post(
-            "QosicBridge/user/gettransactionstatus",
-            {
-                "transref": transaction.reference,
-                "clientid": self._get_client_id(transaction),
-            },
-        )
+        try:
+            response = self.api_client.post(
+                "QosicBridge/user/gettransactionstatus",
+                {
+                    "transref": transaction.reference,
+                    "clientid": self._get_client_id(transaction),
+                },
+            )
+        except ReadTimeout:
+            return
 
         status = transaction.status
-        print(response.text, response.status_code, response.status_code == 200)
 
         if response.status_code == 200:
             response_data = response.json()
@@ -107,7 +112,7 @@ class QosicProvider(BaseProvider):
             print(response.text, response.status_code, response.status_code == 200)
             assert response.status_code >= 200
             assert int(response.json()["responsecode"]) == 0
-        except (AssertionError, ValueError) as e:
+        except (AssertionError, ValueError, ReadTimeout) as e:
             print(e)
             return False
         else:

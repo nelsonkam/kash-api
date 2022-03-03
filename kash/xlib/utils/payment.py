@@ -24,10 +24,12 @@ def rave_request(method, url, data=None):
     headers = {"Authorization": f"Bearer {settings.RAVE_SECRET_KEY}"}
     resp = requests.request(method, RAVE_URL + url, json=data, headers=headers)
     if 200 > resp.status_code or resp.status_code >= 399:
-        if resp.json():
-            raise Exception(resp.json().get('message'))
-        else:
-            raise Exception(f"Rave API call `{method} {url}` failed: `{resp.text}`")
+        try:
+            data = resp.json()
+            raise Exception(data.get('message'))
+        except ValueError:
+            text = resp.text
+            raise Exception(f"Rave API call `{method} {url}` failed: `{text}`")
     return resp
 
 

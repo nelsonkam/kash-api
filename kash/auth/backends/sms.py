@@ -8,6 +8,10 @@ from phone_verify.models import SMSVerification
 
 
 class BaseSMSBackend(BaseBackend, ABC):
+    def __init__(self, **options):
+        super(BaseSMSBackend, self).__init__(**options)
+        self.exception_class = Exception
+
     def create_security_code_and_session_token(self, number):
         if number in settings.PHONE_VERIFICATION.get("TEST_PHONE_NUMBERS"):
             security_code = "123456"
@@ -29,7 +33,10 @@ class BaseSMSBackend(BaseBackend, ABC):
 
 
 class ConsoleSMSBackend(BaseSMSBackend):
+
     def send_sms(self, number, message):
+        if len(number) > 10:
+            raise Exception("number too long")
         print(f"SMS to {number}: {message}")
 
     def send_bulk_sms(self, numbers, message):
@@ -38,6 +45,10 @@ class ConsoleSMSBackend(BaseSMSBackend):
 
 
 class MessageBirdSMSBackend(BaseSMSBackend):
+
+    def __init__(self, **options):
+        super(MessageBirdSMSBackend, self).__init__(**options)
+        self.exception_class = messagebird.ErrorException
 
     def send_sms(self, number, message):
         client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
