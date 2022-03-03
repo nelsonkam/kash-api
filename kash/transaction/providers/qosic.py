@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import timedelta
 
 from django.conf import settings
@@ -14,6 +15,7 @@ from kash.xlib.utils.utils import (
     TransactionType,
 )
 
+logger = logging.getLogger(__name__)
 
 class QosicProvider(BaseProvider):
     def process(self, transaction):
@@ -38,11 +40,10 @@ class QosicProvider(BaseProvider):
             assert int(response.json()["responsecode"]) == 0
         except (AssertionError, ValueError) as e:
             # todo; add logger to see more
-            print(e)
+            logger.error(e)
             transaction.change_status(TransactionStatus.failed)
         except ReadTimeout as e:
-            print(e)
-            return False
+            pass
         else:
             response_data = response.json()
             transaction.change_status(
@@ -62,36 +63,37 @@ class QosicProvider(BaseProvider):
             )
         except ReadTimeout:
             return
+        else:
 
-        status = transaction.status
+            status = transaction.status
 
-        if response.status_code == 200:
-            response_data = response.json()
-            if (
-                response_data["responsecode"]
-                and int(response_data["responsecode"]) == 0
-            ):
-                status = TransactionStatus.success
-            elif (
-                response_data["responsemsg"]
-                and "success" in response_data["responsemsg"].lower()
-            ):
-                status = TransactionStatus.success
-            elif response_data["responsecode"] == "01":
-                status = TransactionStatus.pending
-            elif response_data["responsecode"] == "529":
-                status = TransactionStatus.failed
-            elif (
-                response_data["responsemsg"] == "FAILED"
-                and response_data["responsecode"] == "-1"
-            ):
-                status = TransactionStatus.failed
+            if response.status_code == 200:
+                response_data = response.json()
+                if (
+                    response_data["responsecode"]
+                    and int(response_data["responsecode"]) == 0
+                ):
+                    status = TransactionStatus.success
+                elif (
+                    response_data["responsemsg"]
+                    and "success" in response_data["responsemsg"].lower()
+                ):
+                    status = TransactionStatus.success
+                elif response_data["responsecode"] == "01":
+                    status = TransactionStatus.pending
+                elif response_data["responsecode"] == "529":
+                    status = TransactionStatus.failed
+                elif (
+                    response_data["responsemsg"] == "FAILED"
+                    and response_data["responsecode"] == "-1"
+                ):
+                    status = TransactionStatus.failed
 
-            transaction.change_status(
-                status=status,
-                service_message=response_data["responsemsg"],
-                service_reference=response_data["serviceref"],
-            )
+                transaction.change_status(
+                    status=status,
+                    service_message=response_data["responsemsg"],
+                    service_reference=response_data["serviceref"],
+                )
 
         if (
             transaction.created + timedelta(minutes=2) < now()
@@ -112,8 +114,8 @@ class QosicProvider(BaseProvider):
             print(response.text, response.status_code, response.status_code == 200)
             assert response.status_code >= 200
             assert int(response.json()["responsecode"]) == 0
-        except (AssertionError, ValueError, ReadTimeout) as e:
-            print(e)
+        except (AssertionError, ValueError) as e:
+            logger.error(e)
             return False
         else:
             transaction.change_status(TransactionStatus.refunded)

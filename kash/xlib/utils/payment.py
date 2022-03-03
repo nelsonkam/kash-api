@@ -1,7 +1,8 @@
 import requests
 import stripe
 from django.conf import settings
-
+import logging
+logger = logging.getLogger(__name__)
 FEDAPAY_URL = (
     "https://sandbox-api.fedapay.com" if settings.DEBUG else "https://api.fedapay.com"
 )
@@ -29,7 +30,7 @@ def rave_request(method, url, data=None):
             raise Exception(data.get('message'))
         except ValueError:
             text = resp.text
-            raise Exception(f"Rave API call `{method} {url}` failed: `{text}`")
+            logger.info(f"Rave API call `{method} {url}` failed: `{text}`")
     return resp
 
 
