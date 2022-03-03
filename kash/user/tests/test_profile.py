@@ -67,5 +67,20 @@ class ProfileViewsetTestCase(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_send_phone_verification_code(self):
+        response = self.client.post(
+            reverse("profiles-otp-phone", kwargs={"pk": 'current'}),
+            data={'phone_number': "11111111"}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNotNone(response.data.get("session_token"))
 
+    def test_send_phone_verification_code_throttling(self):
+        response = None
+        for i in range(15):
+            response = self.client.post(
+                reverse("profiles-otp-phone", kwargs={"pk": 'current'}),
+                data={'phone_number': "11111111"}
+            )
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
 

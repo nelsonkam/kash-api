@@ -10,6 +10,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from kash.auth.services import AuthService
+from kash.auth.throttling import VerificationCodeThrottle
 from kash.promo.models import PromoCode
 from kash.user.models import User
 from kash.xlib.utils import upload_content_file
@@ -23,6 +25,7 @@ class ProfileViewset(BaseViewSet):
     serializer_class = ProfileSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+    service = AuthService()
 
     def get_queryset(self):
         if hasattr(self.request, "profile"):
@@ -68,27 +71,19 @@ class ProfileViewset(BaseViewSet):
         profile.save()
         return Response(LimitedProfileSerializer(instance=profile).data)
 
-    @action(detail=True, methods=["post"], url_path="otp/phone")
+    @action(detail=True, methods=["post"], url_path="otp/phone", throttle_classes=[VerificationCodeThrottle])
     def otp_phone(self, request, pk=None):
-        serializer = PhoneSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = User.objects.filter(username=serializer.validated_data["phone_number"])
-        if user:
-            raise PermissionDenied
-        session_token = send_security_code_and_generate_session_token(
-            str(serializer.validated_data["phone_number"])
-        )
+        session_token = self.service.send_phone_verification_code(request.data.get("phone_number"))
         return Response({"session_token": session_token})
 
     @action(detail=True, methods=["post"], url_path="otp/verify/phone")
     def verify_phone(self, request, pk=None):
-        profile = self.get_object()
-        serializer = SMSVerificationSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        phone = serializer.validated_data.get("phone_number")
-        user = profile.user
-        user.phone_number = phone
-        user.save()
+        self.service.link_phone_number(
+            user=request.user,
+            security_code=request.data.get("security_code"),
+            phone_number=request.data.get("phone_number"),
+            session_token=request.data.get("session_token"),
+        )
         return Response({"message": "Security code is valid."})
 
     @action(detail=True, methods=["post"], url_path="promo/apply")

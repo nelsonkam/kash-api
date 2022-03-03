@@ -63,36 +63,37 @@ class QosicProvider(BaseProvider):
             )
         except ReadTimeout:
             return
+        else:
 
-        status = transaction.status
+            status = transaction.status
 
-        if response.status_code == 200:
-            response_data = response.json()
-            if (
-                response_data["responsecode"]
-                and int(response_data["responsecode"]) == 0
-            ):
-                status = TransactionStatus.success
-            elif (
-                response_data["responsemsg"]
-                and "success" in response_data["responsemsg"].lower()
-            ):
-                status = TransactionStatus.success
-            elif response_data["responsecode"] == "01":
-                status = TransactionStatus.pending
-            elif response_data["responsecode"] == "529":
-                status = TransactionStatus.failed
-            elif (
-                response_data["responsemsg"] == "FAILED"
-                and response_data["responsecode"] == "-1"
-            ):
-                status = TransactionStatus.failed
+            if response.status_code == 200:
+                response_data = response.json()
+                if (
+                    response_data["responsecode"]
+                    and int(response_data["responsecode"]) == 0
+                ):
+                    status = TransactionStatus.success
+                elif (
+                    response_data["responsemsg"]
+                    and "success" in response_data["responsemsg"].lower()
+                ):
+                    status = TransactionStatus.success
+                elif response_data["responsecode"] == "01":
+                    status = TransactionStatus.pending
+                elif response_data["responsecode"] == "529":
+                    status = TransactionStatus.failed
+                elif (
+                    response_data["responsemsg"] == "FAILED"
+                    and response_data["responsecode"] == "-1"
+                ):
+                    status = TransactionStatus.failed
 
-            transaction.change_status(
-                status=status,
-                service_message=response_data["responsemsg"],
-                service_reference=response_data["serviceref"],
-            )
+                transaction.change_status(
+                    status=status,
+                    service_message=response_data["responsemsg"],
+                    service_reference=response_data["serviceref"],
+                )
 
         if (
             transaction.created + timedelta(minutes=2) < now()
