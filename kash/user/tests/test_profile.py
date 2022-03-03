@@ -1,5 +1,6 @@
 from http.client import METHOD_NOT_ALLOWED, OK
 
+from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
@@ -22,13 +23,13 @@ class ProfileViewsetTestCase(APITestCase):
         response = self.client.post(
             reverse("profiles-list"),
         )
-        self.assertEqual(response.status_code, METHOD_NOT_ALLOWED)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_get_current_user(self):
         response = self.client.get(
             reverse("profiles-detail", kwargs={"pk": 'current'}),
         )
-        self.assertEqual(response.status_code, OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.profile.refresh_from_db()
         self.assertEqual(response.data, {
             'name': self.profile.name,
@@ -47,8 +48,24 @@ class ProfileViewsetTestCase(APITestCase):
             reverse("profiles-device-ids", kwargs={"pk": 'current'}),
             data={'device_id': device_id}
         )
-        self.assertEqual(response.status_code, OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.profile.refresh_from_db()
         self.assertIn(device_id, self.profile.device_ids)
+
+    def test_otp_phone_invalid_number_for_provider(self):
+        # this tests a case where the provider fails when
+        # sending an SMS to the phone number. In this case
+        # we're simulating a failure with an invalid number
+        # using the console SMS backend.
+        user = User.objects.create(
+            username="test2",
+            phone_number="+18023456789"  # invalid phone number for sms backend
+        )
+        response = self.client.post(
+            reverse("profiles-otp-phone", kwargs={"pk": 'current'}),
+            data={'phone_number': user.phone_number}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
 
 

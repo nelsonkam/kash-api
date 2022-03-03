@@ -42,6 +42,8 @@ class QosicProvider(BaseProvider):
             # todo; add logger to see more
             logger.error(e)
             transaction.change_status(TransactionStatus.failed)
+        except ReadTimeout as e:
+            pass
         else:
             response_data = response.json()
             transaction.change_status(
@@ -51,16 +53,18 @@ class QosicProvider(BaseProvider):
             )
 
     def check_status(self, transaction):
-        response = self.api_client.post(
-            "QosicBridge/user/gettransactionstatus",
-            {
-                "transref": transaction.reference,
-                "clientid": self._get_client_id(transaction),
-            },
-        )
+        try:
+            response = self.api_client.post(
+                "QosicBridge/user/gettransactionstatus",
+                {
+                    "transref": transaction.reference,
+                    "clientid": self._get_client_id(transaction),
+                },
+            )
+        except ReadTimeout:
+            return
 
         status = transaction.status
-        print(response.text, response.status_code, response.status_code == 200)
 
         if response.status_code == 200:
             response_data = response.json()
