@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from kash.auth.services import AuthService
 from kash.invite.models import Referral
 from kash.user.models import User, UserProfile
 from kash.user.serializers import UserSerializer
@@ -17,6 +18,7 @@ from kash.auth.serializers import (
 
 
 class AuthViewSet(GenericViewSet):
+    service = AuthService()
     @action(detail=False, methods=["post"])
     def register(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -66,9 +68,7 @@ class AuthViewSet(GenericViewSet):
         if not user:
             raise NotFound
 
-        session_token = send_security_code_and_generate_session_token(
-            str(serializer.validated_data["phone_number"])
-        )
+        session_token = self.service.send_phone_verification_code(phone)
         return Response({"session_token": session_token})
 
     @action(detail=False, methods=["post"], url_path="recover/password")
