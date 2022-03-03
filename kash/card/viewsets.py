@@ -205,27 +205,34 @@ class VirtualCardViewSet(BaseViewSet):
         authentication_classes=[],
     )
     def txn_callback(self, request):
-        card_id = request.data.get("CardId")
-        card = VirtualCard.objects.get(external_id=card_id)
-        amount = request.data.get("Amount")
-        merchant_name = request.data.get("MerchantName")
-        description = request.data.get("Description")
+        data = request.data
+        card_id = data.get("CardId")
+        card = VirtualCard.objects.filter(external_id=card_id).first()
+        if not card:
+            return Response(status=200)
 
-        if description and description.lower() == "otp":
+        amount = data.get("Amount")
+        merchant_name = data.get("MerchantName")
+        description = data.get("Description")
+        status = data.get("Status")
+        txn_type = data.get("Type")
+        otp_code = data.get('Otp')
+
+        if otp_code:
             card.profile.push_notify(
                 "Code OTP",
-                f"Le code OTP pour votre transaction est: {request.data.get('Otp')}",
+                f"Le code OTP pour votre transaction est: {otp_code}",
                 card,
             )
         else:
-            if request.data.get("Status").lower() == "failed":
+            if status and status.lower() == "failed":
                 card.profile.push_notify(
                     "⚠️ Échec de transaction",
                     f"Ta carte {card.nickname} n'a pas pu être débitée de ${amount} par {merchant_name}. Raison: {description}",
                     card,
                 )
-            else:
-                if request.data.get("Type").lower() == "debit":
+            elif status and status.lower() == "successful":
+                if txn_type and txn_type.lower() == "debit":
                     card.profile.push_notify(
                         "Nouvelle transaction 💳",
                         f"Ta carte {card.nickname} vient d'être débitée de ${amount} par {merchant_name}. {'Description: ' + description if description else ''}",
@@ -237,6 +244,8 @@ class VirtualCardViewSet(BaseViewSet):
                         f"Ta carte {card.nickname} vient d'être créditée de ${amount} par {merchant_name}. {'Description: ' + description if description else ''}",
                         card,
                     )
+            else:
+                raise NotImplementedError("Unhandled txn callback object")
         return Response(status=200)
 
     @action(
