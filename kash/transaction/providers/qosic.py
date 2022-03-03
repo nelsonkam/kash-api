@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import timedelta
 
 from django.conf import settings
@@ -14,6 +15,7 @@ from kash.xlib.utils.utils import (
     TransactionType,
 )
 
+logger = logging.getLogger(__name__)
 
 class QosicProvider(BaseProvider):
     def process(self, transaction):
@@ -38,7 +40,7 @@ class QosicProvider(BaseProvider):
             assert int(response.json()["responsecode"]) == 0
         except (AssertionError, ValueError) as e:
             # todo; add logger to see more
-            print(e)
+            logger.error(e)
             transaction.change_status(TransactionStatus.failed)
         else:
             response_data = response.json()
@@ -108,7 +110,7 @@ class QosicProvider(BaseProvider):
             assert response.status_code >= 200
             assert int(response.json()["responsecode"]) == 0
         except (AssertionError, ValueError) as e:
-            print(e)
+            logger.error(e)
             return False
         else:
             transaction.change_status(TransactionStatus.refunded)
