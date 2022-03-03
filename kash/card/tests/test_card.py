@@ -321,3 +321,8 @@ class CardTestCase(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+
+    def test_txn_callback(self):
+        # todo: mock notifications for tests like django mailbox
+        # in order to test txn_callback effectively
+        pass
