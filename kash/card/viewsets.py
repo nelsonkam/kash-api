@@ -1,6 +1,7 @@
 import logging
 
 from djmoney.money import Money
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
@@ -78,7 +79,10 @@ class VirtualCardViewSet(BaseViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        return Response({**serializer.data, "card_details": instance.card_details})
+        try:
+            return Response({**serializer.data, "card_details": instance.card_details})
+        except Exception: # todo: find a better way to handle Rave card detail fetch failure
+            return Response(data={'message': "Une erreur est survenue"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=True, methods=["post"])
     def purchase(self, request, pk=None):
