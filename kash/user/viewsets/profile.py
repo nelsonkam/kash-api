@@ -4,7 +4,7 @@ from django.http import Http404
 from phone_verify.serializers import PhoneSerializer, SMSVerificationSerializer
 from phone_verify.services import send_security_code_and_generate_session_token
 from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied, MethodNotAllowed
+from rest_framework.exceptions import PermissionDenied, MethodNotAllowed, ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -66,7 +66,9 @@ class ProfileViewset(BaseViewSet):
     @action(detail=True, methods=["post"])
     def avatar(self, request, pk=None):
         profile = self.get_object()
-        image = request.data["avatar"]
+        image = request.data.get("avatar", None)
+        if not image:
+            raise ValidationError("Veuillez ajouté une photo valide.")
         profile.avatar_url = upload_content_file(image, f"{uuid4()}-{image.name}")
         profile.save()
         return Response(LimitedProfileSerializer(instance=profile).data)
