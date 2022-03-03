@@ -35,14 +35,14 @@ class QosicProvider(BaseProvider):
         data = self.get_request_data(transaction)
         try:
             response = self.api_client.post(self.get_payout_endpoint(transaction), data)
-            print(response.text, response.status_code, response.status_code == 200)
+            logger.info(response.text, response.status_code, response.status_code == 200)
             assert response.status_code == 200
             assert int(response.json()["responsecode"]) == 0
         except (AssertionError, ValueError) as e:
             # todo; add logger to see more
             logger.error(e)
             transaction.change_status(TransactionStatus.failed)
-        except ReadTimeout as e:
+        except ReadTimeout:
             pass
         else:
             response_data = response.json()
