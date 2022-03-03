@@ -312,3 +312,17 @@ class CardTestCase(APITestCase):
             {"amount": 10, "phone": "90137010", "gateway": Gateway.mtn},
         )
         self.assertEqual(Earning.objects.count(), 2)
+
+    def test_txn_callback_authentication(self):
+        self.client.logout()
+        response = self.client.post(
+            reverse("virtual-cards-txn-callback"),
+            {},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+    def test_txn_callback(self):
+        # todo: mock notifications for tests like django mailbox
+        # in order to test txn_callback effectively
+        pass
