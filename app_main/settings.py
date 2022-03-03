@@ -171,7 +171,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "200/day", 'verification-code': '10/hour'},
+    "DEFAULT_THROTTLE_RATES": {"anon": "200/day", 'verification-code': '6/hour'},
     "DEFAULT_FILTER_BACKENDS": [
         "rest_framework.filters.OrderingFilter",
     ],
