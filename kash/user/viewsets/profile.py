@@ -68,7 +68,7 @@ class ProfileViewset(BaseViewSet):
         profile = self.get_object()
         image = request.data.get("avatar", None)
         if not image:
-            raise ValidationError("Veuillez ajouté une photo valide.")
+            raise ValidationError("Veuillez ajouter une photo valide.")
         profile.avatar_url = upload_content_file(image, f"{uuid4()}-{image.name}")
         profile.save()
         return Response(LimitedProfileSerializer(instance=profile).data)
