@@ -149,7 +149,7 @@ def compute_metrics():
     active_transactors = txns.distinct("initiator").count()
     payment_count = txns.filter(transaction_type=TransactionType.payment).count()
     payout_count = txns.filter(transaction_type=TransactionType.payout).count()
-    refund_count = txns.filter(transaction_type=TransactionType.refund).count()
+    refund_count = txns.filter(created__gte=seven_days_ago, status=TransactionStatus.refunded).count()
     avg_funding_amt = (
         FundingHistory.objects.filter(created_at__gte=seven_days_ago, status=TransactionStatus.success)
         .aggregate(Avg("amount"))
@@ -167,7 +167,7 @@ def compute_metrics():
                         {"type": "mrkdwn", "text": f"*Utilisateurs actifs:*\n{active_transactors}"},
                         {
                             "type": "mrkdwn",
-                            "text": f"*Nbres de cartes créées:*\n{cards_created} ({unique_card_creators} utilisateurs)",
+                            "text": f"*Nbres de cartes créées:*\n{cards_created} cartes ({unique_card_creators} utilisateurs)",
                         },
                         {"type": "mrkdwn", "text": f"*Montant de recharge moyen:*\n${round(avg_funding_amt, 2)}"},
                         {
