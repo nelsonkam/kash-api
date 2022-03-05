@@ -7,7 +7,7 @@ from django.db.models.aggregates import Count
 from django.utils.timezone import now
 from djmoney.money import Money
 
-from kash.xlib.utils.notify import notify_telegram
+from kash.xlib.utils.notify import notify_telegram, notify_slack
 from kash.xlib.utils.payment import rave_request
 from kash.card.providers import RaveCardProvider
 from kash.xlib.utils.utils import (
@@ -57,7 +57,10 @@ def monitor_flw_balance():
     usd_balance = (
         rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
     )
-    if not provider.is_balance_sufficient(Money(500, "USD")):
+    if not provider.is_balance_sufficient(Money(500, "USD")) and not settings.IS_BETA:
+        notify_slack({
+            "text": f"⚠️ Le compte Flutterwave est déchargé! (Solde: *${usd_balance}*) cc <@U022FUW39FT>"
+        })
         notify_telegram(
             chat_id=settings.TG_CHAT_ID,
             text=f"""
@@ -68,6 +71,7 @@ def monitor_flw_balance():
         {"_Ceci est un message test._" if settings.DEBUG else ""}
         """,
         )
+
 
 
 @shared_task
