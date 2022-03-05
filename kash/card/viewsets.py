@@ -7,7 +7,6 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from kash.transaction.models import Transaction
 from kash.card.models import VirtualCard, WithdrawalHistory
@@ -25,7 +24,6 @@ logger = logging.getLogger(__name__)
 
 class VirtualCardViewSet(BaseViewSet):
     serializer_class = VirtualCardSerializer
-    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     pagination_class = KashPagination
 
@@ -81,8 +79,11 @@ class VirtualCardViewSet(BaseViewSet):
         serializer = self.get_serializer(instance)
         try:
             return Response({**serializer.data, "card_details": instance.card_details})
-        except Exception: # todo: find a better way to handle Rave card detail fetch failure
-            return Response(data={'message': "Une erreur est survenue"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception:  # todo: find a better way to handle Rave card detail fetch failure
+            return Response(
+                data={"message": "Une erreur est survenue"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     @action(detail=True, methods=["post"])
     def purchase(self, request, pk=None):
@@ -94,8 +95,7 @@ class VirtualCardViewSet(BaseViewSet):
         else:
             card.profile.push_notify(
                 "Création de ta carte ⚠️",
-                "Réessaies en spécifiant un montant à recharger "
-                "à la création de ta carte ($5 minimum)",
+                "Réessaies en spécifiant un montant à recharger " "à la création de ta carte ($5 minimum)",
                 card,
             )
             raise ValidationError("Invalid amount")
@@ -220,7 +220,7 @@ class VirtualCardViewSet(BaseViewSet):
         description = data.get("Description")
         status = data.get("Status")
         txn_type = data.get("Type")
-        otp_code = data.get('Otp')
+        otp_code = data.get("Otp")
 
         if otp_code:
             card.profile.push_notify(
@@ -252,9 +252,7 @@ class VirtualCardViewSet(BaseViewSet):
                 raise NotImplementedError("Unhandled txn callback object")
         return Response(status=200)
 
-    @action(
-        detail=False, methods=["get"], permission_classes=[IsAuthenticated, IsAdminUser]
-    )
+    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated, IsAdminUser])
     def search(self, request):
         search = request.query_params.get("s")
         cards = VirtualCard.objects.filter(last_4=search)
@@ -290,9 +288,7 @@ class VirtualCardViewSet(BaseViewSet):
     )
     def credit_withdrawal(self, request, pk=None):
         card = self.get_object()
-        withdrawal = get_object_or_404(
-            card.withdrawalhistory_set.all(), pk=request.data.get("withdrawal_id")
-        )
+        withdrawal = get_object_or_404(card.withdrawalhistory_set.all(), pk=request.data.get("withdrawal_id"))
         if withdrawal.status != WithdrawalHistory.Status.paid_out:
             card.provider.fund(card, withdrawal.amount)
             withdrawal.status = WithdrawalHistory.Status.failed
@@ -307,9 +303,7 @@ class VirtualCardViewSet(BaseViewSet):
     )
     def payout_withdrawal(self, request, pk=None):
         card = self.get_object()
-        withdrawal = get_object_or_404(
-            card.withdrawalhistory_set.all(), pk=request.data.get("withdrawal_id")
-        )
+        withdrawal = get_object_or_404(card.withdrawalhistory_set.all(), pk=request.data.get("withdrawal_id"))
         txn = get_object_or_404(Transaction, reference=withdrawal.txn_ref)
         txn.retry()
         withdrawal.txn_ref = txn.reference

@@ -8,8 +8,11 @@ from djmoney.money import Money
 from kash.xlib.utils.payment import rave_request, rave2_request
 from .base import BaseCardProvider
 
-CALLBACK_URL = "https://beta.mykash.africa/virtual-cards/txn_callback/" \
-    if settings.APP_ENV == 'beta' else "https://prod.mykash.africa/virtual-cards/txn_callback/"
+CALLBACK_URL = (
+    "https://beta.mykash.africa/virtual-cards/txn_callback/"
+    if settings.APP_ENV == "beta"
+    else "https://prod.mykash.africa/virtual-cards/txn_callback/"
+)
 
 
 class RaveCardProvider(BaseCardProvider):
@@ -32,7 +35,7 @@ class RaveCardProvider(BaseCardProvider):
         if resp.get("data"):
             card.external_id = resp.get("data").get("id")
             masked_pan = resp.get("data").get("masked_pan")
-            card.last_4 = masked_pan[len(masked_pan) - 4: len(masked_pan)]
+            card.last_4 = masked_pan[len(masked_pan) - 4 : len(masked_pan)]
             card.save()
         else:
             raise Exception(f"Card creation failed: {resp.get('message')}")
@@ -41,8 +44,11 @@ class RaveCardProvider(BaseCardProvider):
         }
 
     def fund(self, card, amount):
-        currency = "NGN" if settings.APP_ENV == 'beta' else "USD"
-        data = {"amount": 100 if settings.IS_BETA else float(amount.amount), "debit_currency": currency}
+        currency = "NGN" if settings.APP_ENV == "beta" else "USD"
+        data = {
+            "amount": 100 if settings.IS_BETA else float(amount.amount),
+            "debit_currency": currency,
+        }
 
         rave_request("POST", f"/virtual-cards/{card.external_id}/fund", data).json()
         return {
@@ -73,7 +79,7 @@ class RaveCardProvider(BaseCardProvider):
         resp = rave_request("GET", f"/virtual-cards/{card.external_id}")
         data = resp.json().get("data")
         masked_pan = data.get("masked_pan")
-        card.last_4 = masked_pan[len(masked_pan) - 4: len(masked_pan)]
+        card.last_4 = masked_pan[len(masked_pan) - 4 : len(masked_pan)]
         card.is_active = data.get("is_active")
         card.save()
         return data
@@ -93,8 +99,8 @@ class RaveCardProvider(BaseCardProvider):
     def get_transactions(self, card):
         def format_reference(ref):
             if re.match(
-                    r"^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$",
-                    ref.upper(),
+                r"^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$",
+                ref.upper(),
             ):
                 return "Kash"
             return ref
@@ -104,9 +110,7 @@ class RaveCardProvider(BaseCardProvider):
                 "id": item.get("id"),
                 "status": item.get("status"),
                 "indicator": item.get("indicator"),
-                "gateway_reference_details": format_reference(
-                    item.get("gateway_reference_details")
-                ),
+                "gateway_reference_details": format_reference(item.get("gateway_reference_details")),
                 "narration": item.get("narration") or item.get("product"),
                 "product": item.get("product"),
                 "amount": item.get("amount"),
@@ -146,18 +150,8 @@ class RaveCardProvider(BaseCardProvider):
     def is_balance_sufficient(self, amount):
         from kash.payout.models import Rate
 
-        ngn_balance = (
-            rave_request("GET", "/balances/NGN")
-                .json()
-                .get("data")
-                .get("available_balance")
-        )
-        usd_balance = (
-            rave_request("GET", "/balances/USD")
-                .json()
-                .get("data")
-                .get("available_balance")
-        )
+        ngn_balance = rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
+        usd_balance = rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
         rate = Rate.objects.get(code=Rate.Codes.rave_usd_ngn)
         ngn_amount = Money(rate.value * amount.amount, "NGN")
         return ngn_balance >= ngn_amount.amount or usd_balance >= amount.amount

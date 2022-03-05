@@ -1,14 +1,11 @@
 from uuid import uuid4
 
 from django.http import Http404
-from phone_verify.serializers import PhoneSerializer, SMSVerificationSerializer
-from phone_verify.services import send_security_code_and_generate_session_token
 from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied, MethodNotAllowed, ValidationError
+from rest_framework.exceptions import MethodNotAllowed, ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from kash.auth.services import AuthService
 from kash.auth.throttling import VerificationCodeThrottle
@@ -23,7 +20,6 @@ from kash.abstract.viewsets import BaseViewSet
 
 class ProfileViewset(BaseViewSet):
     serializer_class = ProfileSerializer
-    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     service = AuthService()
 
@@ -73,7 +69,12 @@ class ProfileViewset(BaseViewSet):
         profile.save()
         return Response(LimitedProfileSerializer(instance=profile).data)
 
-    @action(detail=True, methods=["post"], url_path="otp/phone", throttle_classes=[VerificationCodeThrottle])
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="otp/phone",
+        throttle_classes=[VerificationCodeThrottle],
+    )
     def otp_phone(self, request, pk=None):
         session_token = self.service.send_phone_verification_code(request.data.get("phone_number"))
         return Response({"session_token": session_token})

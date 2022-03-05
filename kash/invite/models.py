@@ -9,26 +9,25 @@ def generate_code():
 
 
 class InviteCode(BaseModel):
-    inviter = models.ForeignKey(
-        "kash_user.UserProfile", on_delete=models.CASCADE, related_name="invite_codes"
-    )
+    inviter = models.ForeignKey("kash_user.UserProfile", on_delete=models.CASCADE, related_name="invite_codes")
     code = models.CharField(max_length=10, default=generate_code, unique=True)
     used_at = models.DateTimeField(null=True)
     invited = models.OneToOneField(
-        "kash_user.UserProfile", on_delete=models.CASCADE, null=True, related_name="invite"
+        "kash_user.UserProfile",
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="invite",
     )
 
     class Meta:
-        db_table = 'kash_invitecode'
+        db_table = "kash_invitecode"
 
 
 class ReferralManager(models.Manager):
     def record_referral(self, profile, referral_code):
         from kash.user.models import UserProfile
 
-        code = (
-            referral_code.split("REF-")[1] if "REF-" in referral_code else referral_code
-        )
+        code = referral_code.split("REF-")[1] if "REF-" in referral_code else referral_code
 
         referrer = UserProfile.objects.filter(referral_code=code).first()
 
@@ -44,25 +43,19 @@ class ReferralManager(models.Manager):
 class Referral(BaseModel):
     REWARD_AMOUNT = 500
     referred = models.OneToOneField("kash_user.UserProfile", on_delete=models.CASCADE)
-    referrer = models.ForeignKey(
-        "kash_user.UserProfile", on_delete=models.CASCADE, related_name="referrals"
-    )
+    referrer = models.ForeignKey("kash_user.UserProfile", on_delete=models.CASCADE, related_name="referrals")
     rewarded_at = models.DateTimeField(null=True)
 
     objects = ReferralManager()
 
     class Meta:
-        db_table = 'kash_referral'
+        db_table = "kash_referral"
 
     def reward(self):
         from kash.user.models import UserProfile
 
         with transaction.atomic():
-            profile = (
-                UserProfile.objects.select_for_update()
-                .filter(pk=self.referrer.pk)
-                .first()
-            )
+            profile = UserProfile.objects.select_for_update().filter(pk=self.referrer.pk).first()
             profile.promo_balance += self.REWARD_AMOUNT
             profile.save()
             self.rewarded_at = now()

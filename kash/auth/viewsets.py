@@ -19,6 +19,7 @@ from kash.auth.serializers import (
 
 class AuthViewSet(GenericViewSet):
     service = AuthService()
+
     @action(detail=False, methods=["post"])
     def register(self, request):
         serializer = RegisterSerializer(data=request.data)

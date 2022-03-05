@@ -54,9 +54,7 @@ class TransactionManager(models.Manager):
             transaction.provider_name = kwargs["provider_name"]
         else:
             transaction.provider_name = (
-                PaymentProvider.dummy
-                if settings.DEBUG or settings.TESTING
-                else PaymentProvider.qosic
+                PaymentProvider.dummy if settings.DEBUG or settings.TESTING else PaymentProvider.qosic
             )
 
         transaction.save()
@@ -79,9 +77,7 @@ class Transaction(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
     content_object = GenericForeignKey("content_type", "object_id")
     gateway = models.CharField(max_length=20, choices=Gateway.choices)
-    reference = models.CharField(
-        max_length=50, default=generate_reference_10, unique=True
-    )
+    reference = models.CharField(max_length=50, default=generate_reference_10, unique=True)
     refund_reference = models.CharField(max_length=50, blank=True)
     service_reference = models.CharField(max_length=40, null=True)
     status = models.CharField(
@@ -90,23 +86,17 @@ class Transaction(models.Model):
         choices=TransactionStatus.choices,
     )
     amount = MoneyField(max_digits=17, decimal_places=2, default_currency="XOF")
-    discount = MoneyField(
-        max_digits=17, decimal_places=2, default_currency="XOF", default=0
-    )
+    discount = MoneyField(max_digits=17, decimal_places=2, default_currency="XOF", default=0)
     discount_accounted_at = models.DateTimeField(null=True)
     name = models.CharField(max_length=255, blank=True)
     phone = models.CharField(max_length=45)
-    transaction_type = models.CharField(
-        max_length=10, choices=TransactionType.choices, default=TransactionType.payment
-    )
+    transaction_type = models.CharField(max_length=10, choices=TransactionType.choices, default=TransactionType.payment)
     service_message = models.CharField(max_length=512, null=True)
     last_status_checked = models.DateTimeField(null=True)
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
     initiator = models.ForeignKey("kash_user.User", on_delete=models.CASCADE, null=True)
-    provider_name = models.CharField(
-        max_length=20, choices=PaymentProvider.choices, default=PaymentProvider.dummy
-    )
+    provider_name = models.CharField(max_length=20, choices=PaymentProvider.choices, default=PaymentProvider.dummy)
 
     objects = TransactionManager()
 
@@ -151,10 +141,7 @@ class Transaction(models.Model):
 @receiver(transaction_status_changed)
 def notify(sender, **kwargs):
     txn = kwargs.pop("transaction")
-    if (
-        txn.status == TransactionStatus.success
-        or txn.status == TransactionStatus.refunded
-    ):
+    if txn.status == TransactionStatus.success or txn.status == TransactionStatus.refunded:
         notify_telegram(
             chat_id=settings.TG_CHAT_ID,
             text=f"""
@@ -169,10 +156,7 @@ def notify(sender, **kwargs):
             """,
             disable_notification=True,
         )
-    elif (
-        txn.status == TransactionStatus.failed
-        and txn.transaction_type == TransactionType.payout
-    ):
+    elif txn.status == TransactionStatus.failed and txn.transaction_type == TransactionType.payout:
         notify_telegram(
             chat_id=settings.TG_CHAT_ID,
             text=f"""
@@ -189,17 +173,9 @@ def account_discount(sender, **kwargs):
     from kash.user.models import UserProfile
 
     txn = kwargs.pop("transaction")
-    if (
-        txn.status == TransactionStatus.success
-        and txn.discount.amount > 0
-        and not txn.discount_accounted_at
-    ):
+    if txn.status == TransactionStatus.success and txn.discount.amount > 0 and not txn.discount_accounted_at:
         with transaction.atomic():
-            profile = (
-                UserProfile.objects.select_for_update()
-                .filter(user=txn.initiator)
-                .first()
-            )
+            profile = UserProfile.objects.select_for_update().filter(user=txn.initiator).first()
             profile.promo_balance -= txn.discount.amount
             profile.save()
             txn.discount_accounted_at = timezone.now()

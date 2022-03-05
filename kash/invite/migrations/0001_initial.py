@@ -9,47 +9,68 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('kash_user', '0001_initial'),
+        ("kash_user", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Referral',
+            name="Referral",
             fields=[
-                ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('rewarded_at', models.DateTimeField(null=True)),
-                ('referred',
-                 models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='kash_user.userprofile')),
-                ('referrer',
-                 models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='referrals',
-                                   to='kash_user.userprofile')),
+                ("id", models.BigAutoField(primary_key=True, serialize=False)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("rewarded_at", models.DateTimeField(null=True)),
+                (
+                    "referred",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="kash_user.userprofile",
+                    ),
+                ),
+                (
+                    "referrer",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="referrals",
+                        to="kash_user.userprofile",
+                    ),
+                ),
             ],
-            options={
-                'abstract': False,
-                'db_table': 'kash_referral'
-            },
+            options={"abstract": False, "db_table": "kash_referral"},
         ),
         migrations.CreateModel(
-            name='InviteCode',
+            name="InviteCode",
             fields=[
-                ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                ("id", models.BigAutoField(primary_key=True, serialize=False)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
                 (
-                    'code', models.CharField(default=kash.invite.models.generate_code, max_length=10, unique=True)),
-                ('used_at', models.DateTimeField(null=True)),
-                ('invited', models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE,
-                                                 related_name='invite', to='kash_user.userprofile')),
-                ('inviter',
-                 models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='invite_codes',
-                                   to='kash_user.userprofile')),
+                    "code",
+                    models.CharField(
+                        default=kash.invite.models.generate_code,
+                        max_length=10,
+                        unique=True,
+                    ),
+                ),
+                ("used_at", models.DateTimeField(null=True)),
+                (
+                    "invited",
+                    models.OneToOneField(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="invite",
+                        to="kash_user.userprofile",
+                    ),
+                ),
+                (
+                    "inviter",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="invite_codes",
+                        to="kash_user.userprofile",
+                    ),
+                ),
             ],
-            options={
-                'abstract': False,
-                'db_table': 'kash_invitecode'
-            },
+            options={"abstract": False, "db_table": "kash_invitecode"},
         ),
-
     ]

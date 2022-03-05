@@ -9,39 +9,39 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('kash_user', '0001_initial'),
+        ("kash_user", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AdminPayoutRequest',
+            name="AdminPayoutRequest",
             fields=[
-                ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('code',
-                 models.CharField(default=kash.abstract.models.generate_ref_id, max_length=12, unique=True)),
-                ('phone', models.CharField(max_length=255)),
-                ('gateway', models.CharField(max_length=255)),
-                ('amount', models.IntegerField()),
+                ("id", models.BigAutoField(primary_key=True, serialize=False)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "code",
+                    models.CharField(
+                        default=kash.abstract.models.generate_ref_id,
+                        max_length=12,
+                        unique=True,
+                    ),
+                ),
+                ("phone", models.CharField(max_length=255)),
+                ("gateway", models.CharField(max_length=255)),
+                ("amount", models.IntegerField()),
             ],
-            options={
-                'abstract': False,
-                'db_table': 'kash_adminpayoutrequest'
-            },
+            options={"abstract": False, "db_table": "kash_adminpayoutrequest"},
         ),
         migrations.CreateModel(
-            name='Rate',
+            name="Rate",
             fields=[
-                ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('code', models.CharField(max_length=100)),
-                ('value', models.DecimalField(decimal_places=4, max_digits=17)),
+                ("id", models.BigAutoField(primary_key=True, serialize=False)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("code", models.CharField(max_length=100)),
+                ("value", models.DecimalField(decimal_places=4, max_digits=17)),
             ],
-            options={
-                'abstract': False,
-                'db_table': "kash_rate"
-            },
+            options={"abstract": False, "db_table": "kash_rate"},
         ),
     ]

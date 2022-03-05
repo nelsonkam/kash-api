@@ -7,26 +7,22 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('kash_user', '0001_initial'),
+        ("kash_user", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='PromoCode',
+            name="PromoCode",
             fields=[
-                ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('code', models.CharField(max_length=10, unique=True)),
-                ('value', models.PositiveIntegerField()),
-                ('expires_at', models.DateTimeField(null=True)),
-                ('is_valid', models.BooleanField(default=True)),
-                ('applied_to', models.ManyToManyField(to='kash_user.UserProfile')),
+                ("id", models.BigAutoField(primary_key=True, serialize=False)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("code", models.CharField(max_length=10, unique=True)),
+                ("value", models.PositiveIntegerField()),
+                ("expires_at", models.DateTimeField(null=True)),
+                ("is_valid", models.BooleanField(default=True)),
+                ("applied_to", models.ManyToManyField(to="kash_user.UserProfile")),
             ],
-            options={
-                'abstract': False,
-                'db_table': "kash_promocode"
-            },
+            options={"abstract": False, "db_table": "kash_promocode"},
         ),
-
     ]

@@ -13,7 +13,7 @@ class PromoCode(BaseModel):
     applied_to = models.ManyToManyField("kash_user.UserProfile")
 
     class Meta:
-        db_table = 'kash_promocode'
+        db_table = "kash_promocode"
 
     @property
     def appliable(self):
@@ -29,9 +29,7 @@ class PromoCode(BaseModel):
             raise ValidationError({"code": "Code already applied"})
 
         with transaction.atomic():
-            profile = (
-                UserProfile.objects.select_for_update().filter(pk=profile.pk).first()
-            )
+            profile = UserProfile.objects.select_for_update().filter(pk=profile.pk).first()
             profile.promo_balance += self.value
             profile.save()
             self.applied_to.add(profile)

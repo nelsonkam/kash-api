@@ -13,15 +13,13 @@ class Notification(BaseModel):
     object_id = models.IntegerField()
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     content_object = GenericForeignKey("content_type", "object_id")
-    profile = models.ForeignKey(
-        "kash_user.UserProfile", on_delete=models.CASCADE, related_name="notifications"
-    )
+    profile = models.ForeignKey("kash_user.UserProfile", on_delete=models.CASCADE, related_name="notifications")
     title = models.CharField(max_length=255)
     description = models.TextField()
     sent_at = models.DateTimeField(null=True)
 
     class Meta:
-        db_table = 'kash_notification'
+        db_table = "kash_notification"
 
     def send(self):
         if settings.DEBUG or settings.TESTING:

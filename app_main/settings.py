@@ -162,9 +162,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
@@ -178,11 +176,7 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 30,
 }
 
-SMS_BACKEND = (
-    "kash.auth.backends.sms.ConsoleSMSBackend"
-    if DEBUG
-    else "kash.auth.backends.sms.MessageBirdSMSBackend"
-)
+SMS_BACKEND = "kash.auth.backends.sms.ConsoleSMSBackend" if DEBUG else "kash.auth.backends.sms.MessageBirdSMSBackend"
 
 PHONE_VERIFICATION = {
     "BACKEND": SMS_BACKEND,
@@ -227,6 +221,7 @@ DO_SPACES_REGION = env("DO_SPACES_REGION")
 DO_SPACES_ENDPOINT_URL = env("DO_SPACES_ENDPOINT_URL")
 
 SLACK_TOKEN = env("SLACK_TOKEN")
+SLACK_WEBHOOK_URL = env("SLACK_WEBHOOK_URL")
 TG_CHAT_ID = env("TG_CHAT_ID")
 TG_BOT_TOKEN = env("TG_BOT_TOKEN")
 

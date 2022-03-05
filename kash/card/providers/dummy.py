@@ -32,11 +32,7 @@ class DummyCardProvider(BaseCardProvider):
         }
 
     def fund(self, card, amount):
-        if (
-            "fail" in card.nickname.lower()
-            or amount.amount < 5
-            or not self.is_balance_sufficient(amount)
-        ):
+        if "fail" in card.nickname.lower() or amount.amount < 5 or not self.is_balance_sufficient(amount):
             raise Exception("Couldn't fund card")
         time.sleep(1)
         print(f"Card funded: {amount}")

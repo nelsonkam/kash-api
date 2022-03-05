@@ -3,12 +3,12 @@ from slackclient import SlackClient
 import telegram
 from telegram import message
 from hashids import Hashids
+import requests
 
 from .payment import rave_request
 from .utils import GATEWAY_LIST, Gateway
 
 sc = SlackClient(settings.SLACK_TOKEN)
-
 
 
 def notify_telegram(*args, **kwargs):
@@ -20,22 +20,20 @@ def notify_telegram(*args, **kwargs):
 
 
 def send():
-    return sc.api_call(
-        "chat.postMessage", channel="updates", text="Hello from Python! :tada:"
-    )
+    return sc.api_call("chat.postMessage", channel="updates", text="Hello from Python! :tada:")
 
 
 def send_message(attachments, channel):
     return sc.api_call("chat.postMessage", channel=channel, attachments=attachments)
 
 
+def notify_slack(message):
+    return requests.post(settings.SLACK_WEBHOOK_URL, json=message)
+
+
 def check_funding_status():
-    ngn_balance = (
-        rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
-    )
-    usd_balance = (
-        rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
-    )
+    ngn_balance = rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
+    usd_balance = rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
     data = rave_request("GET", f"/rates?from=NGN&to=USD&amount={ngn_balance}").json()
     amount = data.get("data").get("to").get("amount")
     return 1000 - (usd_balance + amount)
@@ -43,6 +41,7 @@ def check_funding_status():
 
 def parse_command(data):
     from kash.payout.models import AdminPayoutRequest
+
     tg_bot = telegram.Bot(token=settings.TG_BOT_TOKEN)
 
     try:
@@ -70,10 +69,7 @@ def parse_command(data):
 
         if text.startswith("/recipients"):
             recipient_list = "\n".join(
-                [
-                    f'{key} - {value.get("phone")}'
-                    for key, value in settings.PAYOUT_RECIPIENTS.items()
-                ]
+                [f'{key} - {value.get("phone")}' for key, value in settings.PAYOUT_RECIPIENTS.items()]
             )
             tg_bot.send_message(
                 chat_id=chat_id,

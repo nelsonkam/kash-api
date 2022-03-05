@@ -2,14 +2,15 @@ from datetime import timedelta
 
 from celery import shared_task
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, Avg
 from django.db.models.aggregates import Count
+from django.utils import timezone
 from django.utils.timezone import now
 from djmoney.money import Money
 
-from kash.xlib.utils.notify import notify_telegram
-from kash.xlib.utils.payment import rave_request
 from kash.card.providers import RaveCardProvider
+from kash.xlib.utils.notify import notify_telegram, notify_slack
+from kash.xlib.utils.payment import rave_request
 from kash.xlib.utils.utils import (
     TransactionStatusEnum,
     TransactionType,
@@ -51,12 +52,8 @@ def monitor_flw_balance():
     if settings.DEBUG:
         return
     provider = RaveCardProvider()
-    ngn_balance = (
-        rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
-    )
-    usd_balance = (
-        rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
-    )
+    ngn_balance = rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
+    usd_balance = rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
     if not provider.is_balance_sufficient(Money(500, "USD")):
         notify_telegram(
             chat_id=settings.TG_CHAT_ID,
@@ -75,15 +72,13 @@ def retry_failed_withdrawals():
     from kash.transaction.models import Transaction
     from kash.card.models import WithdrawalHistory
 
-    qs = WithdrawalHistory.objects.filter(
-        status=WithdrawalHistory.Status.withdrawn
-    ).prefetch_related("card", "card__profile", "card__profile__user")
+    qs = WithdrawalHistory.objects.filter(status=WithdrawalHistory.Status.withdrawn).prefetch_related(
+        "card", "card__profile", "card__profile__user"
+    )
 
     for withdrawal in qs:
         phone, gateway = withdrawal.card.profile.get_momo_account()
-        withdraw_amount = Conversions.get_xof_from_usd(
-            withdrawal.amount, is_withdrawal=True
-        )
+        withdraw_amount = Conversions.get_xof_from_usd(withdrawal.amount, is_withdrawal=True)
 
         if phone and gateway:
             txn = Transaction.objects.request(
@@ -121,9 +116,7 @@ def reward_referrer():
     from kash.invite.models import Referral
 
     referrals = Referral.objects.annotate(
-        referred_card_count=Count(
-            "referred__virtualcard", filter=~Q(referred__virtualcard__external_id="")
-        ),
+        referred_card_count=Count("referred__virtualcard", filter=~Q(referred__virtualcard__external_id="")),
     ).filter(referred_card_count__gte=1, rewarded_at__isnull=True)
 
     for referral in referrals:
@@ -136,6 +129,53 @@ def fetch_rave_rate():
 
     rates = rave_request("GET", f"/rates?from=USD&to=NGN&amount=1").json()
     ngn_amount = rates.get("data").get("to").get("amount")
-    Rate.objects.get_or_create(
-        code=Rate.Codes.rave_usd_ngn, defaults={"value": ngn_amount}
+    Rate.objects.get_or_create(code=Rate.Codes.rave_usd_ngn, defaults={"value": ngn_amount})
+
+
+@shared_task
+def compute_metrics():
+    from kash.user.models import UserProfile
+    from kash.card.models import VirtualCard, FundingHistory
+    from kash.transaction.models import Transaction
+
+    seven_days_ago = timezone.now().date() - timezone.timedelta(days=7)
+    signups = UserProfile.objects.filter(created_at__gte=seven_days_ago).count()
+    cards = VirtualCard.objects.filter(created_at__gte=seven_days_ago).exclude(external_id='')
+    cards_created = cards.count()
+    unique_card_creators = cards.distinct('profile').count()
+    txns = Transaction.objects.filter(created__gte=seven_days_ago, status=TransactionStatus.success).exclude(
+        name="admin"
+    )
+    active_transactors = txns.distinct("initiator").count()
+    payment_count = txns.filter(transaction_type=TransactionType.payment).count()
+    payout_count = txns.filter(transaction_type=TransactionType.payout).count()
+    refund_count = txns.filter(transaction_type=TransactionType.refund).count()
+    avg_funding_amt = (
+        FundingHistory.objects.filter(created_at__gte=seven_days_ago, status=TransactionStatus.success)
+        .aggregate(Avg("amount"))
+        .get('amount__avg')
+    )
+
+    notify_slack(
+        {
+            "blocks": [
+                {"type": "section", "text": {"type": "mrkdwn", "text": "Chiffres sur les *7 derniers jours*."}},
+                {
+                    "type": "section",
+                    "fields": [
+                        {"type": "mrkdwn", "text": f"*Inscriptions:*\n {signups}"},
+                        {"type": "mrkdwn", "text": f"*Utilisateurs actifs:*\n{active_transactors}"},
+                        {
+                            "type": "mrkdwn",
+                            "text": f"*Nbres de cartes créées:*\n{cards_created} ({unique_card_creators} utilisateurs)",
+                        },
+                        {"type": "mrkdwn", "text": f"*Montant de recharge moyen:*\n${round(avg_funding_amt, 2)}"},
+                        {
+                            "type": "mrkdwn",
+                            "text": f"*Nombres de transactions:*\n{payment_count} paiements - {payout_count} retraits - {refund_count} remboursements",
+                        },
+                    ],
+                },
+            ]
+        }
     )

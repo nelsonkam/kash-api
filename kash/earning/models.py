@@ -11,9 +11,7 @@ class EarningManager(models.Manager):
     def record_issuing_earning(self, card, txn, funding_amount, funding_currency):
         if self.filter(txn_ref=txn.reference).first():
             return None
-        issuing_earning_amount = compute_funding_earnings(
-            card.issuance_cost, Money(2, "USD"), funding_currency
-        )
+        issuing_earning_amount = compute_funding_earnings(card.issuance_cost, Money(2, "USD"), funding_currency)
         funding_earning_amount = compute_funding_earnings(
             txn.amount - card.issuance_cost, funding_amount, funding_currency
         )
@@ -28,9 +26,7 @@ class EarningManager(models.Manager):
     def record_funding_earning(self, txn, funding_amount, funding_currency):
         if self.filter(txn_ref=txn.reference).first():
             return None
-        earning_amount = compute_funding_earnings(
-            txn.amount, funding_amount, funding_currency
-        )
+        earning_amount = compute_funding_earnings(txn.amount, funding_amount, funding_currency)
         earning = self.model(
             amount=earning_amount,
             operation=Earning.Operation.funding,
@@ -52,4 +48,4 @@ class Earning(BaseModel):
     objects = EarningManager()
 
     class Meta:
-        db_table = 'kash_earning'
+        db_table = "kash_earning"

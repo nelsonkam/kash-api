@@ -14,12 +14,8 @@ def generate_code():
 
 
 class UserProfile(BaseModel):
-    user = models.OneToOneField(
-        "kash_user.User", on_delete=models.CASCADE, related_name="profile"
-    )
-    kashtag = models.CharField(
-        max_length=30, unique=True, validators=[KashtagValidator, MinLengthValidator(3)]
-    )
+    user = models.OneToOneField("kash_user.User", on_delete=models.CASCADE, related_name="profile")
+    kashtag = models.CharField(max_length=30, unique=True, validators=[KashtagValidator, MinLengthValidator(3)])
     device_ids = ArrayField(models.CharField(max_length=255), default=list)
     avatar_url = models.URLField(blank=True)
     contacts = models.ManyToManyField("kash_user.UserProfile")
@@ -58,17 +54,11 @@ class UserProfile(BaseModel):
         payout_method = self.momo_accounts.first()
         if payout_method:
             return payout_method.phone, payout_method.gateway
-        elif Transaction.objects.filter(
-            initiator_id=self.user_id, status="success"
-        ).exists():
-            txn = Transaction.objects.filter(
-                initiator=self.user, status="success"
-            ).last()
+        elif Transaction.objects.filter(initiator_id=self.user_id, status="success").exists():
+            txn = Transaction.objects.filter(initiator=self.user, status="success").last()
             return txn.phone, txn.gateway
         else:
             raise Exception("User hasn't defined a momo account.")
 
     def __str__(self):
         return f"${self.kashtag}"
-
-
