@@ -2,17 +2,30 @@ import requests
 import stripe
 from django.conf import settings
 import logging
+
 logger = logging.getLogger(__name__)
-FEDAPAY_URL = (
-    "https://sandbox-api.fedapay.com" if settings.DEBUG else "https://api.fedapay.com"
-)
+FEDAPAY_URL = "https://sandbox-api.fedapay.com" if settings.DEBUG else "https://api.fedapay.com"
 
 RAVE_URL = "https://api.flutterwave.com/v3"
 
 RAVE_PAYMENT_METHODS = [
-    "account", "card", "banktransfer", "mpesa", "mobilemoneyrwanda", "mobilemoneyzambia", "qr", "mobilemoneyuganda",
-    "ussd", "credit", "barter", "mobilemoneyghana", "payattitude", "mobilemoneyfranco", "paga", "1voucher",
-    "mobilemoneytanzania"
+    "account",
+    "card",
+    "banktransfer",
+    "mpesa",
+    "mobilemoneyrwanda",
+    "mobilemoneyzambia",
+    "qr",
+    "mobilemoneyuganda",
+    "ussd",
+    "credit",
+    "barter",
+    "mobilemoneyghana",
+    "payattitude",
+    "mobilemoneyfranco",
+    "paga",
+    "1voucher",
+    "mobilemoneytanzania",
 ]
 
 
@@ -27,12 +40,11 @@ def rave_request(method, url, data=None):
     if 200 > resp.status_code or resp.status_code >= 399:
         try:
             data = resp.json()
-            raise Exception(data.get('message'))
+            raise Exception(data.get("message"))
         except ValueError:
             text = resp.text
             logger.info(f"Rave API call `{method} {url}` failed: `{text}`")
     return resp
-
 
 
 def rave2_request(method, url, data=None):
@@ -43,9 +55,7 @@ def rave2_request(method, url, data=None):
 class Payment:
     @classmethod
     def get_processor_cls(cls, method):
-        return {"card": StripePayment, "cash": CashOnDelivery, "momo": KKiaPayment}[
-            method
-        ]
+        return {"card": StripePayment, "cash": CashOnDelivery, "momo": KKiaPayment}[method]
 
     @classmethod
     def create_transaction(cls, checkout, method="card", **kwargs):
@@ -77,7 +87,6 @@ class KKiaPayment:
 
 
 class RavePayment:
-
     @classmethod
     def create_transaction(cls, checkout, **kwargs):
         shop = checkout.cart.shop
@@ -93,20 +102,18 @@ class RavePayment:
             "customer": {
                 "email": "kamganelson@gmail.com",
                 "phonenumber": checkout.customer.phone_number,
-                "name": checkout.customer.name
+                "name": checkout.customer.name,
             },
-            "subaccounts": [{
-                "id": shop.bankaccount.rave_subaccount_id
-            }],
+            "subaccounts": [{"id": shop.bankaccount.rave_subaccount_id}],
             "customizations": {
                 "title": f"Pay {shop.name} for your order",
                 # "description": "Pay",
-                "logo": shop.avatar_url
-            }
+                "logo": shop.avatar_url,
+            },
         }
         resp = rave_request("POST", "/payments", data)
         print(resp.text, resp.status_code)
-        return {"processor": "flutterwave", "link": resp.json().get('data').get('link')}
+        return {"processor": "flutterwave", "link": resp.json().get("data").get("link")}
 
     @classmethod
     def verify_transaction(cls, transaction_id=None, **kwargs):
@@ -123,16 +130,12 @@ class StripePayment:
                     "currency": item.product.currency_iso,
                     "product_data": {"name": item.product.name},
                     "unit_amount": round(
-                        item.product.price
-                        if item.product.currency_iso.lower() == "xof"
-                        else item.product.price * 100
+                        item.product.price if item.product.currency_iso.lower() == "xof" else item.product.price * 100
                     ),
                 },
                 "quantity": item.quantity,
             }
-            for item in checkout.cart.items.prefetch_related(
-                "product", "product__images"
-            ).all()
+            for item in checkout.cart.items.prefetch_related("product", "product__images").all()
         ]
         items.append(
             {

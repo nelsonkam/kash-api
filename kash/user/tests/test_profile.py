@@ -27,26 +27,29 @@ class ProfileViewsetTestCase(APITestCase):
 
     def test_get_current_user(self):
         response = self.client.get(
-            reverse("profiles-detail", kwargs={"pk": 'current'}),
+            reverse("profiles-detail", kwargs={"pk": "current"}),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.profile.refresh_from_db()
-        self.assertEqual(response.data, {
-            'name': self.profile.name,
-            'phone_number': self.profile.phone_number,
-            "kashtag": self.profile.kashtag,
-            "avatar_url": self.profile.avatar_url,
-            "device_ids": self.profile.device_ids,
-            "referral_code": self.profile.referral_code,
-            "promo_balance": self.profile.promo_balance,
-            "kyc_level": self.profile.kyc_level,
-        })
+        self.assertEqual(
+            response.data,
+            {
+                "name": self.profile.name,
+                "phone_number": self.profile.phone_number,
+                "kashtag": self.profile.kashtag,
+                "avatar_url": self.profile.avatar_url,
+                "device_ids": self.profile.device_ids,
+                "referral_code": self.profile.referral_code,
+                "promo_balance": self.profile.promo_balance,
+                "kyc_level": self.profile.kyc_level,
+            },
+        )
 
     def test_add_device_id(self):
-        device_id = 'random-device-id'
+        device_id = "random-device-id"
         response = self.client.post(
-            reverse("profiles-device-ids", kwargs={"pk": 'current'}),
-            data={'device_id': device_id}
+            reverse("profiles-device-ids", kwargs={"pk": "current"}),
+            data={"device_id": device_id},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.profile.refresh_from_db()
@@ -59,18 +62,18 @@ class ProfileViewsetTestCase(APITestCase):
         # using the console SMS backend.
         user = User.objects.create(
             username="test2",
-            phone_number="+18023456789"  # invalid phone number for sms backend
+            phone_number="+18023456789",  # invalid phone number for sms backend
         )
         response = self.client.post(
-            reverse("profiles-otp-phone", kwargs={"pk": 'current'}),
-            data={'phone_number': user.phone_number}
+            reverse("profiles-otp-phone", kwargs={"pk": "current"}),
+            data={"phone_number": user.phone_number},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_send_phone_verification_code(self):
         response = self.client.post(
-            reverse("profiles-otp-phone", kwargs={"pk": 'current'}),
-            data={'phone_number': "11111111"}
+            reverse("profiles-otp-phone", kwargs={"pk": "current"}),
+            data={"phone_number": "11111111"},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIsNotNone(response.data.get("session_token"))
@@ -79,15 +82,14 @@ class ProfileViewsetTestCase(APITestCase):
         response = None
         for i in range(15):
             response = self.client.post(
-                reverse("profiles-otp-phone", kwargs={"pk": 'current'}),
-                data={'phone_number': "11111111"}
+                reverse("profiles-otp-phone", kwargs={"pk": "current"}),
+                data={"phone_number": "11111111"},
             )
         self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
 
     def test_send_phone_verification_code_blacklist(self):
         response = self.client.post(
-            reverse("profiles-otp-phone", kwargs={"pk": 'current'}),
-            data={'phone_number': "0023411111111"}
+            reverse("profiles-otp-phone", kwargs={"pk": "current"}),
+            data={"phone_number": "0023411111111"},
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-

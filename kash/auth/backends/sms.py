@@ -33,7 +33,6 @@ class BaseSMSBackend(BaseBackend, ABC):
 
 
 class ConsoleSMSBackend(BaseSMSBackend):
-
     def send_sms(self, number, message):
         if len(number) > 10:
             raise Exception("number too long")
@@ -45,19 +44,13 @@ class ConsoleSMSBackend(BaseSMSBackend):
 
 
 class MessageBirdSMSBackend(BaseSMSBackend):
-
     def __init__(self, **options):
         super(MessageBirdSMSBackend, self).__init__(**options)
         self.exception_class = messagebird.ErrorException
 
     def send_sms(self, number, message):
         client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
-        return client.message_create(
-            'Kash',
-            number,
-            message,
-            {'reference': 'none'}
-        )
+        return client.message_create("Kash", number, message, {"reference": "none"})
 
     def send_bulk_sms(self, numbers, message):
         for number in numbers:

@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class PayConfig(AppConfig):
-    name = 'kash'
+    name = "kash"

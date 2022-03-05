@@ -17,6 +17,7 @@ from kash.xlib.utils.utils import (
 
 logger = logging.getLogger(__name__)
 
+
 class QosicProvider(BaseProvider):
     def process(self, transaction):
         if transaction.transaction_type != TransactionType.payment:
@@ -69,24 +70,15 @@ class QosicProvider(BaseProvider):
 
             if response.status_code == 200:
                 response_data = response.json()
-                if (
-                    response_data["responsecode"]
-                    and int(response_data["responsecode"]) == 0
-                ):
+                if response_data["responsecode"] and int(response_data["responsecode"]) == 0:
                     status = TransactionStatus.success
-                elif (
-                    response_data["responsemsg"]
-                    and "success" in response_data["responsemsg"].lower()
-                ):
+                elif response_data["responsemsg"] and "success" in response_data["responsemsg"].lower():
                     status = TransactionStatus.success
                 elif response_data["responsecode"] == "01":
                     status = TransactionStatus.pending
                 elif response_data["responsecode"] == "529":
                     status = TransactionStatus.failed
-                elif (
-                    response_data["responsemsg"] == "FAILED"
-                    and response_data["responsecode"] == "-1"
-                ):
+                elif response_data["responsemsg"] == "FAILED" and response_data["responsecode"] == "-1":
                     status = TransactionStatus.failed
 
                 transaction.change_status(
@@ -95,10 +87,7 @@ class QosicProvider(BaseProvider):
                     service_reference=response_data["serviceref"],
                 )
 
-        if (
-            transaction.created + timedelta(minutes=2) < now()
-            and status != TransactionStatus.success
-        ):
+        if transaction.created + timedelta(minutes=2) < now() and status != TransactionStatus.success:
             transaction.change_status(TransactionStatus.failed)
 
     def refund(self, transaction):
@@ -161,7 +150,7 @@ class QosicProvider(BaseProvider):
             "clientid": self._get_client_id(transaction),
         }
 
-        if settings.DEBUG or settings.APP_ENV == 'beta':
+        if settings.DEBUG or settings.APP_ENV == "beta":
             data["amount"] = "1"
         return data
 
@@ -194,9 +183,7 @@ class QosicProvider(BaseProvider):
     def _request_moov_mobile_money(self, transaction):
         data = self.get_request_data(transaction)
         try:
-            response = self.api_client.post(
-                self.get_payment_endpoint(transaction), data
-            )
+            response = self.api_client.post(self.get_payment_endpoint(transaction), data)
             print(response.text, response.status_code, response.status_code == 200)
             assert response.status_code >= 200
         except (AssertionError, ReadTimeout) as e:
@@ -204,10 +191,7 @@ class QosicProvider(BaseProvider):
             transaction.change_status(TransactionStatus.pending)
         else:
             response_data = response.json()
-            if (
-                response_data["responsecode"]
-                and int(response_data["responsecode"]) == 0
-            ):
+            if response_data["responsecode"] and int(response_data["responsecode"]) == 0:
                 status = TransactionStatus.success
             elif response_data["responsecode"] in [
                 "8",
@@ -231,9 +215,7 @@ class QosicProvider(BaseProvider):
     def _request_mtn_mobile_money(self, transaction):
         data = self.get_request_data(transaction)
         try:
-            response = self.api_client.post(
-                self.get_payment_endpoint(transaction), data
-            )
+            response = self.api_client.post(self.get_payment_endpoint(transaction), data)
             print(response.text, response.status_code, response.status_code == 200)
             assert response.status_code >= 200
         except (AssertionError, ReadTimeout) as e:

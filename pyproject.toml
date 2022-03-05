@@ -50,3 +50,54 @@ coverage = "^6.3.2"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.masonry.api"
+
+[tool.black]
+skip-string-normalization = true
+line-length = 120
+extend-exclude = '''
+/(
+    \.git
+  | migrations
+)/
+'''
+
+[tool.isort]
+profile = "black"
+known_web = "django,rest_framework,"
+known_quatro = "kash"
+known_service = "celery,"
+sections = "FUTURE,STDLIB,THIRDPARTY,WEB,QUATRO,SERVICE,FIRSTPARTY,LOCALFOLDER"
+extend_skip = "migrations"
+skip_gitignore = true
+
+[tool.pylint.master]
+ignore = [
+    "migrations",
+    "config.py",
+]
+load-plugins = [
+    "pylint_django"
+]
+django-settings-module = "AppMain.settings"
+
+[tool.pylint.format]
+max-line-length = "125"
+
+[tool.pylint.messages_control]
+disable = [
+    "missing-module-docstring",
+    "missing-class-docstring",
+    "missing-function-docstring",
+]
+
+[tool.pylint.design]
+min-public-methods = 1
+max-parents = 15
+
+[tool.pylint.variables]
+ignored-argument-names = "pk|obj|request|token_type|args|kwargs|sender"
+
+[tool.pylint.basic]
+good-names = [
+    "_", "i", "e", "k", "v", "x", "pk", "qs", "setUp", "tearDown", "maxDiff"
+]

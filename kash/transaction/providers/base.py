@@ -1,5 +1,3 @@
-
-
 class BaseProvider:
     def process(self, transaction):
         raise NotImplementedError()

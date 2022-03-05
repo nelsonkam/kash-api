@@ -1,5 +1,3 @@
-
-
 class BaseCardProvider:
     def issue(self, card, initial_amount):
         raise NotImplementedError()

@@ -51,16 +51,9 @@ def monitor_flw_balance():
     if settings.DEBUG:
         return
     provider = RaveCardProvider()
-    ngn_balance = (
-        rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
-    )
-    usd_balance = (
-        rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
-    )
-    if not provider.is_balance_sufficient(Money(500, "USD")) and not settings.IS_BETA:
-        notify_slack({
-            "text": f"⚠️ Le compte Flutterwave est déchargé! (Solde: *${usd_balance}*) cc <@U022FUW39FT>"
-        })
+    ngn_balance = rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
+    usd_balance = rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
+    if not provider.is_balance_sufficient(Money(500, "USD")):
         notify_telegram(
             chat_id=settings.TG_CHAT_ID,
             text=f"""
@@ -79,15 +72,13 @@ def retry_failed_withdrawals():
     from kash.transaction.models import Transaction
     from kash.card.models import WithdrawalHistory
 
-    qs = WithdrawalHistory.objects.filter(
-        status=WithdrawalHistory.Status.withdrawn
-    ).prefetch_related("card", "card__profile", "card__profile__user")
+    qs = WithdrawalHistory.objects.filter(status=WithdrawalHistory.Status.withdrawn).prefetch_related(
+        "card", "card__profile", "card__profile__user"
+    )
 
     for withdrawal in qs:
         phone, gateway = withdrawal.card.profile.get_momo_account()
-        withdraw_amount = Conversions.get_xof_from_usd(
-            withdrawal.amount, is_withdrawal=True
-        )
+        withdraw_amount = Conversions.get_xof_from_usd(withdrawal.amount, is_withdrawal=True)
 
         if phone and gateway:
             txn = Transaction.objects.request(
@@ -125,9 +116,7 @@ def reward_referrer():
     from kash.invite.models import Referral
 
     referrals = Referral.objects.annotate(
-        referred_card_count=Count(
-            "referred__virtualcard", filter=~Q(referred__virtualcard__external_id="")
-        ),
+        referred_card_count=Count("referred__virtualcard", filter=~Q(referred__virtualcard__external_id="")),
     ).filter(referred_card_count__gte=1, rewarded_at__isnull=True)
 
     for referral in referrals:
@@ -140,6 +129,4 @@ def fetch_rave_rate():
 
     rates = rave_request("GET", f"/rates?from=USD&to=NGN&amount=1").json()
     ngn_amount = rates.get("data").get("to").get("amount")
-    Rate.objects.get_or_create(
-        code=Rate.Codes.rave_usd_ngn, defaults={"value": ngn_amount}
-    )
+    Rate.objects.get_or_create(code=Rate.Codes.rave_usd_ngn, defaults={"value": ngn_amount})

@@ -1,19 +1,20 @@
 from django.contrib.auth import authenticate
 from phone_verify.backends import get_sms_backend
 from phone_verify.services import send_security_code_and_generate_session_token
-from rest_framework.exceptions import AuthenticationFailed, ValidationError, PermissionDenied
+from rest_framework.exceptions import (
+    AuthenticationFailed,
+    ValidationError,
+    PermissionDenied,
+)
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from kash.user.models import User, UserProfile
 from kash.user.serializers import UserSerializer
 
-PHONE_PREFIX_BLACKLIST = [
-    "00234", "+234", "234"
-]
+PHONE_PREFIX_BLACKLIST = ["00234", "+234", "234"]
 
 
 class AuthService:
-
     def register(self, username, name, password):
         user = User.objects.create_user(
             username=username,
