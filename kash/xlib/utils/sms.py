@@ -11,9 +11,7 @@ from phone_verify.models import SMSVerification
 
 def get_sms_backend(backend):
     if not backend:
-        raise ImproperlyConfigured(
-            "Please specify SMS_BACKEND within your settings"
-        )
+        raise ImproperlyConfigured("Please specify SMS_BACKEND within your settings")
     backend_cls = import_string(backend)
     return backend_cls()
 
@@ -28,9 +26,9 @@ def send_pending_messages():
 
         client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
         client.message_create(
-            'Kash',
+            "Kash",
             str(message.phone_number),
             f"L'envoi de code de verification est retablie. Toutes nos excuses a ceux qui n'ont pas recu leurs codes. #TeamKash",
-            {'reference': 'none'}
+            {"reference": "none"},
         )
         sleep(1)

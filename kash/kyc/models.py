@@ -23,15 +23,13 @@ class KYCDocument(BaseModel):
         rejected = "rejected"
 
     class Meta:
-        db_table = 'kash_kycdocument'
+        db_table = "kash_kycdocument"
 
     doc_url = models.URLField(blank=True, null=True)
     document_type = models.CharField(max_length=25)
     selfie_url = models.URLField(blank=True, null=True)
     profile = models.ForeignKey("kash_user.UserProfile", on_delete=models.CASCADE)
-    status = models.CharField(
-        max_length=30, choices=Status.choices, default=Status.pending
-    )
+    status = models.CharField(max_length=30, choices=Status.choices, default=Status.pending)
     rejection_reason = models.TextField(blank=True)
 
     @property
@@ -55,22 +53,14 @@ def notify(sender, instance, created, **kwargs):
     if created:
         notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"New KYC Document on Kash!🆔")
 
-    if (
-        instance.doc_url
-        and instance.selfie_url
-        and instance.status == KYCDocument.Status.pending
-    ):
-        notify_telegram(
-            chat_id=settings.TG_CHAT_ID, text=f"KYC Document uploaded on Kash!✅"
-        )
+    if instance.doc_url and instance.selfie_url and instance.status == KYCDocument.Status.pending:
+        notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"KYC Document uploaded on Kash!✅")
 
 
 @receiver(post_save, sender=KYCDocument, dispatch_uid="kyc_notify_status")
 def notify_status(sender, instance, created, **kwargs):
     kyc_doc_type = ContentType.objects.get_for_model(KYCDocument)
-    if not Notification.objects.filter(
-        object_id=instance.id, content_type__pk=kyc_doc_type.id
-    ):
+    if not Notification.objects.filter(object_id=instance.id, content_type__pk=kyc_doc_type.id):
         if instance.status == KYCDocument.Status.rejected:
             instance.profile.push_notify(
                 "Pièce d'identité rejetée 🙅🏽‍",

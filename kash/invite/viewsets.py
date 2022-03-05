@@ -2,8 +2,6 @@ from django.utils.timezone import now
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from kash.abstract.viewsets import BaseViewSet
 from kash.invite.models import InviteCode
@@ -13,7 +11,6 @@ from kash.invite.serializers import InviteCodeSerializer
 class InviteCodeViewset(BaseViewSet):
     serializer_class = InviteCodeSerializer
     permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
         return InviteCode.objects.filter(profile=self.request.profile)

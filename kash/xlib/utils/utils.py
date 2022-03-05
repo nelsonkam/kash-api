@@ -24,37 +24,34 @@ class Enum(BaseEnum):
 
 
 class GatewayEnum(Enum):
-    moov = 'moov-bj'
-    mtn = 'mtn-bj'
+    moov = "moov-bj"
+    mtn = "mtn-bj"
 
 
 class Gateway(models.TextChoices):
-    moov = 'moov-bj'
-    mtn = 'mtn-bj'
+    moov = "moov-bj"
+    mtn = "mtn-bj"
 
 
-GATEWAY_LIST = [
-    Gateway.moov,
-    Gateway.mtn
-]
+GATEWAY_LIST = [Gateway.moov, Gateway.mtn]
 
 
 class TransactionStatusEnum(Enum):
-    pending = 'pending'
-    success = 'success'
-    failed = 'failed'
-    refunded = 'refunded'
+    pending = "pending"
+    success = "success"
+    failed = "failed"
+    refunded = "refunded"
 
 
 class TransactionStatus(models.TextChoices):
-    pending = 'pending'
-    success = 'success'
-    failed = 'failed'
-    refunded = 'refunded'
+    pending = "pending"
+    success = "success"
+    failed = "failed"
+    refunded = "refunded"
 
 
 def generate_reference(digest_size=5):
-    person = "".join(str(now().timestamp()).split('.'))[:16]
+    person = "".join(str(now().timestamp()).split("."))[:16]
     h = blake2b(digest_size=digest_size, person=person.encode())
     h.update(uuid4().hex.encode())
     return h.hexdigest()
@@ -65,9 +62,9 @@ def generate_reference_10():
 
 
 class TransactionType(models.TextChoices):
-    payment = 'payment'
-    payout = 'payout'
-    refund = 'refund'
+    payment = "payment"
+    payout = "payout"
+    refund = "refund"
 
 
 class Conversions:
@@ -78,12 +75,13 @@ class Conversions:
     @staticmethod
     def get_xof_from_usd(amount, is_withdrawal=False):
         from kash.payout.models import Rate
+
         rate = Rate.objects.get(code=Rate.Codes.rave_usd_ngn)
         ngn_rate = Money(rate.value, "NGN")
-        rate_to_charge = (ngn_rate * settings.CONVERSION_RATES['NGN_XOF']) / (
-                1 - settings.CONVERSION_RATES['MARGIN'])
+        rate_to_charge = (ngn_rate * settings.CONVERSION_RATES["NGN_XOF"]) / (1 - settings.CONVERSION_RATES["MARGIN"])
         rate_to_charge = rate_to_charge.amount - (
-            rate_to_charge.amount * Decimal(settings.WITHDRAWAL_RATE) if is_withdrawal else 0)
+            rate_to_charge.amount * Decimal(settings.WITHDRAWAL_RATE) if is_withdrawal else 0
+        )
         return Money(round(rate_to_charge * amount.amount), "XOF")
 
     @staticmethod
@@ -95,12 +93,11 @@ class Conversions:
 
 def compute_funding_earnings(txn_amount, funding_amount, funding_currency):
     from kash.payout.models import Rate
-    if funding_currency == 'NGN':
+
+    if funding_currency == "NGN":
         ngn_rate = Rate.objects.get(code=Rate.Codes.rave_usd_ngn)
-        xof_amount = Money(ngn_rate.value * funding_amount.amount, "XOF") * settings.CONVERSION_RATES['NGN_XOF']
+        xof_amount = Money(ngn_rate.value * funding_amount.amount, "XOF") * settings.CONVERSION_RATES["NGN_XOF"]
         return round(txn_amount - xof_amount)
-    elif funding_currency == 'USD':
+    elif funding_currency == "USD":
         xof_amount = Conversions.get_xof_from_usd(funding_amount, is_withdrawal=True)
         return txn_amount - xof_amount
-
-

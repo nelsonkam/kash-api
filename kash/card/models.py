@@ -28,9 +28,7 @@ class VirtualCardManager(models.Manager):
         card = self.model(
             *args,
             **kwargs,
-            provider_name=CardProvider.dummy
-            if settings.DEBUG or settings.TESTING
-            else CardProvider.rave,
+            provider_name=CardProvider.dummy if settings.DEBUG or settings.TESTING else CardProvider.rave,
         )
         card.save()
         return card
@@ -42,7 +40,7 @@ class VirtualCard(BaseModel):
         ads = "ads", "Ads"
 
     class Meta:
-        db_table = 'kash_virtualcard'
+        db_table = "kash_virtualcard"
 
     external_id = models.CharField(max_length=255, blank=True)
     is_active = models.BooleanField(default=True)
@@ -50,9 +48,7 @@ class VirtualCard(BaseModel):
     category = models.CharField(max_length=255, blank=True)
     profile = models.ForeignKey("kash_user.UserProfile", on_delete=models.CASCADE)
     last_4 = models.CharField(max_length=4, blank=True)
-    provider_name = models.CharField(
-        max_length=20, choices=CardProvider.choices, default=CardProvider.rave
-    )
+    provider_name = models.CharField(max_length=20, choices=CardProvider.choices, default=CardProvider.rave)
 
     objects = VirtualCardManager()
 
@@ -88,16 +84,8 @@ class VirtualCard(BaseModel):
     def purchase_momo(self, amount, phone, gateway):
         from kash.transaction.models import Transaction
 
-        xof_amount = (
-            amount
-            if amount.currency == Currency("XOF")
-            else Conversions.get_xof_from_usd(amount)
-        )
-        usd_amount = (
-            amount
-            if amount.currency == Currency("USD")
-            else Conversions.get_usd_from_xof(amount)
-        )
+        xof_amount = amount if amount.currency == Currency("XOF") else Conversions.get_xof_from_usd(amount)
+        usd_amount = amount if amount.currency == Currency("USD") else Conversions.get_usd_from_xof(amount)
 
         if usd_amount < Money(5, usd_amount.currency):
             self.profile.push_notify(
@@ -118,9 +106,7 @@ class VirtualCard(BaseModel):
                 "discount": Money(min(self.profile.promo_balance, 1000), "XOF"),
             }
         )
-        FundingHistory.objects.create(
-            txn_ref=txn.reference, card=self, amount=usd_amount, status="pending"
-        )
+        FundingHistory.objects.create(txn_ref=txn.reference, card=self, amount=usd_amount, status="pending")
         txn.request()
         return txn
 
@@ -141,9 +127,7 @@ class VirtualCard(BaseModel):
             )
             raise ValidationError("Minimum funding amount is $5.")
 
-        total_amount = (
-            xof_amount + self.issuance_cost if not self.external_id else xof_amount
-        )
+        total_amount = xof_amount + self.issuance_cost if not self.external_id else xof_amount
 
         txn = Transaction.objects.create(
             **{
@@ -156,9 +140,7 @@ class VirtualCard(BaseModel):
                 "discount": Money(min(self.profile.promo_balance, 1000), "XOF"),
             }
         )
-        FundingHistory.objects.create(
-            txn_ref=txn.reference, card=self, amount=amount, status="pending"
-        )
+        FundingHistory.objects.create(txn_ref=txn.reference, card=self, amount=amount, status="pending")
         txn.request()
         return txn
 
@@ -188,9 +170,7 @@ class VirtualCard(BaseModel):
         if not self.external_id:
             return None
 
-        history = WithdrawalHistory.objects.create(
-            card=self, amount=amount, status=WithdrawalHistory.Status.pending
-        )
+        history = WithdrawalHistory.objects.create(card=self, amount=amount, status=WithdrawalHistory.Status.pending)
         self.provider.withdraw(self, amount)
         history.status = WithdrawalHistory.Status.withdrawn
         history.save(update_fields=["status"])
@@ -216,7 +196,7 @@ class FundingHistory(BaseModel):
         pending = "pending"
 
     class Meta:
-        db_table = 'kash_fundinghistory'
+        db_table = "kash_fundinghistory"
 
     txn_ref = models.CharField(max_length=255, unique=True)
     card = models.ForeignKey(VirtualCard, on_delete=models.CASCADE)
@@ -283,9 +263,7 @@ class FundingHistory(BaseModel):
             )
             if self.retries == 1:
                 card.profile.push_notify(
-                    title="Création de votre carte️"
-                    if not card.external_id
-                    else "Recharge de votre carte️",
+                    title="Création de votre carte️" if not card.external_id else "Recharge de votre carte️",
                     description=f"Veuillez patienter, la {'création' if not card.external_id else 'recharge'} "
                     f"de votre carte est en cours.",
                     obj=card,
@@ -304,9 +282,7 @@ class FundingHistory(BaseModel):
                     "Veuillez réessayer dans 30 minutes."
                 )
                 card.profile.push_notify(
-                    title="Création de votre carte ⚠️"
-                    if not card.external_id
-                    else "Recharge de votre carte ⚠️",
+                    title="Création de votre carte ⚠️" if not card.external_id else "Recharge de votre carte ⚠️",
                     description=description,
                     obj=card,
                 )
@@ -341,7 +317,7 @@ class WithdrawalHistory(BaseModel):
         withdrawn = "withdrawn"
 
     class Meta:
-        db_table = 'kash_withdrawalhistory'
+        db_table = "kash_withdrawalhistory"
 
     txn_ref = models.CharField(max_length=255, blank=True)
     card = models.ForeignKey(VirtualCard, on_delete=models.CASCADE)
@@ -382,9 +358,7 @@ def fund_card(sender, **kwargs):
     vcard_type = ContentType.objects.get_for_model(VirtualCard)
 
     if txn.content_type == vcard_type and txn.status == TransactionStatus.failed:
-        item = FundingHistory.objects.filter(
-            txn_ref=txn.reference, card=txn.content_object
-        ).first()
+        item = FundingHistory.objects.filter(txn_ref=txn.reference, card=txn.content_object).first()
         if item:
             item.status = FundingHistory.FundingStatus.failed
             item.save()
@@ -401,17 +375,13 @@ def fund_card(sender, **kwargs):
 @receiver(virtual_card_issued)
 def notify_card_issued(sender, **kwargs):
     card = kwargs.pop("card")
-    card.profile.push_notify(
-        f"Création de ta carte", f"Ta carte a été créée avec succès ✅.", card
-    )
+    card.profile.push_notify(f"Création de ta carte", f"Ta carte a été créée avec succès ✅.", card)
 
 
 @receiver(virtual_card_funded)
 def notify_card_funded(sender, **kwargs):
     card = kwargs.pop("card")
-    card.profile.push_notify(
-        f"Recharge de ta carte", f"Ta carte a été rechargée avec succès ✅.", card
-    )
+    card.profile.push_notify(f"Recharge de ta carte", f"Ta carte a été rechargée avec succès ✅.", card)
 
 
 @receiver(virtual_card_issued)
