@@ -8,7 +8,7 @@ from django.db import models
 
 from kash.abstract.models import BaseModel
 from kash.xlib.utils import create_presigned_url
-from kash.xlib.utils.notify import notify_telegram
+from kash.xlib.utils.notify import notify_telegram, notify_slack
 from kash.notification.models import Notification
 
 
@@ -56,20 +56,32 @@ def notify(sender, instance, created, **kwargs):
         notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"New KYC Document on Kash!🆔")
 
     if (
-        instance.doc_url
-        and instance.selfie_url
-        and instance.status == KYCDocument.Status.pending
+            instance.doc_url
+            and instance.selfie_url
+            and instance.status == KYCDocument.Status.pending
     ):
         notify_telegram(
             chat_id=settings.TG_CHAT_ID, text=f"KYC Document uploaded on Kash!✅"
         )
+        notify_slack({
+            "blocks": [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "Un nouveau document de KYC a été ajouté sur Kash:\n"
+                                f"*<https://prod.mykash.africa/admin/kash_kyc/kycdocument/{instance.pk}/change/|Document KYC>* cc <@U022DVC7E5S>"
+                    }
+                },
+            ]
+        })
 
 
 @receiver(post_save, sender=KYCDocument, dispatch_uid="kyc_notify_status")
 def notify_status(sender, instance, created, **kwargs):
     kyc_doc_type = ContentType.objects.get_for_model(KYCDocument)
     if not Notification.objects.filter(
-        object_id=instance.id, content_type__pk=kyc_doc_type.id
+            object_id=instance.id, content_type__pk=kyc_doc_type.id
     ):
         if instance.status == KYCDocument.Status.rejected:
             instance.profile.push_notify(
