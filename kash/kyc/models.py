@@ -53,26 +53,22 @@ def notify(sender, instance, created, **kwargs):
     if created:
         notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"New KYC Document on Kash!🆔")
 
-    if (
-            instance.doc_url
-            and instance.selfie_url
-            and instance.status == KYCDocument.Status.pending
-    ):
-        notify_telegram(
-            chat_id=settings.TG_CHAT_ID, text=f"KYC Document uploaded on Kash!✅"
+    if instance.doc_url and instance.selfie_url and instance.status == KYCDocument.Status.pending:
+        notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"KYC Document uploaded on Kash!✅")
+        notify_slack(
+            {
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "Un nouveau document de KYC a été ajouté sur Kash:\n"
+                            f"*<https://prod.mykash.africa/admin/kash_kyc/kycdocument/{instance.pk}/change/|Document KYC>* cc <@U022DVC7E5S>",
+                        },
+                    },
+                ]
+            }
         )
-        notify_slack({
-            "blocks": [
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "Un nouveau document de KYC a été ajouté sur Kash:\n"
-                                f"*<https://prod.mykash.africa/admin/kash_kyc/kycdocument/{instance.pk}/change/|Document KYC>* cc <@U022DVC7E5S>"
-                    }
-                },
-            ]
-        })
 
 
 @receiver(post_save, sender=KYCDocument, dispatch_uid="kyc_notify_status")

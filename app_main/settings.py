@@ -162,9 +162,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
@@ -178,11 +176,7 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 30,
 }
 
-SMS_BACKEND = (
-    "kash.auth.backends.sms.ConsoleSMSBackend"
-    if DEBUG
-    else "kash.auth.backends.sms.MessageBirdSMSBackend"
-)
+SMS_BACKEND = "kash.auth.backends.sms.ConsoleSMSBackend" if DEBUG else "kash.auth.backends.sms.MessageBirdSMSBackend"
 
 PHONE_VERIFICATION = {
     "BACKEND": SMS_BACKEND,

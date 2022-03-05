@@ -30,6 +30,7 @@ def send_message(attachments, channel):
 def notify_slack(message):
     return requests.post(settings.SLACK_WEBHOOK_URL, json=message)
 
+
 def check_funding_status():
     ngn_balance = rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
     usd_balance = rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
