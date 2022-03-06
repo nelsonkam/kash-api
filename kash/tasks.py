@@ -55,6 +55,7 @@ def monitor_flw_balance():
     ngn_balance = rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
     usd_balance = rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
     if not provider.is_balance_sufficient(Money(500, "USD")):
+        notify_slack({"text": f"⚠️ Le compte Flutterwave est déchargé! (Solde: *${usd_balance}*) cc <@U022FUW39FT>"})
         notify_telegram(
             chat_id=settings.TG_CHAT_ID,
             text=f"""
