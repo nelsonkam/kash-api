@@ -30,7 +30,7 @@ class VirtualCardViewSet(BaseViewSet):
     ordering = ["-created_at"]
 
     def get_queryset(self):
-        return VirtualCard.objects.filter(profile=self.request.profile)
+        return VirtualCard.objects.filter(profile=self.request.profile).exclude(external_id='')
 
     def get_object(self):
         if self.request.user.is_staff:
@@ -255,7 +255,7 @@ class VirtualCardViewSet(BaseViewSet):
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated, IsAdminUser])
     def search(self, request):
         search = request.query_params.get("s")
-        cards = VirtualCard.objects.filter(last_4=search)
+        cards = VirtualCard.objects.filter(last_4=search).exclude(external_id='')
         return Response(data=self.get_serializer(cards, many=True).data)
 
     @action(
