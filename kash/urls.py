@@ -8,6 +8,7 @@ from kash import views
 from kash.auth.viewsets import AuthViewSet
 from kash.kyc.viewsets import KYCDocumentViewSet
 from kash.notification.viewsets import NotificationViewset
+from kash.remote_config.viewsets import RemoteConfigViewSet
 from kash.user.viewsets import ProfileViewset
 from kash.transaction.viewsets import QosicTransactionViewSet
 from kash.card.viewsets import VirtualCardViewSet
@@ -21,6 +22,7 @@ router.register("notifications", NotificationViewset, "notifications")
 router.register("invites", InviteCodeViewset, "invites")
 router.register("kyc", KYCDocumentViewSet, "kyc")
 router.register("auth", AuthViewSet, "auth")
+router.register("remote-config", RemoteConfigViewSet, "remote-config")
 
 
 urlpatterns = router.urls + [

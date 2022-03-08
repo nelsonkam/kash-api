@@ -1,0 +1,1 @@
+from .verification_method import VerificationMethod
