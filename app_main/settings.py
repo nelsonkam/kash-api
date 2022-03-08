@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
+import logging
 import os
 from datetime import timedelta
 from pathlib import Path
@@ -18,6 +19,7 @@ import sentry_sdk
 from celery.schedules import crontab
 from django.utils.translation import gettext_lazy as _
 from sentry_sdk.integrations.django import DjangoIntegration
+from logdna import LogDNAHandler
 from stellar_sdk import Asset, Network
 
 env = environ.Env(DEBUG=(bool, False))
@@ -76,7 +78,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    # 'request_logging.middleware.LoggingMiddleware',
+    'request_logging.middleware.LoggingMiddleware',
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -242,7 +244,7 @@ if not DEBUG:
     sentry_sdk.init(
         dsn=env("SENTRY_KEY"),
         integrations=[DjangoIntegration()],
-        traces_sample_rate=1.0,
+        traces_sample_rate=0.1,
         # If you wish to associate users to errors (assuming you are using
         # django.contrib.auth) you may enable sending PII data.
         send_default_pii=True,
@@ -258,7 +260,6 @@ EXCHANGE_BACKEND = "djmoney.contrib.exchange.backends.OpenExchangeRatesBackend"
 
 ONESIGNAL_APP_ID = env("ONESIGNAL_APP_ID")
 ONESIGNAL_REST_API_KEY = env("ONESIGNAL_REST_API_KEY")
-
 
 CELERY_BROKER_URL = env("REDIS_URL")
 CELERY_RESULT_BACKEND = env("REDIS_URL")
@@ -310,16 +311,27 @@ LOGGING = {
         "console": {
             "class": "logging.StreamHandler",
         },
+        'logdna': {
+            'level': logging.DEBUG,
+            'class': 'logging.handlers.LogDNAHandler',
+            'key': env('LOGDNA_INGESTION_KEY'),
+            'options': {
+                'app': 'kash-api',
+                'env': APP_ENV,
+                'index_meta': True,
+            },
+        },
     },
     "loggers": {
         "django.request": {
-            "handlers": ["console"],
+            "handlers": ["console", 'logdna'],
             "level": "DEBUG",  # change debug level as appropiate
             "propagate": False,
         },
+        '': {'handlers': ['logdna'], 'level': logging.DEBUG},
     },
     "root": {
-        "handlers": ["console"],
+        "handlers": ["console", 'logdna'],
         "level": "INFO",
     },
 }
