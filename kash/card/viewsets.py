@@ -30,7 +30,7 @@ class VirtualCardViewSet(BaseViewSet):
     ordering = ["-created_at"]
 
     def get_queryset(self):
-        return VirtualCard.objects.filter(profile=self.request.profile).exclude(external_id='')
+        return VirtualCard.objects.filter(profile=self.request.profile)
 
     def get_object(self):
         if self.request.user.is_staff:
