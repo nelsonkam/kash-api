@@ -1,5 +1,4 @@
-from http.client import METHOD_NOT_ALLOWED, OK
-
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
@@ -7,6 +6,7 @@ from rest_framework.test import APITestCase
 from kash.user.models import User, UserProfile
 
 
+@override_settings(TESTING=True, CELERY_TASK_ALWAYS_EAGER=True)
 class ProfileViewsetTestCase(APITestCase):
     @classmethod
     def setUpTestData(cls):

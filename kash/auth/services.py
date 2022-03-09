@@ -68,4 +68,5 @@ class AuthService:
                 message = "Erreur de session. Veuillez réessayer"
             elif error_code == backend.SECURITY_CODE_VERIFIED:
                 message = "Code de vérification déjà utilisé. Veuillez réessayer"
+            user.profile.push_notify("Erreur lors de la vérification.", message, obj=user)
             raise ValidationError({"message": message})
