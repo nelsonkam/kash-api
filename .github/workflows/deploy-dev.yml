@@ -28,13 +28,13 @@ jobs:
       - name: Deployment
         uses: appleboy/ssh-action@v0.1.4
         env:
-          ENV_VAR: ${{secrets.BETA_ENV_VAR}}
+          ENV_VAR: ${{secrets.DEV_ENV_VAR}}
         with:
           host: ${{ secrets.BETA_SSH_HOST }}
           key: ${{ secrets.BETA_SSH_PRIVATE_KEY }}
           username: ${{ secrets.BETA_SSH_USERNAME }}
           script: |
             cd ~/apps/kash-dev
-            echo "${{ secrets.BETA_ENV_VAR }}" > .env
+            echo "${{ secrets.DEV_ENV_VAR }}" > .env
             sudo docker-compose -f deploy/dev/docker-compose.yml up -d --build
 
