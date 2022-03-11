@@ -1,0 +1,40 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Deploy to dev
+
+on:
+  push:
+    branches: [ feat/improve-onboarding ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Copy file via scp
+        uses: appleboy/scp-action@master
+        env:
+          HOST: ${{ secrets.BETA_SSH_HOST }}
+          USERNAME: ${{ secrets.BETA_SSH_USERNAME }}
+          KEY: ${{ secrets.BETA_SSH_PRIVATE_KEY }}
+        with:
+          source: "."
+          target: "~/apps/kash-dev"
+
+      - name: Deployment
+        uses: appleboy/ssh-action@v0.1.4
+        env:
+          ENV_VAR: ${{secrets.BETA_ENV_VAR}}
+        with:
+          host: ${{ secrets.BETA_SSH_HOST }}
+          key: ${{ secrets.BETA_SSH_PRIVATE_KEY }}
+          username: ${{ secrets.BETA_SSH_USERNAME }}
+          script: |
+            cd ~/apps/kash-dev
+            echo "${{ secrets.BETA_ENV_VAR }}" > .env
+            sudo docker-compose -f deploy/dev/docker-compose.yml up -d --build
+
