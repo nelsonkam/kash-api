@@ -50,7 +50,7 @@ class AuthService:
             raise PermissionDenied("Vous ne pouvez pas ajouter ce numéro à votre compte.")
 
         backend = get_sms_backend(phone_number=phone_number)
-        verification, _ = backend.validate_security_code(
+        verification, error_code = backend.validate_security_code(
             security_code=security_code,
             phone_number=phone_number,
             session_token=session_token,
@@ -59,4 +59,14 @@ class AuthService:
             user.phone_number = phone_number
             user.save()
         else:
-            raise ValidationError({"message": "Une erreur est survenue. Veuillez réessayer."})
+            message = "Une erreur est survenue. Veuillez réessayer."
+            if error_code == backend.SECURITY_CODE_INVALID:
+                message = "Code de vérification invalide. Veuillez réessayer"
+            elif error_code == backend.SECURITY_CODE_EXPIRED:
+                message = "Code de vérification expiré. Veuillez réessayer"
+            elif error_code == backend.SESSION_TOKEN_INVALID:
+                message = "Erreur de session. Veuillez réessayer"
+            elif error_code == backend.SECURITY_CODE_VERIFIED:
+                message = "Code de vérification déjà utilisé. Veuillez réessayer"
+            user.profile.push_notify("Erreur lors de la vérification.", message, obj=user)
+            raise ValidationError({"message": message})

@@ -1,21 +1,20 @@
 from django.contrib.auth import authenticate
-from phone_verify.services import send_security_code_and_generate_session_token
 from rest_framework.decorators import action
 from rest_framework.exceptions import AuthenticationFailed, NotFound
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from kash.auth.models import VerificationMethod
-from kash.auth.services import AuthService
-from kash.invite.models import Referral
-from kash.user.models import User, UserProfile
-from kash.user.serializers import UserSerializer
+
 from kash.auth.serializers import (
     RegisterSerializer,
     CustomPhoneSerializer,
     CustomSMSVerificationSerializer,
 )
+from kash.auth.services import AuthService
+from kash.invite.models import Referral
+from kash.user.models import User, UserProfile
+from kash.user.serializers import UserSerializer
 
 
 class AuthViewSet(GenericViewSet):
