@@ -4,10 +4,10 @@ services:
   web:
     build:
       context: ../../
-      dockerfile: ./Dockerfile
+      dockerfile: deploy/dev/Dockerfile
     command: sh ./docker-entrypoint.sh
     volumes:
-      - .:/usr/src/app
+      - app_data:/usr/src/app
     ports:
       - "4040:5000"
     depends_on:
@@ -15,20 +15,24 @@ services:
       - "postgres"
 
   celery:
-    build: .
+    build:
+      context: ../../
+      dockerfile: deploy/dev/Dockerfile
     command: celery -A app_main worker -l warning
     volumes:
-     - .:/usr/src/app
+     - app_data:/usr/src/app
     depends_on:
      - "web"
      - "redis"
      - "postgres"
 
   celery-beat:
-    build: .
+    build:
+      context: ../../
+      dockerfile: deploy/dev/Dockerfile
     command: celery -A app_main beat -l warning
     volumes:
-     - .:/usr/src/app
+     - app_data:/usr/src/app
     depends_on:
      - "web"
      - "redis"
@@ -44,7 +48,7 @@ services:
   postgres:
     image: postgres
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_NAME=postgres
       - POSTGRES_USER=postgres
@@ -52,3 +56,5 @@ services:
 
 volumes:
   redis_data:
+  db_data:
+  app_data:
