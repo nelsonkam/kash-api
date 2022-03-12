@@ -2,12 +2,14 @@ version: '3'
 
 services:
   web:
-    build: .
+    build:
+      context: ../../
+      dockerfile: ./Dockerfile
     command: sh ./docker-entrypoint.sh
     volumes:
       - .:/usr/src/app
     ports:
-      - "5000:5000"
+      - "4040:5000"
     depends_on:
       - "redis"
       - "postgres"
