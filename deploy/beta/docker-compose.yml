@@ -4,12 +4,12 @@ services:
   web:
     build:
       context: ../../
-      dockerfile: deploy/dev/Dockerfile
+      dockerfile: deploy/beta/Dockerfile
     command: sh ./docker-entrypoint.sh
     volumes:
       - ../../:/usr/src/app
     ports:
-      - "4040:5000"
+      - "5000:5000"
     depends_on:
       - "redis"
       - "postgres"
@@ -17,7 +17,7 @@ services:
   celery:
     build:
       context: ../../
-      dockerfile: deploy/dev/Dockerfile
+      dockerfile: deploy/beta/Dockerfile
     command: celery -A app_main worker -l warning
     volumes:
      - ../../:/usr/src/app
@@ -29,7 +29,7 @@ services:
   celery-beat:
     build:
       context: ../../
-      dockerfile: deploy/dev/Dockerfile
+      dockerfile: deploy/beta/Dockerfile
     command: celery -A app_main beat -l warning
     volumes:
      - ../../:/usr/src/app
@@ -41,7 +41,7 @@ services:
   redis:
     image: "redis:alpine"
     ports:
-      - "6380:6379"
+      - "6379:6379"
     volumes:
       - redis_data:/data
 

@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate
 from rest_framework.decorators import action
 from rest_framework.exceptions import AuthenticationFailed, NotFound
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import ViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
@@ -17,8 +17,9 @@ from kash.user.models import User, UserProfile
 from kash.user.serializers import UserSerializer
 
 
-class AuthViewSet(GenericViewSet):
+class AuthViewSet(ViewSet):
     service = AuthService()
+    serializer_class = None
 
     @action(detail=False, methods=["post"])
     def register(self, request):
@@ -89,16 +90,3 @@ class AuthViewSet(GenericViewSet):
             "user": UserSerializer(instance=user).data,
         }
         return Response(data)
-
-    @action(detail=False, methods=["get"], url_path="verification/linked")
-    def linked_verification_methods(self, request):
-        email_method = VerificationMethod.objects.filter(
-            type=VerificationMethod.VerificationMethodType.email, profile=request.profile
-        ).first()
-        phone_method = VerificationMethod.objects.filter(
-            type=VerificationMethod.VerificationMethodType.phone, profile=request.profile
-        ).first()
-        email_data = {'value': email_method.value, 'is_verified': email_method.is_verified} if email_method else None
-
-        phone_data = {'value': phone_method.value, 'is_verified': phone_method.is_verified} if phone_method else None
-        return Response({'email': email_data, 'phone': phone_data})
