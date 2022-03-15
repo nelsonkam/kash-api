@@ -56,7 +56,7 @@ class VirtualCard(BaseModel):
 
     @property
     def issuance_cost(self):
-        return Money(1000, "XOF")
+        return Money(0, "XOF")
 
     @property
     def card_type(self):
