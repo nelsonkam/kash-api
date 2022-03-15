@@ -24,6 +24,7 @@ jobs:
         with:
           source: "."
           target: "~/apps/kash-api"
+          rm: true
 
       - name: Deployment
         uses: appleboy/ssh-action@v0.1.4

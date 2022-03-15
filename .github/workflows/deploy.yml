@@ -31,6 +31,7 @@ jobs:
         with:
           source: "."
           target: "~/apps/kash-api"
+          rm: true
 
       # Runs a single command using the runners shell
       - name: Deployment
@@ -44,5 +45,5 @@ jobs:
           script: |
             cd ~/apps/kash-api
             echo "${{ secrets.ENV_VAR }}" > .env
-            sudo docker-compose up -d --build
+            sudo docker-compose -f deploy/prod/docker-compose.yml up -d --build
 

@@ -51,6 +51,7 @@ class AuthViewSet(ViewSet):
         username = request.data.get("username")
         password = request.data.get("password")
         user = authenticate(request, username=username, password=password)
+        print(user)
         if not user:
             raise AuthenticationFailed("Invalid username/password")
         refresh = RefreshToken.for_user(user)
