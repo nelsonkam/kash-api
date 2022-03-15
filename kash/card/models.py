@@ -181,6 +181,14 @@ class VirtualCard(BaseModel):
     def unfreeze(self):
         if not self.external_id:
             return None
+
+        if self.is_permablocked:
+            self.profile.push_notify(
+                "Carte désactivée",
+                "Votre carte a été désactivée car elle n'est plus valide. "
+                "Veuillez contacter le service client pour plus d'informations.",
+            )
+            return
         self.provider.unfreeze(self)
         self.is_active = True
         self.save()
