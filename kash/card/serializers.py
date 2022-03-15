@@ -9,9 +9,13 @@ from kash.transaction.serializers import QosicTransactionSerializer
 
 class VirtualCardSerializer(ModelSerializer):
     issuance_cost = SerializerMethodField()
+    is_active = SerializerMethodField()
 
     def get_issuance_cost(self, obj):
         return money_to_dict(obj.issuance_cost)
+
+    def get_is_active(self, obj):
+        return obj.is_active or not obj.is_permablocked
 
     class Meta:
         model = VirtualCard

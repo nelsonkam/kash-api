@@ -1,10 +1,10 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Deploy to staging
+name: Deploy to dev
 
 on:
   push:
-    branches: [ master ]
+    branches: [ feat/improve-onboarding ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -23,19 +23,19 @@ jobs:
           KEY: ${{ secrets.BETA_SSH_PRIVATE_KEY }}
         with:
           source: "."
-          target: "~/apps/kash-api"
+          target: "~/apps/kash-dev"
           rm: true
 
       - name: Deployment
         uses: appleboy/ssh-action@v0.1.4
         env:
-          ENV_VAR: ${{secrets.BETA_ENV_VAR}}
+          ENV_VAR: ${{secrets.DEV_ENV_VAR}}
         with:
           host: ${{ secrets.BETA_SSH_HOST }}
           key: ${{ secrets.BETA_SSH_PRIVATE_KEY }}
           username: ${{ secrets.BETA_SSH_USERNAME }}
           script: |
-            cd ~/apps/kash-api
-            echo "${{ secrets.BETA_ENV_VAR }}" > .env
-            sudo docker-compose -f deploy/beta/docker-compose.yml up -d --build
+            cd ~/apps/kash-dev
+            echo "${{ secrets.DEV_ENV_VAR }}" > .env
+            sudo docker-compose -f deploy/dev/docker-compose.yml up -d --build
 

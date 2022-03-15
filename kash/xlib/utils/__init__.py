@@ -22,9 +22,7 @@ def upload_content_file(content_file, filename, acl="public-read"):
 
     path = default_storage.save(f"static/uploads/{filename}", content_file)
     resp = client.upload_file(path, settings.DO_SPACES_BUCKET, filename)
-    print(resp)
     resp = client.put_object_acl(ACL=acl, Bucket=settings.DO_SPACES_BUCKET, Key=filename)
-    print(resp)
 
     return f"{settings.DO_SPACES_ENDPOINT_URL}/{settings.DO_SPACES_BUCKET}/{filename}"
 

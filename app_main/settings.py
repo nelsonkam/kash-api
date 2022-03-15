@@ -38,6 +38,7 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 TESTING = False
 
+
 ALLOWED_HOSTS = ["*"]
 
 # Application definition
@@ -167,6 +168,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
+        'rest_framework.renderers.BrowsableAPIRenderer',
     ],
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
@@ -214,7 +216,7 @@ CORS_ALLOW_HEADERS = [
 
 APP_NAME = env("APP_NAME")
 APP_ENV = env("APP_ENV")
-IS_BETA = APP_ENV == 'beta'
+IS_PROD = APP_ENV == 'prod'
 
 DO_SPACES_KEY = env("DO_SPACES_KEY")
 DO_SPACES_SECRET = env("DO_SPACES_SECRET")
@@ -264,40 +266,36 @@ ONESIGNAL_REST_API_KEY = env("ONESIGNAL_REST_API_KEY")
 CELERY_BROKER_URL = env("REDIS_URL")
 CELERY_RESULT_BACKEND = env("REDIS_URL")
 
-CELERY_BEAT_SCHEDULE = (
-    {
-        "check_txn_status": {
-            "task": "kash.tasks.check_txn_status",
-            "schedule": crontab(minute="*"),
-        },
-        # "send_pending_notifications": {
-        #     "task": "kash.tasks.send_pending_notifications",
-        #     "schedule": crontab(minute="*/3"),
-        # },
-        "retry_failed_funding": {
-            "task": "kash.tasks.retry_failed_funding",
-            "schedule": crontab(minute="*/5"),
-        },
-        "monitor_flw_balance": {
-            "task": "kash.tasks.monitor_flw_balance",
-            "schedule": crontab(hour="*", minute="00"),
-        },
-        "reward_referrer": {
-            "task": "kash.tasks.reward_referrer",
-            "schedule": crontab(hour="*/3", minute="30"),
-        },
-        "fetch_rave_rate": {
-            "task": "kash.tasks.fetch_rave_rate",
-            "schedule": crontab(hour="*", minute="15"),
-        },
-        "compute_metrics": {
-            "task": "kash.tasks.compute_metrics",
-            "schedule": crontab(hour="9", minute="00", day_of_week="1"),
-        },
-    }
-    if APP_NAME == "api-server"
-    else {}
-)
+CELERY_BEAT_SCHEDULE = {
+    "check_txn_status": {
+        "task": "kash.tasks.check_txn_status",
+        "schedule": crontab(minute="*"),
+    },
+    # "send_pending_notifications": {
+    #     "task": "kash.tasks.send_pending_notifications",
+    #     "schedule": crontab(minute="*/3"),
+    # },
+    "retry_failed_funding": {
+        "task": "kash.tasks.retry_failed_funding",
+        "schedule": crontab(minute="*/5"),
+    },
+    "monitor_flw_balance": {
+        "task": "kash.tasks.monitor_flw_balance",
+        "schedule": crontab(hour="*", minute="00"),
+    },
+    "reward_referrer": {
+        "task": "kash.tasks.reward_referrer",
+        "schedule": crontab(hour="*/3", minute="30"),
+    },
+    "fetch_rave_rate": {
+        "task": "kash.tasks.fetch_rave_rate",
+        "schedule": crontab(hour="*", minute="15"),
+    },
+    "compute_metrics": {
+        "task": "kash.tasks.compute_metrics",
+        "schedule": crontab(hour="9", minute="00", day_of_week="1"),
+    },
+}
 
 CONVERSION_RATES = {"NGN_XOF": 628 / 580, "MARGIN": 0.08}
 
@@ -316,7 +314,7 @@ LOGGING = {
             'class': 'logging.handlers.LogDNAHandler',
             'key': env('LOGDNA_INGESTION_KEY'),
             'options': {
-                'app': 'kash-api',
+                'app': APP_NAME,
                 'env': APP_ENV,
                 'index_meta': True,
             },

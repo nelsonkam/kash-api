@@ -2,29 +2,35 @@ version: '3'
 
 services:
   web:
-    build: .
+    build:
+      context: ../..
+      dockerfile: deploy/prod/Dockerfile
     command: sh ./docker-entrypoint.sh
     volumes:
-      - .:/usr/src/app
+      - ../../:/usr/src/app
     ports:
       - "5000:5000"
     depends_on:
       - "redis"
 
   celery:
-    build: .
+    build:
+      context: ../..
+      dockerfile: deploy/prod/Dockerfile
     command: celery -A app_main worker -l warning
     volumes:
-     - .:/usr/src/app
+     - ../../:/usr/src/app
     depends_on:
      - "web"
      - "redis"
 
   celery-beat:
-    build: .
+    build:
+      context: ../..
+      dockerfile: deploy/prod/Dockerfile
     command: celery -A app_main beat -l warning
     volumes:
-     - .:/usr/src/app
+     - ../../:/usr/src/app
     depends_on:
      - "web"
      - "redis"

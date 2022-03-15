@@ -12,14 +12,11 @@ ENV CRYPTOGRAPHY_DONT_BUILD_RUST 1
 RUN apk add --no-cache tzdata
 ENV TZ Europe/London
 
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
-ENV PATH="${PATH}:/root/.poetry/bin"
-
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
-COPY poetry.lock pyproject.toml /usr/src/app/
+COPY ./requirements.txt /usr/src/app/
 
-RUN poetry config virtualenvs.create false
-RUN poetry install --no-interaction
+RUN pip install -r requirements.txt
+
 
 COPY ./ /usr/src/app

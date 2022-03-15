@@ -2,8 +2,9 @@ from django.contrib.auth import authenticate
 from rest_framework.decorators import action
 from rest_framework.exceptions import AuthenticationFailed, NotFound
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import ViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
+
 
 from kash.auth.serializers import (
     RegisterSerializer,
@@ -16,8 +17,9 @@ from kash.user.models import User, UserProfile
 from kash.user.serializers import UserSerializer
 
 
-class AuthViewSet(GenericViewSet):
+class AuthViewSet(ViewSet):
     service = AuthService()
+    serializer_class = None
 
     @action(detail=False, methods=["post"])
     def register(self, request):
