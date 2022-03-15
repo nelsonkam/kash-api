@@ -38,6 +38,7 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 TESTING = False
 
+
 ALLOWED_HOSTS = ["*"]
 
 # Application definition
@@ -167,6 +168,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
+        'rest_framework.renderers.BrowsableAPIRenderer',
     ],
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
