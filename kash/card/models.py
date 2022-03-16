@@ -187,6 +187,7 @@ class VirtualCard(BaseModel):
                 "Carte désactivée",
                 "Votre carte a été désactivée car elle n'est plus valide. "
                 "Veuillez contacter le service client pour plus d'informations.",
+                self,
             )
             return
         self.provider.unfreeze(self)
