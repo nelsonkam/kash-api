@@ -214,19 +214,25 @@ def compute_metrics():
     )
 
 
-@shared_task
 def deactivate_deleted_rave_card():
     from kash.card.models import VirtualCard
 
-    cards = VirtualCard.objects.exclude(external_id="").filter(
-        is_active=True, provider_name="rave", is_permablocked=False
+    cards = (
+        VirtualCard.objects.exclude(external_id="")
+        .filter(
+            is_active=True, provider_name="rave", is_permablocked=False, pk__gte=915
+        )
+        .order_by("created_at")
     )
 
     for card in cards:
         try:
             details = card.card_details
+            print(f"Card #{card.pk} valid.")
         except Exception as err:
-            if "not found" in err.message:
+            print(err)
+            if "not found" in str(err).lower() or "unable to get" in str(err).lower():
+                print(f"Card #{card.pk} permablocked: {err}")
                 card.is_permablocked = True
                 card.permablock_reason = "Rave VISA to MasterCard migration"
                 card.save()

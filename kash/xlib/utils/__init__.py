@@ -22,7 +22,9 @@ def upload_content_file(content_file, filename, acl="public-read"):
 
     path = default_storage.save(f"static/uploads/{filename}", content_file)
     resp = client.upload_file(path, settings.DO_SPACES_BUCKET, filename)
-    resp = client.put_object_acl(ACL=acl, Bucket=settings.DO_SPACES_BUCKET, Key=filename)
+    resp = client.put_object_acl(
+        ACL=acl, Bucket=settings.DO_SPACES_BUCKET, Key=filename
+    )
 
     return f"{settings.DO_SPACES_ENDPOINT_URL}/{settings.DO_SPACES_BUCKET}/{filename}"
 
@@ -39,7 +41,9 @@ def money_to_dict(price):
     return {"amount": price.amount, "currency": str(price.currency)}
 
 
-def create_presigned_url(object_url, bucket_name=settings.DO_SPACES_BUCKET, expiration=3600):
+def create_presigned_url(
+    object_url, bucket_name=settings.DO_SPACES_BUCKET, expiration=3600
+):
     session = boto3.session.Session()
     client = session.client(
         "s3",
