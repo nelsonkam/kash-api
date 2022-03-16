@@ -79,7 +79,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    'request_logging.middleware.LoggingMiddleware',
+    "request_logging.middleware.LoggingMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -165,22 +165,27 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
-        'rest_framework.renderers.BrowsableAPIRenderer',
     ],
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "200/day", 'verification-code': '6/hour'},
+    "DEFAULT_THROTTLE_RATES": {"anon": "200/day", "verification-code": "6/hour"},
     "DEFAULT_FILTER_BACKENDS": [
         "rest_framework.filters.OrderingFilter",
     ],
     "PAGE_SIZE": 30,
 }
 
-SMS_BACKEND = "kash.auth.backends.sms.ConsoleSMSBackend" if DEBUG else "kash.auth.backends.sms.MessageBirdSMSBackend"
+SMS_BACKEND = (
+    "kash.auth.backends.sms.ConsoleSMSBackend"
+    if DEBUG
+    else "kash.auth.backends.sms.MessageBirdSMSBackend"
+)
 
 PHONE_VERIFICATION = {
     "BACKEND": SMS_BACKEND,
@@ -216,7 +221,7 @@ CORS_ALLOW_HEADERS = [
 
 APP_NAME = env("APP_NAME")
 APP_ENV = env("APP_ENV")
-IS_PROD = APP_ENV == 'prod'
+IS_PROD = APP_ENV == "prod"
 
 DO_SPACES_KEY = env("DO_SPACES_KEY")
 DO_SPACES_SECRET = env("DO_SPACES_SECRET")
@@ -309,27 +314,27 @@ LOGGING = {
         "console": {
             "class": "logging.StreamHandler",
         },
-        'logdna': {
-            'level': logging.DEBUG,
-            'class': 'logging.handlers.LogDNAHandler',
-            'key': env('LOGDNA_INGESTION_KEY'),
-            'options': {
-                'app': APP_NAME,
-                'env': APP_ENV,
-                'index_meta': True,
+        "logdna": {
+            "level": logging.DEBUG,
+            "class": "logging.handlers.LogDNAHandler",
+            "key": env("LOGDNA_INGESTION_KEY"),
+            "options": {
+                "app": APP_NAME,
+                "env": APP_ENV,
+                "index_meta": True,
             },
         },
     },
     "loggers": {
         "django.request": {
-            "handlers": ["console", 'logdna'],
+            "handlers": ["console", "logdna"],
             "level": "DEBUG",  # change debug level as appropiate
             "propagate": False,
         },
-        '': {'handlers': ['logdna'], 'level': logging.DEBUG},
+        "": {"handlers": ["logdna"], "level": logging.DEBUG},
     },
     "root": {
-        "handlers": ["console", 'logdna'],
+        "handlers": ["console", "logdna"],
         "level": "INFO",
     },
 }

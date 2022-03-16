@@ -15,7 +15,7 @@ class VirtualCardSerializer(ModelSerializer):
         return money_to_dict(obj.issuance_cost)
 
     def get_is_active(self, obj):
-        return obj.is_active or not obj.is_permablocked
+        return obj.is_active and not obj.is_permablocked
 
     class Meta:
         model = VirtualCard
