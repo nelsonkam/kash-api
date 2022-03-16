@@ -7,6 +7,7 @@ from .user import UserSerializer
 
 class ProfileSerializer(ModelSerializer):
     name = serializers.CharField()
+    user = UserSerializer()
 
     def update(self, instance, validated_data):
         name = validated_data.pop("name", None)
