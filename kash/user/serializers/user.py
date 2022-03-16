@@ -11,4 +11,5 @@ class UserSerializer(KashObjectSerializer):
             "email",
             "phone_number",
             "name",
+            "is_staff",
         )
