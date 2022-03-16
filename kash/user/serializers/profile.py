@@ -30,6 +30,7 @@ class ProfileSerializer(ModelSerializer):
             "referral_code",
             "promo_balance",
             "kyc_level",
+            "user",
         ]
 
 
