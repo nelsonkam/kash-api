@@ -133,6 +133,15 @@ class VirtualCard(BaseModel):
     def fund_momo(self, amount, phone, gateway):
         from kash.transaction.models import Transaction
 
+        if self.is_permablocked:
+            self.profile.push_notify(
+                "Carte désactivée",
+                "Votre carte a été désactivée car elle n'est plus valide. "
+                "Veuillez contacter le service client pour plus d'informations.",
+                self,
+            )
+            return
+
         xof_amount = Conversions.get_xof_from_usd(amount)
 
         if amount.amount < 5:
