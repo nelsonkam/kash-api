@@ -5,7 +5,7 @@ from django.dispatch import receiver
 from django.utils.functional import cached_property
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money, Currency
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, NotFound, PermissionDenied
 
 from kash.abstract.models import BaseModel
 from kash.xlib.utils.notify import notify_telegram
@@ -140,7 +140,7 @@ class VirtualCard(BaseModel):
                 "Veuillez contacter le service client pour plus d'informations.",
                 self,
             )
-            return
+            raise PermissionDenied()
 
         xof_amount = Conversions.get_xof_from_usd(amount)
 
@@ -198,7 +198,7 @@ class VirtualCard(BaseModel):
                 "Veuillez contacter le service client pour plus d'informations.",
                 self,
             )
-            return
+            raise PermissionDenied()
         self.provider.unfreeze(self)
         self.is_active = True
         self.save()
