@@ -1,18 +1,12 @@
-from rest_framework import status
-from rest_framework.response import Response
 from rest_framework.views import exception_handler
+from exceptions_hog import exception_handler as hog_exception_handler
 
 
 def custom_exception_handler(exc, context):
-    response = exception_handler(exc, context)
-
-    if response is not None:
-        if response.status_code == status.HTTP_400_BAD_REQUEST and isinstance(
-            response.data, dict
-        ):
-            result = {}
-            for key, value in response.data.items():
-                result[key] = value[0] if isinstance(value, list) else value
-            response.data = result
-
-    return response
+    try:
+        response = hog_exception_handler(exc, context)
+        response.data["field"] = response.data["attr"]
+        del response.data["attr"]
+        return response
+    except:
+        return exception_handler(exc, context)

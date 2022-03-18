@@ -1,6 +1,12 @@
 from django.contrib.auth import authenticate
 from rest_framework.decorators import action
-from rest_framework.exceptions import AuthenticationFailed, NotFound
+from rest_framework.exceptions import (
+    AuthenticationFailed,
+    NotFound,
+    ValidationError,
+    APIException,
+)
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -10,6 +16,9 @@ from kash.auth.serializers import (
     RegisterSerializer,
     CustomPhoneSerializer,
     CustomSMSVerificationSerializer,
+    LinkVerificationMethodSerializer,
+    VerifyVerificationMethodSerializer,
+    VerificationMethodSerializer,
 )
 from kash.auth.services import AuthService
 from kash.invite.models import Referral
@@ -90,3 +99,35 @@ class AuthViewSet(ViewSet):
             "user": UserSerializer(instance=user).data,
         }
         return Response(data)
+
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="verification/link",
+        permission_classes=[IsAuthenticated],
+    )
+    def link_verification_method(self, request):
+        serializer = LinkVerificationMethodSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        attempt = self.service.send_verification_code(request.user, serializer.data)
+        return Response({"session_token": attempt.session_token})
+
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="verification/verify",
+        permission_classes=[IsAuthenticated],
+    )
+    def verify_verification_method(self, request):
+        serializer = VerifyVerificationMethodSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        attempt, error_code = self.service.verify_verification_attempt(
+            session_token=serializer.data.get("session_token"),
+            security_code=serializer.data.get("security_code"),
+        )
+        if attempt:
+            return Response(
+                VerificationMethodSerializer(instance=attempt.verification_method).data
+            )
+        else:
+            raise ValidationError("Verificaiton failed", code=error_code)

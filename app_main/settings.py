@@ -178,7 +178,7 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": [
         "rest_framework.filters.OrderingFilter",
     ],
-    "EXCEPTION_HANDLER": "exceptions_hog.exception_handler",
+    "EXCEPTION_HANDLER": "kash.abstract.exception_handler.custom_exception_handler",
     "PAGE_SIZE": 30,
 }
 

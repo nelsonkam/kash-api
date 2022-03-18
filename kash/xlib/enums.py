@@ -10,3 +10,8 @@ class PaymentMethod(TextChoices):
 class CardProvider(TextChoices):
     rave = "rave"
     dummy = "dummy"
+
+
+class VerificationMethodType(TextChoices):
+    phone = "phone"
+    email = "email"

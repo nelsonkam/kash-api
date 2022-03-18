@@ -5,6 +5,11 @@ import messagebird
 from django.conf import settings
 from phone_verify.backends.base import BaseBackend
 from phone_verify.models import SMSVerification
+from rest_framework.exceptions import APIException
+
+
+class SMSProviderException(APIException):
+    default_code = "sms_provider_error"
 
 
 class BaseSMSBackend(BaseBackend, ABC):
@@ -31,16 +36,16 @@ class BaseSMSBackend(BaseBackend, ABC):
         )
         return security_code, session_token
 
-
-class ConsoleSMSBackend(BaseSMSBackend):
-    def send_sms(self, number, message):
-        if len(number) > 10:
-            raise Exception("number too long")
-        print(f"SMS to {number}: {message}")
-
     def send_bulk_sms(self, numbers, message):
         for number in numbers:
             self.send_sms(number, message)
+
+
+class ConsoleSMSBackend(BaseSMSBackend):
+    def send_sms(self, number, message):
+        if len(number) > 15:
+            raise SMSProviderException("number too long")
+        print(f"SMS to {number}: {message}")
 
 
 class MessageBirdSMSBackend(BaseSMSBackend):
@@ -49,9 +54,8 @@ class MessageBirdSMSBackend(BaseSMSBackend):
         self.exception_class = messagebird.ErrorException
 
     def send_sms(self, number, message):
-        client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
-        return client.message_create("Kash", number, message, {"reference": "none"})
-
-    def send_bulk_sms(self, numbers, message):
-        for number in numbers:
-            self.send_sms(number, message)
+        try:
+            client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
+            return client.message_create("Kash", number, message, {"reference": "none"})
+        except Exception as err:
+            raise SMSProviderException(str(err))

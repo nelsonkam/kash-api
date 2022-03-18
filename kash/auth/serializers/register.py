@@ -1,7 +1,6 @@
 from phone_verify.serializers import SMSVerificationSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import gettext_lazy as _
 
 from kash.user.models import UserProfile
 from kash.xlib.rest.validators import KashtagValidator
@@ -18,13 +17,15 @@ class RegisterSerializer(serializers.Serializer):
 
     def validate_kashtag(self, value):
         if UserProfile.objects.filter(kashtag=value).exists():
-            raise ValidationError(_("$kashtag already taken"))
+            raise ValidationError("$kashtag already taken", code="unique_username")
 
         return value
 
     def validate(self, data):
         if data.get("password") != data.get("confirm"):
-            raise ValidationError(_("$kashtag already taken"))
+            raise ValidationError(
+                {"confirm": "Passwords do not match."}, code="password_no_match"
+            )
         return data
 
 

@@ -76,8 +76,10 @@ class ProfileViewset(BaseViewSet):
         throttle_classes=[VerificationCodeThrottle],
     )
     def otp_phone(self, request, pk=None):
-        session_token = self.service.send_phone_verification_code(request.data.get("phone_number"))
-        return Response({"session_token": session_token})
+        attempt = self.service.send_phone_verification_code(
+            request.user, request.data.get("phone_number")
+        )
+        return Response({"session_token": attempt.session_token})
 
     @action(detail=True, methods=["post"], url_path="otp/verify/phone")
     def verify_phone(self, request, pk=None):

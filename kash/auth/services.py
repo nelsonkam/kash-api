@@ -8,10 +8,11 @@ from rest_framework.exceptions import (
 )
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from kash.auth.models import VerificationMethod, VerificationAttempt
 from kash.user.models import User, UserProfile
 from kash.user.serializers import UserSerializer
-
-PHONE_PREFIX_BLACKLIST = ["00234", "+234", "234"]
+from kash.xlib.constants import PHONE_PREFIX_BLACKLIST
+from kash.xlib.enums import VerificationMethodType
 
 
 class AuthService:
@@ -37,17 +38,45 @@ class AuthService:
             "user": UserSerializer(instance=user).data,
         }
 
-    def send_phone_verification_code(self, phone_number: str):
+    # deprecated: only used in /profile/current/otp/phone/
+    # (which is deprecated in favor of /auth/verification/link/)
+    def send_phone_verification_code(self, user, phone_number: str):
         for prefix in PHONE_PREFIX_BLACKLIST:
             if phone_number.startswith(prefix):
                 raise PermissionDenied
+        method = VerificationMethod.objects.create(
+            type=VerificationMethodType.phone,
+            value=phone_number,
+            is_verified=False,
+            user=user,
+        )
+        attempt = VerificationAttempt.objects.create(
+            method,
+        )
+        attempt.send_security_code()
+        return attempt
 
-        return send_security_code_and_generate_session_token(str(phone_number))
+    def send_verification_code(self, user, data):
+        method, _ = VerificationMethod.objects.get_or_create(
+            type=data.get("type"),
+            value=data.get("value"),
+            user=user,
+            defaults={
+                "is_verified": False,
+            },
+        )
+        attempt = VerificationAttempt.objects.create(
+            method,
+        )
+        attempt.send_security_code()
+        return attempt
 
     def link_phone_number(self, user, security_code, phone_number, session_token):
 
         if User.objects.filter(phone_number=phone_number).exists():
-            raise PermissionDenied("Vous ne pouvez pas ajouter ce numéro à votre compte.")
+            raise PermissionDenied(
+                "Vous ne pouvez pas ajouter ce numéro à votre compte."
+            )
 
         backend = get_sms_backend(phone_number=phone_number)
         verification, error_code = backend.validate_security_code(
@@ -68,5 +97,12 @@ class AuthService:
                 message = "Erreur de session. Veuillez réessayer"
             elif error_code == backend.SECURITY_CODE_VERIFIED:
                 message = "Code de vérification déjà utilisé. Veuillez réessayer"
-            user.profile.push_notify("Erreur lors de la vérification.", message, obj=user)
+            user.profile.push_notify(
+                "Erreur lors de la vérification.", message, obj=user
+            )
             raise ValidationError({"message": message})
+
+    def verify_verification_attempt(self, security_code, session_token):
+        return VerificationAttempt.objects.verify_attempt(
+            security_code=security_code, session_token=session_token
+        )
