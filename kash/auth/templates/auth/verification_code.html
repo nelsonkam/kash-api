@@ -1,0 +1,33 @@
+{% extends 'abstract/base.html' %}
+
+{% block content %}
+<h1>Bonjour,</h1>
+<p>Utilisez le code ci-dessous pour confirmer votre
+    opération. <strong>Ce code n'est valide que pour 15 minutes.</strong></p>
+<!-- Action -->
+<table class="body-action" align="center" width="100%" cellpadding="0"
+       cellspacing="0">
+    <tr>
+        <td align="center">
+            <!-- Border based button https://litmus.com/blog/a-guide-to-bulletproof-buttons-in-email-design -->
+            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                    <td align="center">
+                        <table border="0" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td>
+                                    <p class="code">{{ code }}</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+<p>Si vous n'avez pas effectuer d'opération qui requiert un code de
+    vérification, vous pouvez ignorer cet e-mail.</p>
+<p>Cordialement,
+    <br>Kash</p>
+{% endblock %}

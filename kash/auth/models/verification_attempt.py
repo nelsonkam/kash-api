@@ -3,6 +3,7 @@ from datetime import timedelta
 
 import jwt
 from django.conf import settings
+from django.core.mail import send_mail
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
@@ -10,7 +11,7 @@ from kash.abstract.models import BaseModel
 from django.db import models
 
 from kash.xlib.enums import VerificationMethodType
-from kash.xlib.utils.sms import send_sms
+from kash.xlib.utils.messaging import send_sms, send_email
 
 
 def generate_security_code():
@@ -76,9 +77,17 @@ class VerificationAttempt(BaseModel):
                 self.value,
                 f"Votre code de verification pour Kash est: {self.security_code}",
             )
+        elif self.type == VerificationMethodType.email:
+            send_email(
+                email_address=self.value,
+                subject="Votre code de vérification",
+                template="auth/verification_code.html",
+                context={"code": self.security_code},
+            )
 
     def set_verified(self, is_verified):
         self.is_verified = is_verified
         self.save(update_fields=["is_verified"])
-        self.verification_method.is_verified = is_verified
-        self.verification_method.save(update_fields=["is_verified"])
+        if not self.verification_method.is_verified and is_verified:
+            self.verification_method.is_verified = is_verified
+            self.verification_method.save(update_fields=["is_verified"])

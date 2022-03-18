@@ -38,6 +38,26 @@ class AuthService:
             "user": UserSerializer(instance=user).data,
         }
 
+    def send_verification_code(self, user, data):
+        method, _ = VerificationMethod.objects.get_or_create(
+            type=data.get("type"),
+            value=data.get("value"),
+            user=user,
+            defaults={
+                "is_verified": False,
+            },
+        )
+        attempt = VerificationAttempt.objects.create(
+            method,
+        )
+        attempt.send_security_code()
+        return attempt
+
+    def verify_verification_attempt(self, security_code, session_token):
+        return VerificationAttempt.objects.verify_attempt(
+            security_code=security_code, session_token=session_token
+        )
+
     # deprecated: only used in /profile/current/otp/phone/
     # (which is deprecated in favor of /auth/verification/link/)
     def send_phone_verification_code(self, user, phone_number: str):
@@ -49,21 +69,6 @@ class AuthService:
             value=phone_number,
             is_verified=False,
             user=user,
-        )
-        attempt = VerificationAttempt.objects.create(
-            method,
-        )
-        attempt.send_security_code()
-        return attempt
-
-    def send_verification_code(self, user, data):
-        method, _ = VerificationMethod.objects.get_or_create(
-            type=data.get("type"),
-            value=data.get("value"),
-            user=user,
-            defaults={
-                "is_verified": False,
-            },
         )
         attempt = VerificationAttempt.objects.create(
             method,
@@ -101,8 +106,3 @@ class AuthService:
                 "Erreur lors de la vérification.", message, obj=user
             )
             raise ValidationError({"message": message})
-
-    def verify_verification_attempt(self, security_code, session_token):
-        return VerificationAttempt.objects.verify_attempt(
-            security_code=security_code, session_token=session_token
-        )
