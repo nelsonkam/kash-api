@@ -11,4 +11,8 @@ class VerificationMethod(BaseModel):
     type = models.CharField(max_length=20, choices=VerificationMethodType.choices)
     value = models.CharField(max_length=255, unique=True)
     is_verified = models.BooleanField()
-    profile = models.ForeignKey("kash_user.UserProfile", on_delete=models.CASCADE, related_name="verification_methods")
+    profile = models.ForeignKey(
+        "kash_user.UserProfile",
+        on_delete=models.CASCADE,
+        related_name="verification_methods",
+    )

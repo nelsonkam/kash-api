@@ -47,7 +47,9 @@ class AuthService:
     def link_phone_number(self, user, security_code, phone_number, session_token):
 
         if User.objects.filter(phone_number=phone_number).exists():
-            raise PermissionDenied("Vous ne pouvez pas ajouter ce numéro à votre compte.")
+            raise PermissionDenied(
+                "Vous ne pouvez pas ajouter ce numéro à votre compte."
+            )
 
         backend = get_sms_backend(phone_number=phone_number)
         verification, error_code = backend.validate_security_code(
@@ -68,5 +70,7 @@ class AuthService:
                 message = "Erreur de session. Veuillez réessayer"
             elif error_code == backend.SECURITY_CODE_VERIFIED:
                 message = "Code de vérification déjà utilisé. Veuillez réessayer"
-            user.profile.push_notify("Erreur lors de la vérification.", message, obj=user)
+            user.profile.push_notify(
+                "Erreur lors de la vérification.", message, obj=user
+            )
             raise ValidationError({"message": message})
