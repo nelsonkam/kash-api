@@ -22,7 +22,9 @@ def send_sms(phone_number, message, backend=settings.SMS_BACKEND):
 
 
 def send_pending_messages():
-    for message in SMSVerification.objects.filter(is_verified=False, created_at__gte=now() - timedelta(hours=3)):
+    for message in SMSVerification.objects.filter(
+        is_verified=False, created_at__gte=now() - timedelta(hours=3)
+    ):
 
         client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
         client.message_create(

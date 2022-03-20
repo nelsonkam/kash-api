@@ -20,11 +20,13 @@ def notify_telegram(*args, **kwargs):
 
 
 def send():
-    return sc.api_call("chat.postMessage", channel="updates", text="Hello from Python! :tada:")
+    return sc.api_call(
+        "chat.postMessage", channel="updates", text="Hello from Python! :tada:"
+    )
 
 
-def send_message(attachments, channel):
-    return sc.api_call("chat.postMessage", channel=channel, attachments=attachments)
+def send_slack_message(**kwargs):
+    return sc.api_call("chat.postMessage", **kwargs)
 
 
 def notify_slack(message):
@@ -32,8 +34,12 @@ def notify_slack(message):
 
 
 def check_funding_status():
-    ngn_balance = rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
-    usd_balance = rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
+    ngn_balance = (
+        rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
+    )
+    usd_balance = (
+        rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
+    )
     data = rave_request("GET", f"/rates?from=NGN&to=USD&amount={ngn_balance}").json()
     amount = data.get("data").get("to").get("amount")
     return 1000 - (usd_balance + amount)
@@ -69,7 +75,10 @@ def parse_command(data):
 
         if text.startswith("/recipients"):
             recipient_list = "\n".join(
-                [f'{key} - {value.get("phone")}' for key, value in settings.PAYOUT_RECIPIENTS.items()]
+                [
+                    f'{key} - {value.get("phone")}'
+                    for key, value in settings.PAYOUT_RECIPIENTS.items()
+                ]
             )
             tg_bot.send_message(
                 chat_id=chat_id,

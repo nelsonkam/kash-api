@@ -9,7 +9,7 @@ from django.utils.timezone import now
 from djmoney.money import Money
 
 from kash.card.providers import RaveCardProvider
-from kash.xlib.utils.notify import notify_telegram, notify_slack
+from kash.xlib.utils.notify import notify_telegram, notify_slack, send_slack_message
 from kash.xlib.utils.payment import rave_request
 from kash.xlib.utils.utils import (
     TransactionStatusEnum,
@@ -177,40 +177,39 @@ def compute_metrics():
         .get("amount__avg")
     )
 
-    notify_slack(
-        {
-            "blocks": [
-                {
-                    "type": "section",
-                    "text": {
+    send_slack_message(
+        blocks=[
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "Chiffres sur les *7 derniers jours*.",
+                },
+            },
+            {
+                "type": "section",
+                "fields": [
+                    {"type": "mrkdwn", "text": f"*Inscriptions:*\n {signups}"},
+                    {
                         "type": "mrkdwn",
-                        "text": "Chiffres sur les *7 derniers jours*.",
+                        "text": f"*Utilisateurs actifs:*\n{active_transactors}",
                     },
-                },
-                {
-                    "type": "section",
-                    "fields": [
-                        {"type": "mrkdwn", "text": f"*Inscriptions:*\n {signups}"},
-                        {
-                            "type": "mrkdwn",
-                            "text": f"*Utilisateurs actifs:*\n{active_transactors}",
-                        },
-                        {
-                            "type": "mrkdwn",
-                            "text": f"*Nbres de cartes créées:*\n{cards_created} cartes ({unique_card_creators} utilisateurs)",
-                        },
-                        {
-                            "type": "mrkdwn",
-                            "text": f"*Montant de recharge moyen:*\n${round(avg_funding_amt, 2)}",
-                        },
-                        {
-                            "type": "mrkdwn",
-                            "text": f"*Nombres de transactions:*\n{payment_count} paiements - {payout_count} retraits - {refund_count} remboursements",
-                        },
-                    ],
-                },
-            ]
-        }
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*Nbres de cartes créées:*\n{cards_created} cartes ({unique_card_creators} utilisateurs)",
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*Montant de recharge moyen:*\n${round(avg_funding_amt, 2)}",
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*Nombres de transactions:*\n{payment_count} paiements - {payout_count} retraits - {refund_count} remboursements",
+                    },
+                ],
+            },
+        ],
+        channel="C02208FUPRT" if settings.IS_PROD else "C036GNEM98Q",
     )
 
 
