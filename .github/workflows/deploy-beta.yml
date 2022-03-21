@@ -37,5 +37,5 @@ jobs:
           script: |
             cd ~/apps/kash-api
             echo "${{ secrets.BETA_ENV_VAR }}" > .env
-            sudo docker-compose -f deploy/beta/docker-compose.yml up -d --build
+            sudo docker-compose -f deploy/beta/docker-compose.yml up --env-file .env -d --build
 
