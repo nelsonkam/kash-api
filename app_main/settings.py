@@ -20,7 +20,6 @@ from celery.schedules import crontab
 from django.utils.translation import gettext_lazy as _
 from sentry_sdk.integrations.django import DjangoIntegration
 from logdna import LogDNAHandler
-from stellar_sdk import Asset, Network
 
 env = environ.Env(DEBUG=(bool, False))
 

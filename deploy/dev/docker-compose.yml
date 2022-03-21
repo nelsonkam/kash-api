@@ -38,6 +38,19 @@ services:
      - "redis"
      - "postgres"
 
+  flower:
+    build:
+      context: ../../
+      dockerfile: deploy/dev/Dockerfile
+    command: celery -A app_main flower --port=5555
+    volumes:
+      - ../../:/usr/src/app
+    ports:
+      - "5556:5555"
+    depends_on:
+      - "celery"
+      - "celery-beat"
+
   redis:
     image: "redis:alpine"
     ports:
