@@ -37,5 +37,5 @@ jobs:
           script: |
             cd ~/apps/kash-dev
             echo "${{ secrets.DEV_ENV_VAR }}" > .env
-            sudo docker-compose -f deploy/dev/docker-compose.yml up -d --build
+            sudo docker-compose -f deploy/dev/docker-compose.yml up --env-file .env -d --build
 
