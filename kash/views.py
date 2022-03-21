@@ -45,7 +45,7 @@ def card_info(request):
             "fees": {
                 "transaction": {"amount": 0, "is_percentage": True},
                 "withdrawal": {"amount": 3, "is_percentage": True},
-                "issuing": {"amount": 1000, "currency": "FCFA"},
+                "issuing": {"amount": 0, "currency": "FCFA"},
             },
         }
     )
@@ -53,8 +53,12 @@ def card_info(request):
 
 @api_view(http_method_names=["GET"])
 def recharge(request):
-    ngn_balance = rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
-    usd_balance = rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
+    ngn_balance = (
+        rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
+    )
+    usd_balance = (
+        rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
+    )
     data = rave_request("GET", f"/rates?from=NGN&to=USD&amount={ngn_balance}").json()
     amount = data.get("data").get("to").get("amount")
     amount_to_charge = 1000 - (usd_balance + amount)
