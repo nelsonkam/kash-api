@@ -107,7 +107,7 @@ jobs:
         env:
           ENV_VAR: ${{secrets.ENV_VAR}}
         with:
-          host: ${{ secrets.SSH_API_2_HOST }}
+          host: ${{ secrets.SSH_WORKER_HOST }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           username: ${{ secrets.SSH_USERNAME }}
           script: |
