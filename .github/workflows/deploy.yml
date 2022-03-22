@@ -83,7 +83,7 @@ jobs:
             sudo docker-compose -f deploy/prod/compose-api.yml --env-file .env up -d --build
 
   deploy-worker:
-    # The type of runner that the job will run o
+    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
