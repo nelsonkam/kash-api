@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  web:
+    build:
+      context: ../..
+      dockerfile: deploy/prod/Dockerfile
+    command: sh ./docker-entrypoint.sh
+    volumes:
+      - ../../:/usr/src/app
+    ports:
+      - "5000:5000"
