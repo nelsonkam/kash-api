@@ -23,6 +23,11 @@ def version(request):
 
 
 @api_view(http_method_names=["GET"])
+def health(request):
+    return Response(200)
+
+
+@api_view(http_method_names=["GET"])
 def rates(request):
     return Response(
         {
