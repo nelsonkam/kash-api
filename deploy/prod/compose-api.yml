@@ -6,6 +6,7 @@ services:
       context: ../..
       dockerfile: deploy/prod/Dockerfile
     command: sh ./docker-entrypoint.sh
+    restart: unless-stopped
     volumes:
       - ../../:/usr/src/app
     ports:

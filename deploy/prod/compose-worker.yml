@@ -6,6 +6,7 @@ services:
       context: ../..
       dockerfile: deploy/prod/Dockerfile
     command: celery -A app_main worker -l warning
+    restart: unless-stopped
     volumes:
      - ../../:/usr/src/app
 
@@ -14,6 +15,7 @@ services:
       context: ../..
       dockerfile: deploy/prod/Dockerfile
     command: celery -A app_main beat -l warning
+    restart: unless-stopped
     volumes:
      - ../../:/usr/src/app
 
@@ -22,6 +24,7 @@ services:
       context: ../../
       dockerfile: deploy/prod/Dockerfile
     command: celery -A app_main flower --port=5555
+    restart: unless-stopped
     volumes:
       - ../../:/usr/src/app
     ports:
