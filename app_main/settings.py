@@ -353,3 +353,5 @@ PAYOUT_RECIPIENTS = {
     "harold": {"phone": "62606333", "gateway": "mtn-bj"},
     "tino2": {"phone": "62814106", "gateway": "mtn-bj"},
 }
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880 * 4  # 20MB
