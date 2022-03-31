@@ -60,7 +60,7 @@ class LinkVerificationMethodSerializer(serializers.Serializer):
                 code="unique_verification_method",
             )
 
-        if VerificationMethod.objects.filter(
+        if not VerificationMethod.objects.filter(
             value=attrs.get("value"), user_id=attrs.get("user_id")
         ).exists():
             raise ValidationError(
