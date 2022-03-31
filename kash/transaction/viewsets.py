@@ -39,7 +39,9 @@ class QosicTransactionViewSet(ReadOnlyModelViewSet):
 
         return obj
 
-    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated, IsAdminUser])
+    @action(
+        detail=False, methods=["get"], permission_classes=[IsAuthenticated, IsAdminUser]
+    )
     def search(self, request):
         ref = request.query_params.get("ref")
         phone = request.query_params.get("phone")
@@ -49,7 +51,9 @@ class QosicTransactionViewSet(ReadOnlyModelViewSet):
             txns = Transaction.objects.filter(phone__icontains=phone)
         else:
             raise ValidationError("Invalid query param")
-        return Response(data=self.get_serializer(txns.order_by("-created"), many=True).data)
+        return Response(
+            data=self.get_serializer(txns.order_by("-created"), many=True).data
+        )
 
     @action(
         detail=True,
@@ -62,19 +66,25 @@ class QosicTransactionViewSet(ReadOnlyModelViewSet):
         txn.check_status()
         return Response(data={"status": txn.status})
 
-    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated, IsAdminUser])
+    @action(
+        detail=True, methods=["post"], permission_classes=[IsAuthenticated, IsAdminUser]
+    )
     def retry(self, request, reference=None):
         txn = get_object_or_404(Transaction, reference=reference)
         txn.retry()
         return Response(data={"status": txn.status})
 
-    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated, IsAdminUser])
+    @action(
+        detail=True, methods=["post"], permission_classes=[IsAuthenticated, IsAdminUser]
+    )
     def refund(self, request, reference=None):
         txn = get_object_or_404(Transaction, reference=reference)
         txn.refund()
         return Response(data={"status": txn.status})
 
-    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated, IsAdminUser])
+    @action(
+        detail=True, methods=["post"], permission_classes=[IsAuthenticated, IsAdminUser]
+    )
     def fund(self, request, reference=None):
         history = get_object_or_404(FundingHistory, txn_ref=reference)
         history.fund()
