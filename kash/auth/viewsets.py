@@ -107,7 +107,9 @@ class AuthViewSet(ViewSet):
         permission_classes=[IsAuthenticated],
     )
     def link_verification_method(self, request):
-        serializer = LinkVerificationMethodSerializer(data=request.data)
+        serializer = LinkVerificationMethodSerializer(
+            data={**request.data, "user_id": request.user.pk}
+        )
         serializer.is_valid(raise_exception=True)
         attempt = self.service.send_verification_code(request.user, serializer.data)
         return Response({"session_token": attempt.session_token})

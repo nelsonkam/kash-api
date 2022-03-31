@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 class LinkVerificationMethodSerializer(serializers.Serializer):
     type = serializers.CharField(required=True)
     value = serializers.CharField(required=True)
+    user_id = serializers.IntegerField(required=True)
 
     def validate_type(self, verification_method_type):
         if verification_method_type not in VerificationMethodType.values:
@@ -55,9 +56,20 @@ class LinkVerificationMethodSerializer(serializers.Serializer):
             type=verification_method_type, value=attrs.get("value"), is_verified=True
         ).exists():
             raise ValidationError(
-                {"value": "Verification method is already associated to an account"},
+                {"value": "Verification method is already verified"},
                 code="unique_verification_method",
             )
+
+        if VerificationMethod.objects.filter(
+            value=attrs.get("value"), user_id=attrs.get("user_id")
+        ).exists():
+            raise ValidationError(
+                {
+                    "value": "Verification method is already associated to another account"
+                },
+                code="unique_verification_method",
+            )
+
         if verification_method_type == VerificationMethodType.phone:
             phone_number = attrs.get("value")
             self.validate_phone(phone_number)
