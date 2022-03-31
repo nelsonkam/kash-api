@@ -60,16 +60,6 @@ class LinkVerificationMethodSerializer(serializers.Serializer):
                 code="unique_verification_method",
             )
 
-        if not VerificationMethod.objects.filter(
-            value=attrs.get("value"), user_id=attrs.get("user_id")
-        ).exists():
-            raise ValidationError(
-                {
-                    "value": "Verification method is already associated to another account"
-                },
-                code="unique_verification_method",
-            )
-
         if verification_method_type == VerificationMethodType.phone:
             phone_number = attrs.get("value")
             self.validate_phone(phone_number)
