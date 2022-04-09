@@ -23,28 +23,7 @@ class AuthViewSet(ViewSet):
 
     @action(detail=False, methods=["post"])
     def register(self, request):
-        serializer = RegisterSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-        user = User.objects.create_user(
-            username=data.get("kashtag"),
-            name=data.get("name"),
-            password=data.get("password"),
-        )
-        profile = UserProfile.objects.create(user=user, kashtag=data.get("kashtag"))
-        refresh = RefreshToken.for_user(user)
-        referral_code = data.get("referral_code")
-
-        if referral_code:
-            Referral.objects.record_referral(profile, referral_code)
-
-        data = {
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-            "user": UserSerializer(instance=user).data,
-        }
-
-        return Response(data)
+        raise NotFound
 
     @action(detail=False, methods=["post"])
     def login(self, request):
