@@ -26,7 +26,9 @@ class CardTestCase(APITestCase):
     def setUpTestData(cls):
         cls.user = User.objects.create(username="test", phone_number="00000000")
         cls.profile = UserProfile.objects.create(user=cls.user, kashtag="test")
-        Rate.objects.get_or_create(code=Rate.Codes.rave_usd_ngn, defaults={"value": 590})
+        Rate.objects.get_or_create(
+            code=Rate.Codes.rave_usd_ngn, defaults={"value": 590}
+        )
 
     def setUp(self) -> None:
         self.client.force_authenticate(user=self.user)
@@ -220,7 +222,9 @@ class CardTestCase(APITestCase):
             {"amount": 10, "phone": "90137010", "gateway": Gateway.mtn},
         )
         data = {"amount": 10, "phone": "90137010", "gateway": Gateway.mtn}
-        response = self.client.post(reverse("virtual-cards-withdraw", kwargs={"pk": card.pk}), data)
+        response = self.client.post(
+            reverse("virtual-cards-withdraw", kwargs={"pk": card.pk}), data
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         txn = Transaction.objects.get(
@@ -229,7 +233,9 @@ class CardTestCase(APITestCase):
             transaction_type=TransactionType.payout,
         )
         history_item = WithdrawalHistory.objects.get(txn_ref=txn.reference, card=card)
-        xof_amount = Conversions.get_xof_from_usd(Money(data.get("amount"), "USD"), is_withdrawal=True)
+        xof_amount = Conversions.get_xof_from_usd(
+            Money(data.get("amount"), "USD"), is_withdrawal=True
+        )
         self.assertEqual(txn.amount, xof_amount)
         self.assertEqual(txn.status, TransactionStatus.success)
         self.assertEqual(history_item.status, WithdrawalHistory.Status.paid_out)
@@ -249,7 +255,9 @@ class CardTestCase(APITestCase):
         card.save(update_fields=["nickname"])
         data = {"amount": 10, "phone": "90137010", "gateway": Gateway.mtn}
         with self.assertRaises(Exception):
-            self.client.post(reverse("virtual-cards-withdraw", kwargs={"pk": card.pk}), data)
+            self.client.post(
+                reverse("virtual-cards-withdraw", kwargs={"pk": card.pk}), data
+            )
 
     def test_card_funding_balance_insufficient(self):
         set_dummy_balance(100)

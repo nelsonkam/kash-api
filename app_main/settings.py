@@ -170,10 +170,7 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
-    "DEFAULT_THROTTLE_CLASSES": [
-        "rest_framework.throttling.AnonRateThrottle",
-    ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "200/day", "verification-code": "6/hour"},
+    "DEFAULT_THROTTLE_RATES": {"verification-code": "6/hour"},
     "DEFAULT_FILTER_BACKENDS": [
         "rest_framework.filters.OrderingFilter",
     ],
@@ -353,3 +350,5 @@ PAYOUT_RECIPIENTS = {
     "harold": {"phone": "62606333", "gateway": "mtn-bj"},
     "tino2": {"phone": "62814106", "gateway": "mtn-bj"},
 }
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880 * 4  # 20MB
