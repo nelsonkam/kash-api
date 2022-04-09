@@ -65,7 +65,6 @@ jobs:
         with:
           source: "."
           target: "~/apps/kash-api"
-          rm: true
 
       # Runs a single command using the runners shell
       - name: Deployment
