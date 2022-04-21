@@ -298,6 +298,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "kash.tasks.compute_metrics",
         "schedule": crontab(hour="9", minute="00", day_of_week="1"),
     },
+    "topup_usd_balance": {
+        "task": "kash.tasks.topup_usd_balance",
+        "schedule": crontab(minute="*/5"),
+    }
 }
 
 CONVERSION_RATES = {"NGN_XOF": 628 / 580, "MARGIN": 0.08}
