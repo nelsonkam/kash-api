@@ -27,6 +27,7 @@ router.register("remote-config", RemoteConfigViewSet, "remote-config")
 
 urlpatterns = router.urls + [
     path("version/", views.version, name="version"),
+    path("health/", views.health, name="health"),
     path("token/refresh", TokenRefreshView.as_view(), name="token_refresh"),
     path("rates/", views.rates, name="rates"),
     path("info/cards/", views.card_info, name="card_info"),
