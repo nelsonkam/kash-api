@@ -349,12 +349,8 @@ SILKY_AUTHORISATION = True
 PAYOUT_RECIPIENTS = {
     "me-moov": {"phone": "98801811", "gateway": "moov-bj"},
     "me-mtn": {"phone": "90137010", "gateway": "mtn-bj"},
-    "tino": {"phone": "69739797", "gateway": "mtn-bj"},
-    "camille-mtn": {"phone": "67607629", "gateway": "mtn-bj"},
-    "camille-mtn2": {"phone": "52286826", "gateway": "mtn-bj"},
+    "camille-mtn": {"phone": "52286826", "gateway": "mtn-bj"},
     "camille-moov": {"phone": "64978775", "gateway": "moov-bj"},
-    "harold": {"phone": "62606333", "gateway": "mtn-bj"},
-    "tino2": {"phone": "62814106", "gateway": "mtn-bj"},
 }
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880 * 4  # 20MB

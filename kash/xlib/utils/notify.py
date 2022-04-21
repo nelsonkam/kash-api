@@ -35,14 +35,49 @@ def notify_slack(message):
 
 def check_funding_status():
     ngn_balance = (
-        rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
+        rave_request(
+            "GET", "/balances/NGN").json().get("data").get("available_balance")
     )
     usd_balance = (
-        rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
+        rave_request(
+            "GET", "/balances/USD").json().get("data").get("available_balance")
     )
-    data = rave_request("GET", f"/rates?from=NGN&to=USD&amount={ngn_balance}").json()
+    data = rave_request(
+        "GET", f"/rates?from=NGN&to=USD&amount={ngn_balance}").json()
     amount = data.get("data").get("to").get("amount")
     return 1000 - (usd_balance + amount)
+
+
+def parse_topup_command(chat_id, arg_list):
+    from kash.payout.models import Topup
+
+    tg_bot = telegram.Bot(token=settings.TG_BOT_TOKEN)
+
+    if len(arg_list) == 2 and arg_list[0] == "start":
+        topup = Topup.objects.create(
+            amount=int(arg_list[1])
+        )
+        tg_bot.send_message(
+            chat_id=chat_id,
+            text=f"Topup (code: {topup.code}) of USD {topup.amount} started.",
+        )
+        return
+    
+    # /topup pay REFID camille-mtn
+    if len(arg_list) == 3 and arg_list[0] == "pay":
+        code = arg_list[1]
+        recipient = arg_list[2]
+        recipient_info = settings.PAYOUT_RECIPIENTS[recipient]
+        topup = Topup.objects.get(code=code)
+        topup.payout_xof(recipient_info.get('phone'), recipient_info.get('gateway'))
+        return
+
+    if len(arg_list) == 2 and arg_list[0] == "cancel":
+        code = arg_list[1]
+        topup = Topup.objects.get(code=code)
+        topup.is_canceled = True
+        topup.save()
+        return
 
 
 def parse_command(data):
@@ -110,6 +145,12 @@ def parse_command(data):
                 request = AdminPayoutRequest.objects.get(code=code)
                 request.execute()
                 return
-        tg_bot.send_message(chat_id=chat_id, text="I couldn't quite get that message.")
+        tg_bot.send_message(
+            chat_id=chat_id, text="I couldn't quite get that message.")
+
+        if text.startswith("/topup") or text.startswith("/top"):
+            commands = text.split(" ")[1:]
+            parse_topup_command(chat_id, commands)
+
     except Exception as err:
         tg_bot.send_message(chat_id=chat_id, text=str(err))

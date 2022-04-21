@@ -1,4 +1,5 @@
 from django.db.models import TextChoices
+from stripe import Payout
 
 
 class PaymentMethod(TextChoices):
