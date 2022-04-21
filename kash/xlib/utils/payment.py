@@ -34,8 +34,8 @@ def fedapay_request(method, url, data=None):
     return requests.request(method, FEDAPAY_URL + url, json=data, headers=headers)
 
 
-def rave_request(method, url, data=None):
-    headers = {"Authorization": f"Bearer {settings.RAVE_SECRET_KEY}"}
+def rave_request(method, url, data=None, secret_key=settings.RAVE_SECRET_KEY):
+    headers = {"Authorization": f"Bearer {secret_key}"}
     resp = requests.request(method, RAVE_URL + url, json=data, headers=headers)
     if 200 > resp.status_code or resp.status_code >= 399:
         try:

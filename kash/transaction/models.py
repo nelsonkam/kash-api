@@ -152,24 +152,6 @@ class Transaction(models.Model):
 def notify(sender, **kwargs):
     txn = kwargs.pop("transaction")
     if (
-        txn.status == TransactionStatus.success
-        or txn.status == TransactionStatus.refunded
-    ):
-        notify_telegram(
-            chat_id=settings.TG_CHAT_ID,
-            text=f"""
-            New successful {txn.transaction_type} on Kash!💪🏾
-
-            Type: {txn.content_type.model}
-            Amount: {txn.amount}
-            Reference: {txn.reference}
-            User: {txn.initiator}
-
-            {"_Ceci est un message test._" if settings.DEBUG or settings.TESTING else ""}
-            """,
-            disable_notification=True,
-        )
-    elif (
         txn.status == TransactionStatus.failed
         and txn.transaction_type == TransactionType.payout
     ):
