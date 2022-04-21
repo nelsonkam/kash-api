@@ -50,11 +50,7 @@ class KYCDocument(BaseModel):
 
 @receiver(post_save, sender=KYCDocument)
 def notify(sender, instance, created, **kwargs):
-    if created:
-        notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"New KYC Document on Kash!🆔")
-
     if instance.doc_url and instance.selfie_url and instance.status == KYCDocument.Status.pending:
-        notify_telegram(chat_id=settings.TG_CHAT_ID, text=f"KYC Document uploaded on Kash!✅")
         notify_slack(
             {
                 "blocks": [

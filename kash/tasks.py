@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import Decimal
 
 from celery import shared_task
 from django.conf import settings
@@ -235,3 +236,32 @@ def deactivate_deleted_rave_card():
                 card.is_permablocked = True
                 card.permablock_reason = "Rave VISA to MasterCard migration"
                 card.save()
+
+@shared_task
+def topup_usd_balance():
+    resp = rave_request("GET", "/balances/NGN", secret_key=settings.NK_RAVE_SECRET_KEY).json()
+    balance = resp.get('data').get("available_balance")
+    if balance < 10000:
+        return
+
+    notify_telegram(
+        chat_id=settings.TG_CHAT_ID,
+        text=f"Found NGN {balance} on FLW account, topping up Futurix account.",
+    )
+    resp = rave_request("GET", f"/rates?from=USD&to=NGN&amount=1", secret_key=settings.NK_RAVE_SECRET_KEY).json()
+    rate = resp.get("data").get("to").get("amount")
+    amount_to_send = round(Decimal(balance) / Decimal(rate), 2)
+    print(int(amount_to_send))
+    payload = {
+        "account_bank": "flutterwave",
+        "account_number": "00717603",
+        "amount": int(amount_to_send),
+        "currency": "USD",
+        "debit_currency": "NGN"
+    }
+    resp = rave_request("POST", '/transfers', data=payload, secret_key=settings.NK_RAVE_SECRET_KEY).json()
+    notify_telegram(
+        chat_id=settings.TG_CHAT_ID,
+        text=f"Futurix account topped up by ${int(amount_to_send)}.",
+    )
+
