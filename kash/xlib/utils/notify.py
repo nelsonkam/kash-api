@@ -101,7 +101,7 @@ def parse_card_command(chat_id, arg_list):
         ]
         tg_bot.send_message(
             chat_id=chat_id,
-            text=f"Cards found:\n." + text.join("\n"),
+            text=f"Cards found:\n." + "\n".join(text),
         )
 
     # /card credit ID amount
