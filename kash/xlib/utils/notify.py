@@ -221,15 +221,19 @@ def parse_command(data):
                 request = AdminPayoutRequest.objects.get(code=code)
                 request.execute()
                 return
-        tg_bot.send_message(chat_id=chat_id, text="I couldn't quite get that message.")
+        
 
         if text.startswith("/topup") or text.startswith("/top"):
             commands = text.split(" ")[1:]
             parse_topup_command(chat_id, commands)
+            return
 
         if text.startswith("/card"):
             commands = text.split(" ")[1:]
             parse_card_command(chat_id, commands)
+            return
+
+        tg_bot.send_message(chat_id=chat_id, text="I couldn't quite get that message.")
 
     except Exception as err:
         tg_bot.send_message(chat_id=chat_id, text=str(err))
