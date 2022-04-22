@@ -4,9 +4,10 @@ import telegram
 from telegram import message
 from hashids import Hashids
 import requests
+from djmoney.money import Money
 
 from .payment import rave_request
-from .utils import GATEWAY_LIST, Gateway
+from .utils import GATEWAY_LIST, CardActionType, Gateway
 
 sc = SlackClient(settings.SLACK_TOKEN)
 
@@ -43,6 +44,116 @@ def check_funding_status():
     data = rave_request("GET", f"/rates?from=NGN&to=USD&amount={ngn_balance}").json()
     amount = data.get("data").get("to").get("amount")
     return 1000 - (usd_balance + amount)
+
+
+def parse_topup_command(chat_id, arg_list):
+    from kash.payout.models import Topup
+
+    tg_bot = telegram.Bot(token=settings.TG_BOT_TOKEN)
+
+    if len(arg_list) == 2 and arg_list[0] == "start":
+        topup = Topup.objects.create(amount=int(arg_list[1]))
+        tg_bot.send_message(
+            chat_id=chat_id,
+            text=f"Topup (code: {topup.code}) of USD {topup.amount} started.",
+        )
+        return
+
+    # /topup pay REFID camille-mtn
+    if len(arg_list) == 3 and arg_list[0] == "pay":
+        code = arg_list[1]
+        recipient = arg_list[2]
+        recipient_info = settings.PAYOUT_RECIPIENTS[recipient]
+        topup = Topup.objects.get(code=code)
+        txn = topup.payout_xof(
+            recipient_info.get("phone"), recipient_info.get("gateway")
+        )
+        tg_bot.send_message(
+            chat_id=chat_id,
+            text=f"Payout of {txn.amount} paid to {recipient} with status: {txn.status}.",
+        )
+        return
+
+    if len(arg_list) == 2 and arg_list[0] == "cancel":
+        code = arg_list[1]
+        topup = Topup.objects.get(code=code)
+        topup.is_canceled = True
+        topup.save()
+        tg_bot.send_message(
+            chat_id=chat_id,
+            text=f"Topup {code} canceled.",
+        )
+        return
+
+
+def parse_card_command(chat_id, arg_list):
+    from kash.card.models import VirtualCard
+    from kash.payout.models import CardAction
+
+    tg_bot = telegram.Bot(token=settings.TG_BOT_TOKEN)
+
+    if len(arg_list) == 2 and arg_list[0] == "find":
+        last_4 = arg_list[1]
+        cards = VirtualCard.objects.filter(last_4=last_4)
+        text = [
+            f"- {card.id} - {card.nickname} ({'active' if card.is_active else 'inactive'})"
+            for card in cards
+        ]
+        tg_bot.send_message(
+            chat_id=chat_id,
+            text=f"Cards found:\n." + text.join("\n"),
+        )
+
+    # /card credit ID amount
+    if len(arg_list) == 3 and arg_list[0] == "credit":
+        card_id = arg_list[1]
+        card = VirtualCard.objects.get(pk=card_id)
+        amount = arg_list[2]
+        action = CardAction.objects.create(
+            amount=int(amount),
+            action_type=CardActionType.funding,
+            card=card
+        )
+        tg_bot.send_message(
+            chat_id=chat_id,
+            text=f"Are you sure you want to fund {card.nickname} ·{card.last_4} ({'active' if card.is_active else 'inactive'}) with USD {amount}?\nConfirmation code: {action.code}",
+        )
+
+    # /card debit ID amount
+    if len(arg_list) == 3 and arg_list[0] == "debit":
+        card_id = arg_list[1]
+        card = VirtualCard.objects.get(pk=card_id)
+        amount = arg_list[2]
+        action = CardAction.objects.create(
+            amount=int(amount),
+            action_type=CardActionType.withdrawal,
+            card=card
+        )
+        tg_bot.send_message(
+            chat_id=chat_id,
+            text=f"Are you sure you want to debit {card.nickname} ·{card.last_4} ({'active' if card.is_active else 'inactive'}) with USD {amount}?\nConfirmation code: {action.code}",
+        )
+
+    if len(arg_list) == 2 and arg_list[0] == "confirm":
+        code = arg_list[1]
+        action = CardAction.objects.get(code=code, is_confirmed=False)
+        action.is_confirmed = True
+        action.save()
+        card = action.card
+        if action.action_type == CardActionType.funding:
+            card.provider.fund(Money(action.amount, "USD"))
+            tg_bot.send_message(
+                chat_id=chat_id,
+                text=f"Cards credited.",
+            )
+        elif action.action_type == CardActionType.withdrawal:
+            card.provider.withdraw(Money(action.amount, "USD"))
+            tg_bot.send_message(
+                chat_id=chat_id,
+                text=f"Cards debited.",
+            )
+
+    
 
 
 def parse_command(data):
@@ -111,5 +222,15 @@ def parse_command(data):
                 request.execute()
                 return
         tg_bot.send_message(chat_id=chat_id, text="I couldn't quite get that message.")
+
+        if text.startswith("/topup") or text.startswith("/top"):
+            commands = text.split(" ")[1:]
+            parse_topup_command(chat_id, commands)
+
+        if text.startswith("/card"):
+            commands = text.split(" ")[1:]
+            parse_card_command(chat_id, commands)
+
     except Exception as err:
         tg_bot.send_message(chat_id=chat_id, text=str(err))
+ 
