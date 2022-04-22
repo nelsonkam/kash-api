@@ -49,6 +49,10 @@ class TransactionStatus(models.TextChoices):
     failed = "failed"
     refunded = "refunded"
 
+class CardActionType(models.TextChoices):
+    funding = "funding"
+    withdrawal = "withdrawal"
+
 
 def generate_reference(digest_size=5):
     person = "".join(str(now().timestamp()).split("."))[:16]

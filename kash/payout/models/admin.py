@@ -2,7 +2,7 @@ from decimal import Decimal
 from django.db import models
 
 from kash.abstract.models import BaseModel, generate_ref_id
-from kash.xlib.utils.utils import TransactionStatus
+from kash.xlib.utils.utils import CardActionType, TransactionStatus
 
 
 class AdminPayoutRequest(BaseModel):
@@ -57,9 +57,14 @@ class Topup(BaseModel):
         self.xof_txn_ref = txn.reference
         self.xof_txn_status = txn.status
         self.save()
+        return txn
         
-
-
+class CardAction(BaseModel):
+    code = models.CharField(max_length=12, default=generate_ref_id, unique=True)
+    is_confirmed = models.BooleanField(default=False)
+    action_type = models.CharField(max_length=100, choices=CardActionType.choices)
+    amount = models.IntegerField()
+    card = models.ForeignKey("kash_card.VirtualCard", on_delete=models.CASCADE)
 
 class Rate(BaseModel):
     class Codes(models.TextChoices):
