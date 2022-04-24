@@ -144,13 +144,13 @@ def parse_card_command(chat_id, arg_list):
             card.provider.fund(card, Money(action.amount, "USD"))
             tg_bot.send_message(
                 chat_id=chat_id,
-                text=f"Cards credited.",
+                text=f"Card credited.",
             )
         elif action.action_type == CardActionType.withdrawal:
             card.provider.withdraw(card, Money(action.amount, "USD"))
             tg_bot.send_message(
                 chat_id=chat_id,
-                text=f"Cards debited.",
+                text=f"Card debited.",
             )
 
     
