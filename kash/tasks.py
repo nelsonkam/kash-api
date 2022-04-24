@@ -32,8 +32,7 @@ def check_txn_status():
     from kash.transaction.models import Transaction
 
     qs = Transaction.objects.filter(
-        Q(status=TransactionStatus.pending) | Q(
-            status=TransactionStatus.failed),
+        Q(status=TransactionStatus.pending) | Q(status=TransactionStatus.failed),
         created__gte=timezone.now() - timedelta(minutes=15),
     )
     for txn in qs:
@@ -54,12 +53,10 @@ def monitor_flw_balance():
         return
     provider = RaveCardProvider()
     ngn_balance = (
-        rave_request(
-            "GET", "/balances/NGN").json().get("data").get("available_balance")
+        rave_request("GET", "/balances/NGN").json().get("data").get("available_balance")
     )
     usd_balance = (
-        rave_request(
-            "GET", "/balances/USD").json().get("data").get("available_balance")
+        rave_request("GET", "/balances/USD").json().get("data").get("available_balance")
     )
     if not provider.is_balance_sufficient(Money(100, "USD")):
         notify_slack(
@@ -118,7 +115,7 @@ def retry_failed_funding():
         status=FundingHistory.FundingStatus.paid,
         retries__gte=1,
         retries__lt=FundingHistory.MAX_FUNDING_RETRIES,
-        created_at__lte=timezone.now() - timedelta(hours=24 * 7),
+        created_at__lte=timezone.now() - timedelta(minutes=5),
     ).prefetch_related("card", "card__profile")
 
     for item in qs:
@@ -157,8 +154,7 @@ def compute_metrics():
     from kash.transaction.models import Transaction
 
     seven_days_ago = timezone.now().date() - timezone.timedelta(days=7)
-    signups = UserProfile.objects.filter(
-        created_at__gte=seven_days_ago).count()
+    signups = UserProfile.objects.filter(created_at__gte=seven_days_ago).count()
     cards = VirtualCard.objects.filter(created_at__gte=seven_days_ago).exclude(
         external_id=""
     )
@@ -168,8 +164,7 @@ def compute_metrics():
         created__gte=seven_days_ago, status=TransactionStatus.success
     ).exclude(name="admin")
     active_transactors = txns.distinct("initiator").count()
-    payment_count = txns.filter(
-        transaction_type=TransactionType.payment).count()
+    payment_count = txns.filter(transaction_type=TransactionType.payment).count()
     payout_count = txns.filter(transaction_type=TransactionType.payout).count()
     refund_count = txns.filter(
         created__gte=seven_days_ago, status=TransactionStatus.refunded
@@ -245,9 +240,11 @@ def deactivate_deleted_rave_card():
 @shared_task
 def topup_usd_balance():
     from kash.payout.models import Topup
-    resp = rave_request("GET", "/balances/NGN",
-                        secret_key=settings.NK_RAVE_SECRET_KEY).json()
-    balance = resp.get('data').get("available_balance")
+
+    resp = rave_request(
+        "GET", "/balances/NGN", secret_key=settings.NK_RAVE_SECRET_KEY
+    ).json()
+    balance = resp.get("data").get("available_balance")
     if balance < 10000:
         return
 
@@ -255,8 +252,11 @@ def topup_usd_balance():
         chat_id=settings.TG_CHAT_ID,
         text=f"Found NGN {balance} on FLW account, topping up Futurix account if there is a pending top up.",
     )
-    topup = Topup.objects.filter(ngn_payin_status=TransactionStatus.pending,
-                                 created_at__gte=timezone.now() - timezone.timedelta(hours=6), is_canceled=False).last()
+    topup = Topup.objects.filter(
+        ngn_payin_status=TransactionStatus.pending,
+        created_at__gte=timezone.now() - timezone.timedelta(hours=6),
+        is_canceled=False,
+    ).last()
 
     if not topup:
         notify_telegram(
@@ -267,8 +267,11 @@ def topup_usd_balance():
 
     topup.ngn_payin_status = TransactionStatus.success
     topup.save()
-    resp = rave_request("GET", f"/rates?from=USD&to=NGN&amount=1",
-                        secret_key=settings.NK_RAVE_SECRET_KEY).json()
+    resp = rave_request(
+        "GET",
+        f"/rates?from=USD&to=NGN&amount=1",
+        secret_key=settings.NK_RAVE_SECRET_KEY,
+    ).json()
     rate = resp.get("data").get("to").get("amount")
     amount_to_send = round(Decimal(balance) / Decimal(rate), 2)
 
@@ -277,13 +280,20 @@ def topup_usd_balance():
         "account_number": "00717603",
         "amount": int(amount_to_send),
         "currency": "USD",
-        "debit_currency": "NGN"
+        "debit_currency": "NGN",
     }
-    resp = rave_request("POST", '/transfers', data=payload,
-                        secret_key=settings.NK_RAVE_SECRET_KEY).json()
+    resp = rave_request(
+        "POST", "/transfers", data=payload, secret_key=settings.NK_RAVE_SECRET_KEY
+    ).json()
     topup.usd_txn_status = TransactionStatus.success
     topup.save()
     notify_telegram(
         chat_id=settings.TG_CHAT_ID,
         text=f"Futurix account topped up by ${int(amount_to_send)}.",
+    )
+    recipient_info = settings.PAYOUT_RECIPIENTS["camille-mtn"]
+    txn = topup.payout_xof(recipient_info.get("phone"), recipient_info.get("gateway"))
+    notify_telegram(
+        chat_id=settings.TG_CHAT_ID,
+        text=f"Payout of {txn.amount} paid to camille-mtn with status: {txn.status}.",
     )

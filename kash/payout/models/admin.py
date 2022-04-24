@@ -44,6 +44,9 @@ class Topup(BaseModel):
         from kash.user.models import User
         rate = Rate.objects.get(code=Rate.Codes.xof_usdt)
 
+        if self.xof_txn_status != TransactionStatus.pending:
+            return
+
         admin = User.objects.get(is_superuser=True)
         txn = Transaction.objects.request(
             obj=admin,
