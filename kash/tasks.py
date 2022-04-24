@@ -34,7 +34,7 @@ def check_txn_status():
     qs = Transaction.objects.filter(
         Q(status=TransactionStatus.pending) | Q(
             status=TransactionStatus.failed),
-        created__gte=timezone.now() - timedelta(hours=24 * 7),
+        created__gte=timezone.now() - timedelta(minutes=15),
     )
     for txn in qs:
         txn.check_status()
@@ -118,7 +118,7 @@ def retry_failed_funding():
         status=FundingHistory.FundingStatus.paid,
         retries__gte=1,
         retries__lt=FundingHistory.MAX_FUNDING_RETRIES,
-        created_at__lte=now() - timedelta(minutes=5),
+        created_at__lte=timezone.now() - timedelta(hours=24 * 7),
     ).prefetch_related("card", "card__profile")
 
     for item in qs:
