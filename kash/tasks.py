@@ -34,7 +34,7 @@ def check_txn_status():
     qs = Transaction.objects.filter(
         Q(status=TransactionStatus.pending) | Q(
             status=TransactionStatus.failed),
-        created__gte=now() - timedelta(minutes=15),
+        created__gte=timezone.now() - timedelta(hours=24 * 7),
     )
     for txn in qs:
         txn.check_status()
