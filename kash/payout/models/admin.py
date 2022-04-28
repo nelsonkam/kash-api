@@ -73,6 +73,7 @@ class Rate(BaseModel):
     class Codes(models.TextChoices):
         rave_usd_ngn = "rave-usd-ngn"
         xof_usdt = "xof-usdt"
+        ngn_usdt = "ngn-usdt"
 
     class Meta:
         db_table = "kash_rate"

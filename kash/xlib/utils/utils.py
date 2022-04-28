@@ -1,3 +1,4 @@
+from cmath import log
 from _blake2 import blake2b
 from decimal import Decimal
 from enum import Enum as BaseEnum
@@ -82,7 +83,10 @@ class Conversions:
 
         rate = Rate.objects.get(code=Rate.Codes.rave_usd_ngn)
         ngn_rate = Money(rate.value, "NGN")
-        rate_to_charge = (ngn_rate * settings.CONVERSION_RATES["NGN_XOF"]) / (1 - settings.CONVERSION_RATES["MARGIN"])
+        ngn_usdt_rate = Rate.objects.get(code=Rate.Codes.ngn_usdt)
+        xof_usdt_rate = Rate.objects.get(code=Rate.Codes.xof_usdt)
+        ngn_xof_rate = xof_usdt_rate.value / ngn_usdt_rate.value
+        rate_to_charge = (ngn_rate * ngn_xof_rate) / (1 - settings.CONVERSION_RATES["MARGIN"])
         rate_to_charge = rate_to_charge.amount - (
             rate_to_charge.amount * Decimal(settings.WITHDRAWAL_RATE) if is_withdrawal else 0
         )
