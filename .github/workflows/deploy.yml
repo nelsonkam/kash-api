@@ -38,10 +38,10 @@ jobs:
         uses: appleboy/ssh-action@v0.1.4
         env:
           ENV_VAR: ${{secrets.ENV_VAR}}
+          HOST: ${{ secrets.SSH_API_1_HOST }}
+          USERNAME: ${{ secrets.SSH_USERNAME }}
+          KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         with:
-          host: ${{ secrets.SSH_API_1_HOST }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          username: ${{ secrets.SSH_USERNAME }}
           script: |
             cd ~/apps/kash-api
             echo "${{ secrets.ENV_VAR }}" > .env
