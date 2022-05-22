@@ -26,7 +26,7 @@ class QosicTransactionViewSet(ReadOnlyModelViewSet):
         if self.request.user and self.request.user.is_staff:
             queryset = self.filter_queryset(Transaction.objects.all())
         else:
-            queryset = self.filter_queryset(self.get_queryset())
+            queryset = self.filter_queryset(Transaction.objects.none())
 
         # Perform the lookup filtering.
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field

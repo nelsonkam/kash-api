@@ -195,12 +195,8 @@ class VirtualCardViewSet(BaseViewSet):
     @action(detail=True, methods=["post"])
     def withdraw(self, request, pk=None):
         card = self.get_object()
-        card.withdraw(
-            Money(request.data.get("amount"), "USD"),
-            phone=request.data.get("phone"),
-            gateway=request.data.get("gateway"),
-        )
-        return Response(self.get_serializer(card).data)
+        raise "Withdrawal disabled"
+        return Response(500)
 
     @action(
         detail=False,

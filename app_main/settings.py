@@ -351,6 +351,7 @@ PAYOUT_RECIPIENTS = {
     "me-mtn": {"phone": "90137010", "gateway": "mtn-bj"},
     "camille-mtn": {"phone": "52286826", "gateway": "mtn-bj"},
     "camille-moov": {"phone": "64978775", "gateway": "moov-bj"},
+    "tino-moov": {"phone": "94746489", "gateway": "moov-bj"},
 }
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880 * 4  # 20MB
