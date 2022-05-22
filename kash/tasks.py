@@ -297,3 +297,23 @@ def topup_usd_balance():
         chat_id=settings.TG_CHAT_ID,
         text=f"Payout of {txn.amount} paid to camille-mtn with status: {txn.status}.",
     )
+
+# @shared_task
+def create_refund_history():
+    from kash.card.models import VirtualCard, RefundHistory
+    qs = VirtualCard.objects.exclude(external_id='').filter(refund__isnull=True, is_active=True, is_permablocked=False)
+    print(qs.count())
+    for card in qs:
+        try:
+            print(card.external_id, card.id)
+            RefundHistory.objects.create(
+                card=card,
+                card_balance=Money(card.card_details.get("amount"), "USD")
+            )
+        except Exception as err:
+            print(err)
+            if "not found" in str(err).lower() or "unable to get" in str(err).lower():
+                print(f"Card #{card.pk} permablocked: {err}")
+                card.is_permablocked = True
+                card.permablock_reason = "unknown"
+                card.save()

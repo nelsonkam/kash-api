@@ -225,6 +225,54 @@ class VirtualCard(BaseModel):
         self.save()
         return
 
+class RefundHistory(BaseModel):
+    class Status(models.TextChoices):
+        paid_out = "paid-out"
+        failed = "failed"
+        pending = "pending"
+        withdrawn = "withdrawn"
+    card = models.OneToOneField(VirtualCard, on_delete=models.CASCADE, related_name='refund')
+    txn_ref = models.CharField(max_length=255, blank=True)
+    card_balance = MoneyField(max_digits=17, decimal_places=2, default_currency="USD")
+    xof_amount = MoneyField(max_digits=17, decimal_places=2, default_currency="XOF", blank=True, null=True)
+    usd_amount = MoneyField(max_digits=17, decimal_places=2, default_currency="USD", blank=True, null=True)
+    status = models.CharField(max_length=15, choices=Status.choices, default=Status.pending)
+
+    def withdraw(self):
+        self.usd_amount = round(self.card_balance - Money(1, "USD"))
+        self.save()
+        self.card.provider.withdraw(self.usd_amount)
+        self.status = "withdrawn"
+        self.save()
+
+
+    def payout(self, phone=None, gateway=None):
+        from kash.transaction.models import Transaction
+
+        if self.status != RefundHistory.Status.withdrawn:
+            return
+
+        withdraw_amount = Conversions.get_xof_from_usd(self.amount, is_withdrawal=True)
+        if not (phone and gateway):
+            phone, gateway = self.card.profile.get_momo_account()
+
+        if phone and gateway:
+            txn = Transaction.objects.create(
+                obj=self.card,
+                name=self.card.profile.name,
+                amount=withdraw_amount,
+                phone=phone,
+                gateway=gateway,
+                initiator=self.card.profile.user,
+                txn_type=TransactionType.payout,
+            )
+            self.txn_ref = txn.reference
+            self.save()
+            txn.payout()
+            if txn.status == TransactionStatus.success:
+                self.status = WithdrawalHistory.Status.paid_out
+                self.save()
+
 
 class FundingHistory(BaseModel):
     MAX_FUNDING_RETRIES = 2
