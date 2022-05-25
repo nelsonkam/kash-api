@@ -320,7 +320,7 @@ def create_refund_history():
 
 @shared_task
 def withdraw_cards():
-    from kash.card.models import VirtualCard, RefundHistory
+    from kash.card.models import RefundHistory
     qs = RefundHistory.objects.exclude(status="withdrawn")
     for refund in qs:
         try:

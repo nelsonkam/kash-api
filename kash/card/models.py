@@ -237,11 +237,11 @@ class RefundHistory(BaseModel):
     xof_amount = MoneyField(max_digits=17, decimal_places=2, default_currency="XOF", blank=True, null=True)
     usd_amount = MoneyField(max_digits=17, decimal_places=2, default_currency="USD", blank=True, null=True)
     status = models.CharField(max_length=15, choices=Status.choices, default=Status.pending)
-
+ 
     def withdraw(self):
         self.usd_amount = round(self.card_balance - Money(1, "USD"))
         self.save()
-        self.card.provider.withdraw(self.usd_amount)
+        self.card.provider.withdraw(self.card, self.usd_amount)
         self.status = "withdrawn"
         self.save()
 
