@@ -344,3 +344,13 @@ def check_pending_refunds():
                 card.is_permablocked = True
                 card.permablock_reason = "unknown"
                 card.save()
+
+@shared_task
+def refund_all_customers():
+    from kash.card.models import RefundHistory
+    qs = RefundHistory.objects.filter(status="withdrawn")
+    for refund in qs:
+        try:
+            refund.payout()
+        except Exception as err:
+            print(err)

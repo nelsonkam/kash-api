@@ -292,14 +292,14 @@ class RefundHistory(BaseModel):
                 self.save()
                 self.card.profile.push_notify(
                     "Remboursement",
-                    f"Nous vous avons remboursé {self.xof_amount} pour votre carte {self.card.nickname} ({self.card.last4}) sur le {phone}.",
+                    f"Nous vous avons remboursé {self.xof_amount} pour votre carte {self.card.nickname} ({self.card.last_4}) sur le {phone}.",
                     self.card,
                 )
                 phone_number = txn.initiator.phone_number
                 if phone_number:
-                    send_sms(phone_number, f"Kash vous a rembourse {self.xof_amount} pour votre carte {self.card.nickname} ({self.card.last4}) sur le {phone}.")
+                    send_sms(phone_number, f"Kash vous a rembourse {self.xof_amount} pour votre carte {self.card.nickname} ({self.card.last_4}) sur le {phone}.")
                 else:
-                    send_sms(f"+229{phone}", f"Kash vous a rembourse {self.xof_amount} pour votre carte {self.card.nickname} ({self.card.last4}) sur le {phone}.")
+                    send_sms(f"+229{phone}", f"Kash vous a rembourse {self.xof_amount} pour votre carte {self.card.nickname} ({self.card.last_4}) sur le {phone}.")
 
 
 
