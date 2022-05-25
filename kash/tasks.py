@@ -317,3 +317,13 @@ def create_refund_history():
                 card.is_permablocked = True
                 card.permablock_reason = "unknown"
                 card.save()
+
+@shared_task
+def withdraw_cards():
+    from kash.card.models import VirtualCard, RefundHistory
+    qs = RefundHistory.objects.exclude(status="withdrawn")
+    for refund in qs:
+        try:
+            refund.withdraw()
+        except Exception as err:
+            print(err)
