@@ -318,7 +318,7 @@ def create_refund_history():
                 card.permablock_reason = "unknown"
                 card.save()
 
-# @shared_task
+@shared_task
 def withdraw_cards():
     from kash.card.models import RefundHistory
     qs = RefundHistory.objects.exclude(status="withdrawn").exclude(status="withdraw_error")
