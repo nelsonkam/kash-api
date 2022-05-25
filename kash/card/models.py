@@ -15,6 +15,7 @@ from kash.xlib.signals import (
     virtual_card_issued,
     virtual_card_funded,
 )
+from kash.xlib.utils.sms import send_sms
 from kash.xlib.utils.utils import (
     TransactionType,
     Conversions,
@@ -226,6 +227,7 @@ class VirtualCard(BaseModel):
         self.save()
         return
 
+
 class RefundHistory(BaseModel):
     class Status(models.TextChoices):
         paid_out = "paid-out"
@@ -233,13 +235,22 @@ class RefundHistory(BaseModel):
         pending = "pending"
         withdrawn = "withdrawn"
         withdraw_error = "withdraw_error"
-    card = models.OneToOneField(VirtualCard, on_delete=models.CASCADE, related_name='refund')
+
+    card = models.OneToOneField(
+        VirtualCard, on_delete=models.CASCADE, related_name="refund"
+    )
     txn_ref = models.CharField(max_length=255, blank=True)
     card_balance = MoneyField(max_digits=17, decimal_places=2, default_currency="USD")
-    xof_amount = MoneyField(max_digits=17, decimal_places=2, default_currency="XOF", blank=True, null=True)
-    usd_amount = MoneyField(max_digits=17, decimal_places=2, default_currency="USD", blank=True, null=True)
-    status = models.CharField(max_length=15, choices=Status.choices, default=Status.pending)
- 
+    xof_amount = MoneyField(
+        max_digits=17, decimal_places=2, default_currency="XOF", blank=True, null=True
+    )
+    usd_amount = MoneyField(
+        max_digits=17, decimal_places=2, default_currency="USD", blank=True, null=True
+    )
+    status = models.CharField(
+        max_length=15, choices=Status.choices, default=Status.pending
+    )
+
     def withdraw(self):
         self.usd_amount = Money(int(self.card_balance.amount), "USD") - Money(1, "USD")
         print(self.card_balance, self.usd_amount)
@@ -252,14 +263,13 @@ class RefundHistory(BaseModel):
             self.status = "withdraw_error"
             self.save()
 
-
     def payout(self, phone=None, gateway=None):
         from kash.transaction.models import Transaction
 
         if self.status != RefundHistory.Status.withdrawn:
             return
 
-        withdraw_amount = Conversions.get_xof_from_usd(self.amount, is_withdrawal=True)
+        withdraw_amount = Conversions.get_xof_from_usd(self.usd_amount, is_withdrawal=True)
         if not (phone and gateway):
             phone, gateway = self.card.profile.get_momo_account()
 
@@ -278,7 +288,19 @@ class RefundHistory(BaseModel):
             txn.payout()
             if txn.status == TransactionStatus.success:
                 self.status = WithdrawalHistory.Status.paid_out
+                self.xof_amount = txn.amount
                 self.save()
+                self.card.profile.push_notify(
+                    "Remboursement",
+                    f"Nous vous avons remboursé {self.xof_amount} pour votre carte {self.card.nickname} ({self.card.last4}) sur le {phone}.",
+                    self.card,
+                )
+                phone_number = txn.initiator.phone_number
+                if phone_number:
+                    send_sms(phone_number, f"Kash vous a rembourse {self.xof_amount} pour votre carte {self.card.nickname} ({self.card.last4}) sur le {phone}.")
+                else:
+                    send_sms(f"+229{phone}", f"Kash vous a rembourse {self.xof_amount} pour votre carte {self.card.nickname} ({self.card.last4}) sur le {phone}.")
+
 
 
 class FundingHistory(BaseModel):

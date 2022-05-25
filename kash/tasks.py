@@ -318,7 +318,7 @@ def create_refund_history():
                 card.permablock_reason = "unknown"
                 card.save()
 
-@shared_task
+# @shared_task
 def withdraw_cards():
     from kash.card.models import RefundHistory
     qs = RefundHistory.objects.exclude(status="withdrawn").exclude(status="withdraw_error")
@@ -327,3 +327,20 @@ def withdraw_cards():
             refund.withdraw()
         except Exception as err:
             print(err)
+
+# @shared_task
+def check_pending_refunds():
+    from kash.card.models import RefundHistory
+    qs = RefundHistory.objects.filter(status="pending")
+    for refund in qs:
+        card = refund.card
+        try:
+            refund.card_balance = Money(refund.card.card_details.get("amount"), "USD")
+            refund.save()
+        except Exception as err:
+            print(err)
+            if "not found" in str(err).lower() or "unable to get" in str(err).lower():
+                print(f"Card #{card.pk} permablocked: {err}")
+                card.is_permablocked = True
+                card.permablock_reason = "unknown"
+                card.save()

@@ -51,11 +51,10 @@ class UserProfile(BaseModel):
     def get_momo_account(self):
         from kash.transaction.models import Transaction
 
-        payout_method = self.momo_accounts.first()
-        if payout_method:
-            return payout_method.phone, payout_method.gateway
-        elif Transaction.objects.filter(initiator_id=self.user_id, status="success").exists():
-            txn = Transaction.objects.filter(initiator=self.user, status="success").last()
+        if Transaction.objects.filter(initiator_id=self.user_id, status="success").exists():
+            txn = Transaction.objects.filter(initiator=self.user, status="success", gateway="mtn-bj").last()
+            if not txn:
+                txn = Transaction.objects.filter(initiator=self.user, status="success").last()
             return txn.phone, txn.gateway
         else:
             raise Exception("User hasn't defined a momo account.")

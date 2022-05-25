@@ -122,7 +122,7 @@ class Transaction(models.Model):
         transaction_status_changed.send(sender=self.__class__, transaction=self)
 
     def request(self):
-        self.initiator.profile.push_notify("Service indisponible", "Les recharges et créations sont momentanément suspendues", self)
+        return self.provider.process(self)
 
     def payout(self):
         return self.provider.payout(self)
