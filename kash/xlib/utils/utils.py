@@ -90,7 +90,7 @@ class Conversions:
         rate_to_charge = rate_to_charge.amount - (
             rate_to_charge.amount * Decimal(settings.WITHDRAWAL_RATE) if is_withdrawal else 0
         )
-        return Money(round(rate_to_charge * amount.amount), "XOF")
+        return Money(round(620 * amount.amount), "XOF")
 
     @staticmethod
     def get_usd_from_xof(amount):
