@@ -1,3 +1,4 @@
+from math import floor
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -231,6 +232,7 @@ class RefundHistory(BaseModel):
         failed = "failed"
         pending = "pending"
         withdrawn = "withdrawn"
+        withdraw_error = "withdraw_error"
     card = models.OneToOneField(VirtualCard, on_delete=models.CASCADE, related_name='refund')
     txn_ref = models.CharField(max_length=255, blank=True)
     card_balance = MoneyField(max_digits=17, decimal_places=2, default_currency="USD")
@@ -239,11 +241,16 @@ class RefundHistory(BaseModel):
     status = models.CharField(max_length=15, choices=Status.choices, default=Status.pending)
  
     def withdraw(self):
-        self.usd_amount = round(self.card_balance - Money(1, "USD"))
+        self.usd_amount = Money(int(self.card_balance.amount), "USD") - Money(1, "USD")
+        print(self.card_balance, self.usd_amount)
         self.save()
-        self.card.provider.withdraw(self.card, self.usd_amount)
-        self.status = "withdrawn"
-        self.save()
+        if self.usd_amount.amount > 0:
+            self.card.provider.withdraw(self.card, self.usd_amount)
+            self.status = "withdrawn"
+            self.save()
+        else:
+            self.status = "withdraw_error"
+            self.save()
 
 
     def payout(self, phone=None, gateway=None):
