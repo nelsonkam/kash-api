@@ -1,20 +1,36 @@
 erDiagram
+    User ||--|| UserProfile : "profile"
     KYCDocument ||--|| UserProfile : "profile"
     Notification ||--|| UserProfile : "profile"
     VirtualCard ||--|| UserProfile : "profile"
     FundingHistory ||--|| VirtualCard : "card"
     WithdrawalHistory ||--|| VirtualCard : "card"
-    Earning {
-        string operation
-        string txn_ref
-    }
+    Earning ||--o{ Transaction : "transaction"
     InviteCode ||--|| UserProfile : "inviter"
     InviteCode ||--o| UserProfile : "invited"
     Referral ||--|| UserProfile : "referred"
     Referral }|--|| UserProfile : "referrer"
     Transaction ||--o| User : "initiator"
     PromoCode }|--o{ UserProfile : "applied_to"
+    VerificationMethod }|--|| UserProfile : "profile"
+    AdminPayoutRequest ||--o| Transaction : "transaction"
+    Topup ||--o| Transaction : "transaction"
+    CardAction ||--|| VirtualCard : "card"
+    Rate ||--o{ Topup : "topup"
 
+    User {
+        string username
+        string name
+        string phone_number
+        string avatar_url
+    }
+    UserProfile {
+        string kashtag
+        array device_ids
+        string avatar_url
+        string referral_code
+        int promo_balance
+    }
     KYCDocument {
         string doc_url
         string document_type
@@ -50,6 +66,11 @@ erDiagram
         money amount
         string status
     }
+    Earning {
+        money amount
+        string operation
+        string txn_ref
+    }
     InviteCode {
         string code
         datetime used_at
@@ -79,4 +100,34 @@ erDiagram
         int value
         datetime expires_at
         boolean is_valid
+    }
+    VerificationMethod {
+        string type
+        string value
+        boolean is_verified
+    }
+    AdminPayoutRequest {
+        string code
+        string phone
+        string gateway
+        int amount
+    }
+    Topup {
+        string code
+        int amount
+        string ngn_payin_status
+        string xof_txn_status
+        string usd_txn_status
+        string xof_txn_ref
+        boolean is_canceled
+    }
+    CardAction {
+        string code
+        boolean is_confirmed
+        string action_type
+        int amount
+    }
+    Rate {
+        string code
+        decimal value
     }
