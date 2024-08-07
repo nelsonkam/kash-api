@@ -1,6 +1,8 @@
 # Kash - Digital Wallet and Virtual Card Platform
 
-Kash is a comprehensive digital wallet and virtual card platform designed to provide seamless financial services to users. This project includes features such as user management, KYC verification, virtual card issuance and management, transaction processing, and more.
+Kash is a comprehensive digital wallet and virtual card platform designed to provide seamless financial services to users. This project includes features such as user management, KYC verification, virtual card issuance and management, transaction processing, and more. 
+
+I wrote a technical overview of the codebase [here](https://nelsonkamga.com/tech/kash.html).
 
 ## Key Features
 
